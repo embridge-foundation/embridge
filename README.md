@@ -1,41 +1,48 @@
-# Item Bridge
+# Embridge
 
-**Summary:** A markdown-based format for item/task lists that bridges humans, AI agents, and app GUIs.
-**Version:** 0.0.1
-**Licence:** CC0, Open Source
+A markdown-based format for item/task lists that work for humans and AI agents.
 
-## Project requirements
+## Why Embridge?
 
-- Humans can read and edit it naturally
-- Humans can edit it in simple interfaces, like a CLI
-- AI can edit and read it quickly
-- Git can track changes
-- No vendor lock-in (Open Source)
+Item/Task management tools lock your data in proprietary formats. Embridge is different:
 
-## Format
+- **Human-readable** - It's just markdown. Edit in any text editor.
+- **AI-friendly** - Structured enough for agents to parse and modify reliably.
+- **Git-native** - Track changes, review diffs, collaborate with PRs.
+- **No lock-in** - Your data stays yours. Plain text forever.
+
+## Quick Example
 
 ```markdown
 ## To-do
-- [ ] An item title
-  descr:"This is an item" prio:high tags:api,backend due:2025-01-20 id:abc123
-  - [ ] Subtask
-    descr:"This is a subitem" id:def456
+- [ ] Fix login timeout bug
+  prio:high due:2025-01-20 id:abc123
+- [ ] Add unit tests for auth module
+  tags:testing,backend id:def456
 
 ## Done
-- [x] A completed item
+- [x] Set up CI pipeline
   id:ghi789
 
 <!--
-itembridge:0.0.1
+embridge:0.0.1
 sync:2025-01-15T09:00:00-05:00
 uuid:0188b200-0000-7000-8000-000000000000
 -->
 ```
 
-## Spec
+## How It Works
 
-See [20260111_item_list_format_specification.md](20260111_item_list_format_specification.md) for the full specification and [20260111_markdown_spec_demo_v0_0_1.md](20260111_markdown_spec_demo_v0_0_1.md) for a working example.
+1. **Lists** are H2 headings (`## To-do`, `## In Progress`, `## Done`)
+2. **Items or tasks** are markdown dashes (`- [ ]` or `- [x]`)
+3. **Metadata** sits on the indented line below: `prio:high due:2025-01-20 id:abc123`
+4. **Document metadata** lives in an HTML comment at the end
+
+## Documentation
+
+- [Full Specification](20260111_embridge_format_specifications.md) - Complete format reference
+- [Example File](20260111_embridge_output_demo_v0_0_1.md) - A working demo
 
 ## License
 
-CC0 1.0 Universal
+CC0 1.0 Universal - Public domain. Use it however you want.

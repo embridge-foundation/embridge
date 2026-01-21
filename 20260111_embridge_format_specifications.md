@@ -1,15 +1,15 @@
-# Specifications for Item Bridge: an open source item list format
+# Specifications for Embridge: an open source item/task list format
 
 **Version:** 0.0.1
 **Last Updated:** 2025-01-18
-**Example of output** in output file 20260111_markdown_spec_demo_v*.md
-**Authors** xpiu
+**Example of output** in output file 20260111_embridge_output_demo_v*.md
+**Author** xpiu
 
 ---
 
 ## Overview
 
-This specification defines a markdown-based format for storing item or task lists that serves as a **bridge** between human editors, AI agents, and application GUIs. The format prioritizes legibility and flexibility while remaining parseable by machines.
+This specification defines a markdown-based format for storing item/task lists that serves as a **bridge** between human editors, AI agents, and application GUIs. The format prioritizes legibility and flexibility while remaining parseable by machines. Embridge is an edited abbreviation of the words 'item' and 'bridge'.
 
 ---
 
@@ -25,7 +25,7 @@ This specification defines a markdown-based format for storing item or task list
 
 ## Bridge Philosophy
 
-This format exists to solve a fundamental tension in task management:
+This format exists to solve a fundamental tension in item/task management:
 
 ```
 Strict formats        ←────────────→        No format
@@ -45,10 +45,10 @@ Strict formats        ←────────────→        No forma
    The format defines structure (lists, indentation), not validation. Field values are interpreted liberally.
 
 3. **Everything is optional.**
-   A valid task can be a single line. Metadata is added only when needed.
+   A valid item/task can be a single line. Metadata is added only when needed.
 
 4. **The `.md` file is the source of truth for content.**
-   Application databases store supplementary data (UI preferences, colors). The markdown file owns the tasks.
+   Application databases store supplementary data (UI preferences, colors). The markdown file owns the items/tasks.
 
 ### Integration Model
 
@@ -87,19 +87,19 @@ Strict formats        ←────────────→        No forma
 # {Project Name}
 
 ## {List Name}
-- [ ] {Task title}
+- [ ] {Item/Task title}
   {metadata line}
   {optional description line}
 
-- {Task without checkbox}
+- {Item/Task without checkbox}
   {metadata line}
 
 ## {Another List Name}
-- [x] {Completed task}
+- [x] {Completed item/task}
   {metadata line}
 
 <!--
-itembridge:{version}
+embridge:{version}
 sync:{ISO 8601 timestamp}
 uuid:{document identifier, UUIDv7 recommended}
 -->
@@ -109,15 +109,15 @@ uuid:{document identifier, UUIDv7 recommended}
 
 ## Syntax Reference
 
-### Tasks
+### Items/Tasks
 
-A task is a markdown list item. All of the following are valid:
+An item/task is a markdown list item. All of the following are valid:
 
 ```markdown
-- [ ] Task with unchecked checkbox
-- [x] Task with checked checkbox (lowercase)
-- [X] Task with checked checkbox (uppercase)
-- Task without checkbox
+- [ ] Item/Task with unchecked checkbox
+- [x] Item/Task with checked checkbox (lowercase)
+- [X] Item/Task with checked checkbox (uppercase)
+- Item/Task without checkbox
 ```
 
 **Parsing rules:**
@@ -127,10 +127,10 @@ A task is a markdown list item. All of the following are valid:
 
 ### Metadata Line
 
-The line immediately following a task (indented with 2 spaces) contains metadata as `key:value` pairs separated by spaces.
+The line immediately following an item/task (indented with 2 spaces) contains metadata as `key:value` pairs separated by spaces.
 
 ```markdown
-- [ ] Example task
+- [ ] Example item/task
   status:todo prio:high tags:backend,api due:2025-01-15 id:a1b2c3
 ```
 
@@ -164,46 +164,46 @@ The line immediately following a task (indented with 2 spaces) contains metadata
 An optional second indented line can contain a longer description:
 
 ```markdown
-- [ ] Complex task
+- [ ] Complex item/task
   prio:high due:2025-01-15 id:a1b2c3
-  descr:"This is a longer description that explains the task in detail"
+  descr:"This is a longer description that explains the item/task in detail"
 ```
 
 Or as a plain line (parser infers it's a description if it doesn't match `key:value` pattern):
 
 ```markdown
-- [ ] Complex task
+- [ ] Complex item/task
   prio:high id:a1b2c3
   This is the description without a key prefix
 ```
 
-### Subtasks
+### Subitems/Subtasks
 
-Tasks can contain nested subtasks using standard markdown list nesting. Subtasks are indented 2 spaces from their parent.
+Items/Tasks can contain nested subitems/subtasks using standard markdown list nesting. Subitems/Subtasks are indented 2 spaces from their parent.
 
 ```markdown
-- [ ] Parent task
+- [ ] Parent item/task
   prio:high id:a1b2c3
-  - [ ] Subtask one
+  - [ ] Subitem/Subtask one
     status:todo id:d4e5f6
-  - Subtask two (no checkbox)
-    descr:"Subtasks can omit things like checkboxes and id"
+  - Subitem/Subtask two (no checkbox)
+    descr:"Subitems/Subtasks can omit things like checkboxes and id"
 ```
 
 **Indentation rules:**
 
 | Indent | Content |
 |--------|---------|
-| 0 | Parent task |
-| 2 | Parent metadata OR subtask (`- [ ]` or `-`) |
-| 4 | Subtask metadata |
-| 4 | Sub-subtask (if needed) |
-| 6 | Sub-subtask metadata |
+| 0 | Parent item/task |
+| 2 | Parent metadata OR subitem/subtask (`- [ ]` or `-`) |
+| 4 | Subitem/Subtask metadata |
+| 4 | Sub-subitem/subtask (if needed) |
+| 6 | Sub-subitem/subtask metadata |
 
 **Parsing rules:**
-- After a task's metadata line, any indented line starting with `-` is a subtask
-- Subtask metadata is indented +2 spaces from its `-` marker
-- Subtasks follow the same syntax as tasks (optional checkbox, optional metadata)
+- After an item/task's metadata line, any indented line starting with `-` is a subitem/subtask
+- Subitem/Subtask metadata is indented +2 spaces from its `-` marker
+- Subitems/Subtasks follow the same syntax as items/tasks (optional checkbox, optional metadata)
 - Nesting depth is unlimited but 2 levels is typical
 
 ### Lists (Sections)
@@ -212,18 +212,18 @@ H2 headings (`##`) define lists/groups. The heading text is the list name.
 
 ```markdown
 ## Backlog
-- [ ] Task in backlog
+- [ ] Item/Task in backlog
 
 ## In Progress
-- [ ] Task being worked on
+- [ ] Item/Task being worked on
 
 ## Done
-- [x] Completed task
+- [x] Completed item/task
 ```
 
 **Rules:**
 - List names are arbitrary (not predefined statuses)
-- A task's list membership is determined by which section it's under
+- An item/task's list membership is determined by which section it's under
 - The `status` field is independent of list membership
 
 ### Document Metadata
@@ -232,7 +232,7 @@ An HTML comment at the end of the file contains document-level metadata. All fie
 
 ```markdown
 <!--
-itembridge:0.0.1
+embridge:0.0.1
 sync:2025-01-15T09:00:00-05:00
 uuid:0188b200-0000-7000-8000-000000000000
 -->
@@ -240,7 +240,7 @@ uuid:0188b200-0000-7000-8000-000000000000
 
 | Field | Description |
 |-------|-------------|
-| `itembridge` | Format version (semver) — enables parsers to detect compatibility |
+| `embridge` | Format version (semver) — enables parsers to detect compatibility |
 | `sync` | ISO 8601 timestamp of last sync |
 | `uuid` | Unique document identifier (UUIDv7 recommended) for sync matching across renames/moves |
 
@@ -255,7 +255,7 @@ uuid:0188b200-0000-7000-8000-000000000000
    b. For each list item (`-`) at indent level N:
       i.   Line 1: Parse checkbox state and title
       ii.  Line 2 (if indent N+2, matches key:value): Parse metadata
-      iii. Lines at indent N+2 starting with `-`: Parse as subtasks (recurse)
+      iii. Lines at indent N+2 starting with `-`: Parse as subitems/subtasks (recurse)
       iv.  Other indented lines: Additional description
 3. Parse HTML comment for document metadata
 4. Items without `id` field → Generate ID, mark file as modified
@@ -263,7 +263,7 @@ uuid:0188b200-0000-7000-8000-000000000000
 
 ### Regex Patterns
 
-**Task line:**
+**Item/Task line:**
 ```regex
 ^- \[([ xX])\] (.+)$|^- (.+)$
 ```
@@ -287,7 +287,7 @@ uuid:0188b200-0000-7000-8000-000000000000
 When the application writes to the `.md` file:
 
 1. Preserve existing structure and formatting where possible
-2. Add `id` field to any task missing one
+2. Add `id` field to any item/task missing one
 3. Update `sync` timestamp in document metadata
 4. Do NOT write app-only data (colors, UI state) to markdown
 
@@ -295,10 +295,10 @@ When the application writes to the `.md` file:
 
 When the application reads the `.md` file:
 
-1. Match tasks by `id` field
-2. Tasks with new IDs → Create in database
-3. Tasks with known IDs → Update database from markdown (markdown wins)
-4. Tasks in database but missing from markdown → Delete from database
+1. Match items/tasks by `id` field
+2. Items/Tasks with new IDs → Create in database
+3. Items/Tasks with known IDs → Update database from markdown (markdown wins)
+4. Items/Tasks in database but missing from markdown → Delete from database
 5. Apply default values for missing fields
 
 ### Conflict Resolution
@@ -338,7 +338,7 @@ This format enables a decoupled architecture where:
 
 **Benefits:**
 - No vendor lock-in (data is plain markdown)
-- AI agents can manage tasks without API integration (!)
+- AI agents can manage items/tasks without API integration (!)
 - Full audit trail via git history
 - Offline editing supported
 - Multiple GUIs can share the same data source
@@ -357,7 +357,7 @@ SaaS applications SHOULD support:
 ### Minimal Valid File
 
 ```markdown
-# Tasks
+# Items/Tasks
 
 ## To-do
 - Buy milk
@@ -400,7 +400,7 @@ SaaS applications SHOULD support:
   id:g7h8i9
 
 <!--
-itembridge:0.0.1
+embridge:0.0.1
 sync:2025-01-15T09:00:00-05:00
 uuid:0188b200-0000-7000-8000-000000000000
 -->
