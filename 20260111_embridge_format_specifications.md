@@ -88,15 +88,15 @@ Strict formats        ←────────────→        No forma
 
 ## {List Name}
 - [ ] {Item/Task title}
-  {metadata line}
-  {optional description line}
+{metadata line}
+{optional description line}
 
 - {Item/Task without checkbox}
-  {metadata line}
+{metadata line}
 
 ## {Another List Name}
 - [x] {Completed item/task}
-  {metadata line}
+{metadata line}
 
 <!--
 embridge:{version}
@@ -104,6 +104,8 @@ sync:{ISO 8601 timestamp}
 uuid:{document identifier, UUIDv7 recommended}
 -->
 ```
+
+Note: Metadata lines do not require indentation. The parser knows they belong to the item/task directly above.
 
 ---
 
@@ -127,7 +129,14 @@ An item/task is a markdown list item. All of the following are valid:
 
 ### Metadata Line
 
-The line immediately following an item/task (indented with 2 spaces) contains metadata as `key:value` pairs separated by spaces.
+The line immediately following an item/task contains metadata as `key:value` pairs separated by spaces. **Metadata does not require indentation** — the parser knows it belongs to the item/task directly above it.
+
+```markdown
+- [ ] Example item/task
+status:todo prio:high tags:backend,api due:2025-01-15 id:a1b2c3
+```
+
+Indented metadata is also valid (for visual preference):
 
 ```markdown
 - [ ] Example item/task
@@ -140,6 +149,7 @@ The line immediately following an item/task (indented with 2 spaces) contains me
 - Multiple values use commas without spaces: `tags:one,two,three`
 - Order of fields does not matter
 - All fields are optional
+- Metadata indentation is optional — parsers accept both indented and non-indented
 
 ### Defined Fields
 
@@ -161,48 +171,69 @@ The line immediately following an item/task (indented with 2 spaces) contains me
 
 ### Description Line
 
-An optional second indented line can contain a longer description:
+An optional second line can contain a longer description (indentation optional):
 
 ```markdown
 - [ ] Complex item/task
-  prio:high due:2025-01-15 id:a1b2c3
-  descr:"This is a longer description that explains the item/task in detail"
+prio:high due:2025-01-15 id:a1b2c3
+descr:"This is a longer description that explains the item/task in detail"
 ```
 
 Or as a plain line (parser infers it's a description if it doesn't match `key:value` pattern):
 
 ```markdown
 - [ ] Complex item/task
-  prio:high id:a1b2c3
-  This is the description without a key prefix
+prio:high id:a1b2c3
+This is the description without a key prefix
 ```
 
 ### Subitems/Subtasks
 
-Items/Tasks can contain nested subitems/subtasks using standard markdown list nesting. Subitems/Subtasks are indented 2 spaces from their parent.
+Items/Tasks can contain nested subitems/subtasks. **Hierarchy is determined solely by the indentation of the dash (`-`) character.** Metadata lines do not require indentation.
 
 ```markdown
 - [ ] Parent item/task
-  prio:high id:a1b2c3
+prio:high id:a1b2c3
   - [ ] Subitem/Subtask one
-    status:todo id:d4e5f6
+  status:todo id:d4e5f6
   - Subitem/Subtask two (no checkbox)
-    descr:"Subitems/Subtasks can omit things like checkboxes and id"
+  descr:"Subitems/Subtasks can omit things like checkboxes and id"
+    - [ ] Sub-subitem/subtask
+    id:nested123
 ```
 
-**Indentation rules:**
+**The core principle:**
 
-| Indent | Content |
-|--------|---------|
-| 0 | Parent item/task |
-| 2 | Parent metadata OR subitem/subtask (`- [ ]` or `-`) |
-| 4 | Subitem/Subtask metadata |
-| 4 | Sub-subitem/subtask (if needed) |
-| 6 | Sub-subitem/subtask metadata |
+1. **Spaces before the dash determine hierarchy level:**
+   - `- ` (0 spaces) → top-level item
+   - `  - ` (2 spaces) → subitem (child of nearest item above with fewer spaces)
+   - `    - ` (4 spaces) → sub-subitem
+   - And so on...
+
+2. **The line after any `- ` line is metadata for that item** — regardless of indentation. The parser associates it with the item/task directly above. This means metadata for a subitem does NOT need to be indented to match its parent dash:
+
+   ```markdown
+   - [ ] Parent item
+   prio:high id:abc123
+     - [ ] Subitem
+   status:todo id:def456      ← no indentation needed, still belongs to subitem above
+   ```
+
+3. **A line starting with spaces + dash starts a new item** at the corresponding nesting level.
+
+**Indentation rules (for the dash only):**
+
+| Spaces before `-` | Meaning |
+|-------------------|---------|
+| 0 | Top-level item/task |
+| 2 | Subitem/Subtask (level 1) |
+| 4 | Sub-subitem/subtask (level 2) |
+| 6 | Level 3, etc. |
 
 **Parsing rules:**
-- After an item/task's metadata line, any indented line starting with `-` is a subitem/subtask
-- Subitem/Subtask metadata is indented +2 spaces from its `-` marker
+- Count leading spaces before `-` to determine nesting depth
+- The line immediately after a `- ` line (that doesn't start with `-`) is metadata/description for that item
+- When a new `- ` line appears, it starts a new item at the depth indicated by its indentation
 - Subitems/Subtasks follow the same syntax as items/tasks (optional checkbox, optional metadata)
 - Nesting depth is unlimited but 2 levels is typical
 
@@ -252,21 +283,29 @@ uuid:0188b200-0000-7000-8000-000000000000
 1. Split file into sections by H2 headings
 2. For each section:
    a. Section name = list name
-   b. For each list item (`-`) at indent level N:
-      i.   Line 1: Parse checkbox state and title
-      ii.  Line 2 (if indent N+2, matches key:value): Parse metadata
-      iii. Lines at indent N+2 starting with `-`: Parse as subitems/subtasks (recurse)
-      iv.  Other indented lines: Additional description
+   b. Process lines sequentially:
+      i.   Line starts with (spaces +) `-` → New item/task
+           - Count leading spaces to determine nesting depth (0=top, 2=sub, 4=sub-sub, ...)
+           - Parse checkbox state and title
+      ii.  Line after a `-` line, does NOT start with `-` → Metadata/description for item above
+           - If matches `key:value` pattern → Parse as metadata
+           - Otherwise → Treat as description text
+      iii. Line starts with (more spaces +) `-` → New nested item (child of nearest shallower item)
 3. Parse HTML comment for document metadata
 4. Items without `id` field → Generate ID, mark file as modified
 ```
 
+**Key insight:** The dash indentation determines hierarchy. Everything else (metadata, descriptions) just "belongs to" the most recent item above it.
+
 ### Regex Patterns
 
-**Item/Task line:**
+**Item/Task line (with nesting depth):**
 ```regex
-^- \[([ xX])\] (.+)$|^- (.+)$
+^( *)- (?:\[([ xX])\] )?(.+)$
 ```
+- Capture group 1: leading spaces (length ÷ 2 = nesting depth)
+- Capture group 2: checkbox state (space, x, X, or absent)
+- Capture group 3: item title
 
 **Metadata pair:**
 ```regex
@@ -372,32 +411,32 @@ SaaS applications SHOULD support:
 
 ## Backlog
 - [ ] Research caching strategies
-  status:ideas prio:high tags:research,backend due:2025-02-01 id:a1b2c3
+status:ideas prio:high tags:research,backend due:2025-02-01 id:a1b2c3
   - [ ] Evaluate Redis
-    descr:"Test Redis for session storage" id:s1t2u3
+  descr:"Test Redis for session storage" id:s1t2u3
   - [ ] Evaluate Memcached
-    id:v4w5x6
+  id:v4w5x6
 
 - Explore new auth library
-  tags:research id:b2c3d4
+tags:research id:b2c3d4
 
 ## To-do
 - [ ] Fix pagination bug
-  prio:high due:2025-01-20 id:c3d4e5
+prio:high due:2025-01-20 id:c3d4e5
 
 - [ ] Update dependencies
-  created:2025-01-15 id:d4e5f6
+created:2025-01-15 id:d4e5f6
 
 ## In Progress
 - [ ] Refactor user service
-  status:doing prio:med id:e5f6g7
+status:doing prio:med id:e5f6g7
 
 ## Done
 - [x] Write API documentation
-  status:done created:2025-01-10 id:f6g7h8
+status:done created:2025-01-10 id:f6g7h8
 
 - [x] Set up CI pipeline
-  id:g7h8i9
+id:g7h8i9
 
 <!--
 embridge:0.0.1
