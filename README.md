@@ -2,6 +2,7 @@
 
 **Version** 0.0.1
 **Summary** A markdown-based format for item/task lists that work for humans and AI agents.
+**Author** xpiu
 
 ## Why Embridge?
 
@@ -98,8 +99,8 @@ Embridge has its own quirks—the `- [ ]` checkbox syntax comes from GitHub-flav
 
 ## Documentation
 
-- [Full Specification](20260111_embridge_format_specifications.md) - Complete format reference
-- [Example File](20260111_embridge_output_demo_v0_0_1.md) - A working demo
+- [Full Specification](embridge_format_specifications.md) - Complete format reference
+- [Example File](embridge_output_demo_v0_0_1.md) - A working demo
 
 ## License
 

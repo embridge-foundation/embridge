@@ -2,7 +2,7 @@
 
 **Version:** 0.0.1
 **Last Updated:** 2025-01-18
-**Example of output** in output file 20260111_embridge_output_demo_v*.md
+**Example of output** in output file embridge_output_demo_v*.md
 **Author** xpiu
 
 ---
