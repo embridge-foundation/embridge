@@ -1,35 +1,28 @@
 # Embridge
 
-**Version** 0.0.1
+**Version** 0.0.4
 **Summary** A markdown-based format for item/task lists that work for humans and AI agents.
 **Author** xpiu
+**Licence** CC0, completely open source
 
-## Why Embridge?
+## Project goals
 
-Item/Task management tools lock your data in proprietary formats. Embridge is different:
+- create a Markdown-compliant format for items/tasks in lists
+- be human-friendly: easy to learn, read and edit, with some editing flexibility
+- be AI-friendly: easy to learn, read and edit
+- enable reliable automation - e.g. stable per-item `id`, simple `key:value` metadata
+- stay merge- and diff-friendly for git workflows
+- remain tool- and vendor-agnostic (portable across editors/apps/forges)
+- preserve forward compatibility (ignore/preserve unknown fields)
 
-- **Human-readable** - It's just markdown. Edit in any text editor.
-- **AI-friendly** - Structured enough for agents to parse and modify reliably.
-- **Git-native** - Track changes, review diffs, collaborate with PRs.
-- **No lock-in** - Your data stays yours. Plain text forever.
+## Some reasons to go for embridge
 
-## Value propositions
-
-- **Portable across git forges (no lock-in)** - Works the same on GitHub, GitLab, Bitbucket, or self-hosted git because the repo is the backend.
-- **Human-friendly by default** - Plain Markdown you can read and edit in any text editor, even without special tooling.
-- **Agent-friendly automation** - Stable per-item `id` plus `key:value` metadata lets agents reliably find, update, and move items.
-- **Merge- and diff-friendly** - Stable IDs reduce duplicates and ambiguity during refactors, rebases, and conflict resolution.
-- **Reviewable collaboration** - All changes are transparent diffs in PRs (audit trail, approvals, code review workflows).
-- **Extensible and forward-compatible** - Tools preserve unknown `key:value` pairs so different apps can add fields without breaking others.
-- **Offline-first** - Edit anywhere; sync later. No SaaS or API required to use your data.
-- **Interoperable building block** - A shared interchange format for CLIs, editors, and apps to operate on the same task list.
-
-## USP
-
-- **“Just Markdown” + stable IDs**: standard Markdown lists with per-item `id` for safe automation, syncing, and merge-friendly updates.
-- **Loose structure, predictable parsing**: minimal rules (dash indentation for hierarchy, `key:value` on the next line) designed for robust machine parsing without forcing strict schemas.
-- **Extensible by default**: tools preserve unknown `key:value` pairs so apps can add fields without breaking other tools.
-- **Source-of-truth clarity**: the `.md` file owns content; apps can keep UI-only state elsewhere without rewriting your data model.
+- **Plain Markdown** - Edit in any text editor, render on any git forge
+- **Stable IDs** - Per-item `id` enables reliable automation, syncing, and merge conflict resolution
+- **Loose structure, predictable parsing** - Minimal rules (dash indentation, `key:value` metadata) without strict schemas
+- **Extensible** - Unknown fields preserved; apps can add custom metadata without breaking others
+- **Offline-first** - Edit anywhere, sync later; no SaaS required
+- **Source-of-truth clarity** - The `.md` file owns content; apps keep UI-only state elsewhere
 
 ## SWOT
 
@@ -62,36 +55,39 @@ Item/Task management tools lock your data in proprietary formats. Embridge is di
 ## Quick Example
 
 ```markdown
-## To-do
+# To-do
 - [ ] Fix login timeout bug
 prio:high due:2025-01-20 id:abc123
 - [ ] Add unit tests for auth module
 tags:testing,backend id:def456
 
-## Done
+# Done
 - [x] Set up CI pipeline
 id:ghi789
 
 <!--
-embridge:0.0.1
+embridge:0.0.4
+project:Example Project
 sync:2025-01-15T09:00:00-05:00
 uuid:0188b200-0000-7000-8000-000000000000
+lists:l1st01:"To-do" l1st02:"Done"
 -->
 ```
 
 ## How It Works
 
-1. **Lists** are H2 headings (`## To-do`, `## In Progress`, `## Done`)
+1. **Lists** are H1 headings (`# To-do`, `# In Progress`, `# Done`)
 2. **Items/tasks** are markdown list items (`- [ ]`, `- [x]`, or just `-`)
 3. **Metadata** sits on the line below (indentation optional): `prio:high due:2025-01-20 id:abc123`
 4. **Subitems/subtasks** use indented dashes (`  - ` for level 1, `    - ` for level 2, etc.)
 5. **Document metadata** lives in an HTML comment at the end
+   - Apps/agents maintain `project:` and `lists:` there (humans usually don’t)
 
 ## Embridge compared to todo.txt format
 
 Embridge has some similarities to [todo.txt](https://github.com/todotxt/todo.txt): both are plain-text, human-editable, and git-friendly. The difference is focus:
 
-- **List-oriented** - Embridge organizes items into named sections (`## To-do`, `## Done`) and supports subitems via indentation. todo.txt is a flat file.
+- **List-oriented** - Embridge organizes items into named sections (`# To-do`, `# Done`) and supports subitems via indentation. todo.txt is a flat file.
 - **Self-describing metadata** - Embridge uses `key:value` pairs (`prio:high`, `due:2025-01-20`). todo.txt relies on positional rules and symbols: `(A)` for priority, `+project` for projects, `@context` for contexts. You need to memorize what each symbol means.
 - **Markdown-native** - Embridge files render reasonably in any Markdown viewer. todo.txt is its own format.
 
@@ -100,7 +96,7 @@ Embridge has its own quirks—the `- [ ]` checkbox syntax comes from GitHub-flav
 ## Documentation
 
 - [Full Specification](embridge_format_specifications.md) - Complete format reference
-- [Example File](embridge_output_demo_v0_0_1.md) - A working demo
+- [Example File](embridge_output_demo_v0_0_4.md) - A working demo
 
 ## License
 

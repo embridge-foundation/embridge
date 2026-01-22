@@ -1,8 +1,8 @@
 # Specifications for Embridge: an open source item/task list format
 
-**Version:** 0.0.3
-**Last Updated:** 2025-01-18
-**Example of output** in output file embridge_output_demo_v*.md
+**Version:** 0.0.4
+**Last Updated:** 2026-01-22
+**Example of output** in `embridge_output_demo_v0_0_4.md`
 **Author** xpiu
 
 ---
@@ -13,13 +13,15 @@ This specification defines a markdown-based format for storing item/task lists t
 
 ---
 
-## Project requirements
+## Project goals
 
-- Humans can read and edit it naturally
-- Humans can edit it in simple interfaces, like a CLI
-- AI can edit and read it quickly
-- Git can track changes
-- No vendor lock-in (Open Source)
+- create a Markdown-compliant format for items/tasks in lists
+- be human-friendly: easy to learn, read and edit, with some editing flexibility
+- be AI-friendly: easy to learn, read and edit
+- enable reliable automation - e.g. stable per-item `id`, simple `key:value` metadata
+- stay merge- and diff-friendly for git workflows
+- remain tool- and vendor-agnostic (portable across editors/apps/forges)
+- preserve forward compatibility (ignore/preserve unknown fields)
 
 ---
 
@@ -84,7 +86,7 @@ Strict formats        ←────────────→        No forma
 ## File Structure
 
 ```markdown
-## {List Name}
+# {List Title}
 - [ ] {Item/Task title}
 {metadata line}
 {optional description line}
@@ -92,7 +94,7 @@ Strict formats        ←────────────→        No forma
 - {Item/Task without checkbox}
 {metadata line}
 
-## {Another List Name}
+# {Another List Title}
 - [x] {Completed item/task}
 {metadata line}
 
@@ -101,6 +103,7 @@ embridge:{version}
 project:{Project Name}
 sync:{ISO 8601 timestamp}
 uuid:{document identifier, UUIDv7 recommended}
+lists:{list_id}:"{List Title}" {list_id}:"{Another List Title}"
 -->
 ```
 
@@ -110,12 +113,7 @@ Note: Metadata lines do not require indentation. The parser knows they belong to
 
 The project name is stored in the document metadata's `project:` field. Parsers MUST always generate and maintain this field.
 
-Optionally, users may add an H1 heading (`# {Project Name}`) at the top of the file for human readability. This is user-added only — parsers MUST NOT generate or write H1 headings.
-
-**Sync behavior:**
-- If a user adds or modifies an H1 heading, the parser SHOULD recognize it as the project title and update the `project:` field in metadata to match
-- The `project:` field in metadata is the canonical storage location
-- The H1 heading, when present, takes precedence as the source of truth for the title value
+Humans are not expected to manually edit document metadata; apps/parsers/AI agents SHOULD keep it up to date.
 
 ---
 
@@ -254,21 +252,23 @@ prio:high id:a1b2c3
 
 ### Lists (Sections)
 
-H2 headings (`##`) define lists/groups. The heading text is the list name.
+H1 headings (`# `) define lists/groups. The heading text is the list title.
 
 ```markdown
-## Backlog
+# Backlog
 - [ ] Item/Task in backlog
 
-## In Progress
+# In Progress
 - [ ] Item/Task being worked on
 
-## Done
+# Done
 - [x] Completed item/task
 ```
 
 **Rules:**
-- List names are arbitrary (not predefined statuses)
+- List titles are arbitrary (not predefined statuses)
+- List headers MUST start with `# ` (a hash and a space) at column 0
+- List titles SHOULD be unique within a file
 - An item/task's list membership is determined by which section it's under
 - The `status` field is independent of list membership
 
@@ -278,10 +278,11 @@ An HTML comment at the end of the file contains document-level metadata. The `pr
 
 ```markdown
 <!--
-embridge:0.0.3
+embridge:0.0.4
 project:My Project Name
 sync:2025-01-15T09:00:00-05:00
 uuid:0188b200-0000-7000-8000-000000000000
+lists:a1b2c3:"Backlog" d4e5f6:"In Progress" g7h8i9:"Done"
 -->
 ```
 
@@ -289,18 +290,30 @@ uuid:0188b200-0000-7000-8000-000000000000
 |-------|-------------|
 | `embridge` | Format version (semver) — enables parsers to detect compatibility |
 | `project` | Project name (required — parsers must generate this field) |
+| `lists` | Optional list registry (single line): `lists:{6-char id}:"{List Title}" {id}:"{Title}" ...` |
 | `sync` | ISO 8601 timestamp of last sync |
 | `uuid` | Unique document identifier (UUIDv7 recommended) for sync matching across renames/moves |
+
+**List IDs (`lists:`)**
+- The `lists:` line is app-managed metadata used to give lists stable identifiers without requiring humans to edit IDs in headings.
+- List IDs MUST be 6 characters of lowercase alphanumeric (`[a-z0-9]{6}`) and MUST be unique within the file.
+- List ID generation is implementation-defined (e.g. random, hash-based, sequential) as long as it is collision-resistant within the file.
+- List titles in the `lists:` line SHOULD be quoted; list titles containing spaces MUST be quoted.
+- List IDs are separate from item/task `id` values (they live in document metadata, not item metadata).
+- Parsers SHOULD:
+  - Ensure every `# {List Title}` heading has a corresponding `{id}:"{List Title}"` entry in the `lists:` line (generate missing IDs using an implementation-defined strategy)
+  - Remove or ignore `lists:` entries whose titles no longer exist in the file
+  - Write the `lists:` line as the last line inside the document metadata comment to keep diffs stable
+  - Preserve list-pair ordering and other unknown metadata where possible to keep diffs stable
 
 ---
 
 ## Parsing Algorithm
 
 ```
-1. Check for H1 heading at start of file → If present, use as project title
-2. Split file into sections by H2 headings
-3. For each section:
-   a. Section name = list name
+1. Split file into sections by H1 headings (`# `)
+2. For each section:
+   a. Section name = list title
    b. Process lines sequentially:
       i.   Line starts with (spaces +) `-` → New item/task
            - Count leading spaces to determine nesting depth (0=top, 2=sub, 4=sub-sub, ...)
@@ -309,13 +322,11 @@ uuid:0188b200-0000-7000-8000-000000000000
            - If matches `key:value` pattern → Parse as metadata
            - Otherwise → Treat as description text
       iii. Line starts with (more spaces +) `-` → New nested item (child of nearest shallower item)
-4. Parse HTML comment for document metadata
-5. If H1 heading exists and differs from `project:` field → Update `project:` to match H1
-6. If `project:` field missing → Generate from H1 or use default, mark file as modified
-7. Items without `id` field → Generate ID, mark file as modified
+3. Parse HTML comment for document metadata
+4. If `project:` field missing → Generate default, mark file as modified
+5. Ensure the `lists:` line exists and contains an entry for each list heading (generate missing 6-char IDs using an implementation-defined strategy), mark file as modified
+6. Items without `id` field → Generate ID, mark file as modified
 ```
-
-**Important:** Parsers MUST NOT write H1 headings. The H1 heading is user-added only for readability.
 
 **Key insight:** The dash indentation determines hierarchy. Everything else (metadata, descriptions) just "belongs to" the most recent item above it.
 
@@ -334,6 +345,21 @@ uuid:0188b200-0000-7000-8000-000000000000
 ([a-z]+):(?:"([^"]+)"|([^\s]+))
 ```
 
+**List heading:**
+```regex
+^# (.+)$
+```
+
+**List registry line (document metadata):**
+```regex
+^lists:(.*)$
+```
+
+**List registry pair (within `lists:` value):**
+```regex
+([a-z0-9]{6}):(?:"([^"]+)"|([^\s]+))
+```
+
 **Document metadata:**
 ```regex
 <!--\s*([\s\S]*?)\s*-->
@@ -350,21 +376,21 @@ When the application writes to the `.md` file:
 1. Preserve existing structure and formatting where possible
 2. Add `id` field to any item/task missing one
 3. Ensure `project:` field exists in document metadata (generate if missing)
-4. If H1 heading exists, sync its value to `project:` field
+4. Ensure the `lists:` line exists and contains an entry for each list heading (generate if missing) and write it as the last line in the metadata comment
 5. Update `sync` timestamp in document metadata
 6. Do NOT write app-only data (colors, UI state) to markdown
-7. Do NOT write H1 headings (user-added only)
 
 ### Markdown → App
 
 When the application reads the `.md` file:
 
-1. If H1 heading exists, use it as project title; otherwise use `project:` field
-2. Match items/tasks by `id` field
-3. Items/Tasks with new IDs → Create in database
-4. Items/Tasks with known IDs → Update database from markdown (markdown wins)
-5. Items/Tasks in database but missing from markdown → Delete from database
-6. Apply default values for missing fields
+1. Use `project:` field as the project title
+2. Match lists by `lists:` IDs when available (by matching list titles to `{id}:"{List Title}"` entries within the `lists:` line)
+3. Match items/tasks by `id` field
+4. Items/Tasks with new IDs → Create in database
+5. Items/Tasks with known IDs → Update database from markdown (markdown wins)
+6. Items/Tasks in database but missing from markdown → Delete from database
+7. Apply default values for missing fields
 
 ### Conflict Resolution
 
@@ -372,8 +398,9 @@ The `.md` file wins for content fields. The application database wins for UI-onl
 
 | Field Type | Source of Truth |
 |------------|-----------------|
-| project name (H1 if present, else `project:` field) | `.md` file |
+| project name (`project:` field) | `.md` file |
 | title, status, prio, due, tags, descr | `.md` file |
+| list IDs (`lists:` line) | `.md` file |
 | list colors, sort order, UI preferences | App database |
 
 ---
@@ -423,20 +450,21 @@ SaaS applications SHOULD support:
 ### Minimal Valid File
 
 ```markdown
-## To-do
+# To-do
 - Buy milk
 - [ ] Call mom
 
 <!--
-embridge:0.0.3
+embridge:0.0.4
 project:Items/Tasks
+lists:a1b2c3:"To-do"
 -->
 ```
 
 ### Full-Featured File
 
 ```markdown
-## Backlog
+# Backlog
 - [ ] Research caching strategies
 status:ideas prio:high tags:research,backend due:2025-02-01 id:a1b2c3
   - [ ] Evaluate Redis
@@ -447,18 +475,18 @@ status:ideas prio:high tags:research,backend due:2025-02-01 id:a1b2c3
 - Explore new auth library
 tags:research id:b2c3d4
 
-## To-do
+# To-do
 - [ ] Fix pagination bug
 prio:high due:2025-01-20 id:c3d4e5
 
 - [ ] Update dependencies
 created:2025-01-15 id:d4e5f6
 
-## In Progress
+# In Progress
 - [ ] Refactor user service
 status:doing prio:med id:e5f6g7
 
-## Done
+# Done
 - [x] Write API documentation
 status:done created:2025-01-10 id:f6g7h8
 
@@ -466,10 +494,11 @@ status:done created:2025-01-10 id:f6g7h8
 id:g7h8i9
 
 <!--
-embridge:0.0.3
+embridge:0.0.4
 project:Project Demo
 sync:2025-01-15T09:00:00-05:00
 uuid:0188b200-0000-7000-8000-000000000000
+lists:k3m9p2:"Backlog" q7w2e1:"To-do" z8x4c3:"In Progress" r5t6y7:"Done"
 -->
 ```
 
