@@ -1,6 +1,6 @@
 # Specifications for Embridge: an open source item/task list format
 
-**Version:** 0.0.1
+**Version:** 0.0.3
 **Last Updated:** 2025-01-18
 **Example of output** in output file embridge_output_demo_v*.md
 **Author** xpiu
@@ -84,8 +84,6 @@ Strict formats        ←────────────→        No forma
 ## File Structure
 
 ```markdown
-# {Project Name}
-
 ## {List Name}
 - [ ] {Item/Task title}
 {metadata line}
@@ -100,12 +98,24 @@ Strict formats        ←────────────→        No forma
 
 <!--
 embridge:{version}
+project:{Project Name}
 sync:{ISO 8601 timestamp}
 uuid:{document identifier, UUIDv7 recommended}
 -->
 ```
 
 Note: Metadata lines do not require indentation. The parser knows they belong to the item/task directly above.
+
+### Project Name
+
+The project name is stored in the document metadata's `project:` field. Parsers MUST always generate and maintain this field.
+
+Optionally, users may add an H1 heading (`# {Project Name}`) at the top of the file for human readability. This is user-added only — parsers MUST NOT generate or write H1 headings.
+
+**Sync behavior:**
+- If a user adds or modifies an H1 heading, the parser SHOULD recognize it as the project title and update the `project:` field in metadata to match
+- The `project:` field in metadata is the canonical storage location
+- The H1 heading, when present, takes precedence as the source of truth for the title value
 
 ---
 
@@ -126,6 +136,11 @@ An item/task is a markdown list item. All of the following are valid:
 - `- [ ]` → `completed: false`
 - `- [x]` or `- [X]` → `completed: true`
 - `-` (no checkbox) → `completed: null` (app decides default)
+
+**Checkbox behavior:**
+- Checkboxes are optional — parsers MUST NOT add checkboxes to items that don't have them
+- The choice to include a checkbox is arbitrary and may be made by human, AI agent, or app setting
+- Items without checkboxes are equally valid and should be preserved as-is
 
 ### Metadata Line
 
@@ -259,11 +274,12 @@ H2 headings (`##`) define lists/groups. The heading text is the list name.
 
 ### Document Metadata
 
-An HTML comment at the end of the file contains document-level metadata. All fields are optional but recommended for reliable syncing between applications.
+An HTML comment at the end of the file contains document-level metadata. The `project` field is required; other fields are optional but recommended for reliable syncing between applications.
 
 ```markdown
 <!--
-embridge:0.0.1
+embridge:0.0.3
+project:My Project Name
 sync:2025-01-15T09:00:00-05:00
 uuid:0188b200-0000-7000-8000-000000000000
 -->
@@ -272,6 +288,7 @@ uuid:0188b200-0000-7000-8000-000000000000
 | Field | Description |
 |-------|-------------|
 | `embridge` | Format version (semver) — enables parsers to detect compatibility |
+| `project` | Project name (required — parsers must generate this field) |
 | `sync` | ISO 8601 timestamp of last sync |
 | `uuid` | Unique document identifier (UUIDv7 recommended) for sync matching across renames/moves |
 
@@ -280,8 +297,9 @@ uuid:0188b200-0000-7000-8000-000000000000
 ## Parsing Algorithm
 
 ```
-1. Split file into sections by H2 headings
-2. For each section:
+1. Check for H1 heading at start of file → If present, use as project title
+2. Split file into sections by H2 headings
+3. For each section:
    a. Section name = list name
    b. Process lines sequentially:
       i.   Line starts with (spaces +) `-` → New item/task
@@ -291,9 +309,13 @@ uuid:0188b200-0000-7000-8000-000000000000
            - If matches `key:value` pattern → Parse as metadata
            - Otherwise → Treat as description text
       iii. Line starts with (more spaces +) `-` → New nested item (child of nearest shallower item)
-3. Parse HTML comment for document metadata
-4. Items without `id` field → Generate ID, mark file as modified
+4. Parse HTML comment for document metadata
+5. If H1 heading exists and differs from `project:` field → Update `project:` to match H1
+6. If `project:` field missing → Generate from H1 or use default, mark file as modified
+7. Items without `id` field → Generate ID, mark file as modified
 ```
+
+**Important:** Parsers MUST NOT write H1 headings. The H1 heading is user-added only for readability.
 
 **Key insight:** The dash indentation determines hierarchy. Everything else (metadata, descriptions) just "belongs to" the most recent item above it.
 
@@ -327,18 +349,22 @@ When the application writes to the `.md` file:
 
 1. Preserve existing structure and formatting where possible
 2. Add `id` field to any item/task missing one
-3. Update `sync` timestamp in document metadata
-4. Do NOT write app-only data (colors, UI state) to markdown
+3. Ensure `project:` field exists in document metadata (generate if missing)
+4. If H1 heading exists, sync its value to `project:` field
+5. Update `sync` timestamp in document metadata
+6. Do NOT write app-only data (colors, UI state) to markdown
+7. Do NOT write H1 headings (user-added only)
 
 ### Markdown → App
 
 When the application reads the `.md` file:
 
-1. Match items/tasks by `id` field
-2. Items/Tasks with new IDs → Create in database
-3. Items/Tasks with known IDs → Update database from markdown (markdown wins)
-4. Items/Tasks in database but missing from markdown → Delete from database
-5. Apply default values for missing fields
+1. If H1 heading exists, use it as project title; otherwise use `project:` field
+2. Match items/tasks by `id` field
+3. Items/Tasks with new IDs → Create in database
+4. Items/Tasks with known IDs → Update database from markdown (markdown wins)
+5. Items/Tasks in database but missing from markdown → Delete from database
+6. Apply default values for missing fields
 
 ### Conflict Resolution
 
@@ -346,6 +372,7 @@ The `.md` file wins for content fields. The application database wins for UI-onl
 
 | Field Type | Source of Truth |
 |------------|-----------------|
+| project name (H1 if present, else `project:` field) | `.md` file |
 | title, status, prio, due, tags, descr | `.md` file |
 | list colors, sort order, UI preferences | App database |
 
@@ -396,19 +423,19 @@ SaaS applications SHOULD support:
 ### Minimal Valid File
 
 ```markdown
-# Items/Tasks
-
 ## To-do
 - Buy milk
 - [ ] Call mom
+
+<!--
+embridge:0.0.3
+project:Items/Tasks
+-->
 ```
 
 ### Full-Featured File
 
 ```markdown
-
-# Project Demo
-
 ## Backlog
 - [ ] Research caching strategies
 status:ideas prio:high tags:research,backend due:2025-02-01 id:a1b2c3
@@ -439,7 +466,8 @@ status:done created:2025-01-10 id:f6g7h8
 id:g7h8i9
 
 <!--
-embridge:0.0.1
+embridge:0.0.3
+project:Project Demo
 sync:2025-01-15T09:00:00-05:00
 uuid:0188b200-0000-7000-8000-000000000000
 -->
