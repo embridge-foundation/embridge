@@ -1,7 +1,7 @@
 # Specifications for Embridge: an open source item/task list format
 
 **Version:** 0.0.4
-**Last Updated:** 2026-01-22
+**Last Updated:** 2026-01-25
 **Example of output** in `embridge_output_demo_v0_0_4.md`
 **Author** xpiu
 
@@ -88,8 +88,7 @@ Strict formats        ←────────────→        No forma
 ```markdown
 # {List Title}
 - [ ] {Item/Task title}
-{metadata line}
-{optional description line}
+{metadata line with key:value pairs}
 
 - {Item/Task without checkbox}
 {metadata line}
@@ -100,18 +99,18 @@ Strict formats        ←────────────→        No forma
 
 <!--
 embridge:{version}
-project:{Project Name}
+project:{Project title}
 sync:{ISO 8601 timestamp}
 uuid:{document identifier, UUIDv7 recommended}
 lists:{list_id}:"{List Title}" {list_id}:"{Another List Title}"
 -->
 ```
 
-Note: Metadata lines do not require indentation. The parser knows they belong to the item/task directly above.
+Note: Metadata lines do not require indentation. The parser knows they belong to the item/task directly above. Descriptions use the `descr:` field.
 
-### Project Name
+### Project title
 
-The project name is stored in the document metadata's `project:` field. Parsers MUST always generate and maintain this field.
+The Project title is stored in the document metadata's `project:` field. Parsers MUST always generate and maintain this field.
 
 Humans are not expected to manually edit document metadata; apps/parsers/AI agents SHOULD keep it up to date.
 
@@ -178,26 +177,37 @@ Indented metadata is also valid (for visual preference):
 | `due` | `duedate` | Due date | `2025-01-15`, `tomorrow`, `next-week` |
 | `id` | | Unique identifier (6+ alphanumeric) | `a1b2c3`, `x7y8z9` |
 
+**Why 6-character IDs?** Using 6-character lowercase alphanumeric IDs (a-z, 0-9 — 36 ASCII characters, not UTF-8 extended), you get 36^6 ≈ 2.18 billion unique combinations. Due to the birthday paradox, collision probability reaches 1% at around 6,500 items and 50% at around 50,000 items. For a personal or small-team todo app where users realistically create hundreds to a few thousand items over their lifetime, the collision probability is effectively negligible (<0.1%). This format is also URL-safe, case-insensitive friendly, and easily readable/typeable by humans when needed.
+
 **Field Aliases:** Parsers SHOULD accept both the canonical field name and its aliases. When writing, prefer the canonical form.
 
 **Extensibility:** Parsers SHOULD accept and preserve any `key:value` pair, even if not defined above. This allows app-specific fields.
 
-### Description Line
+### Descriptions
 
-An optional second line can contain a longer description (indentation optional):
+Descriptions use the `descr:` metadata field (or its alias `description:`) with a quoted value:
 
 ```markdown
 - [ ] Complex item/task
-prio:high due:2025-01-15 id:a1b2c3
-descr:"This is a longer description that explains the item/task in detail"
+prio:high due:2025-01-15 id:a1b2c3 descr:"This explains the item/task in detail"
 ```
 
-Or as a plain line (parser infers it's a description if it doesn't match `key:value` pattern):
+Or on a separate metadata line:
 
 ```markdown
 - [ ] Complex item/task
 prio:high id:a1b2c3
-This is the description without a key prefix
+descr:"This explains the item/task in detail"
+```
+
+**Important:** Free-form text after an item is NOT valid. The line after a `- ` item must contain valid `key:value` pairs or be empty/another item.
+
+```markdown
+- [ ] Call the client
+Note: they prefer mornings     ← NOT VALID (not a key:value pair)
+
+- [ ] Call the client
+note:"they prefer mornings"    ← VALID (proper key:value syntax)
 ```
 
 ### Subitems/Subtasks
@@ -223,7 +233,7 @@ prio:high id:a1b2c3
    - `    - ` (4 spaces) → sub-subitem
    - And so on...
 
-2. **The line after any `- ` line is metadata for that item** — regardless of indentation. The parser associates it with the item/task directly above. This means metadata for a subitem does NOT need to be indented to match its parent dash:
+2. **The line after any `- ` line is metadata for that item** (valid `key:value` pairs only). The parser associates it with the item/task directly above. Metadata for a subitem does NOT need to be indented to match its parent dash:
 
    ```markdown
    - [ ] Parent item
@@ -245,7 +255,7 @@ prio:high id:a1b2c3
 
 **Parsing rules:**
 - Count leading spaces before `-` to determine nesting depth
-- The line immediately after a `- ` line (that doesn't start with `-`) is metadata/description for that item
+- The line immediately after a `- ` line (that doesn't start with `-`) is metadata for that item (must be valid `key:value` pairs)
 - When a new `- ` line appears, it starts a new item at the depth indicated by its indentation
 - Subitems/Subtasks follow the same syntax as items/tasks (optional checkbox, optional metadata)
 - Nesting depth is unlimited but 2 levels is typical
@@ -276,10 +286,12 @@ H1 headings (`# `) define lists/groups. The heading text is the list title.
 
 An HTML comment at the end of the file contains document-level metadata. The `project` field is required; other fields are optional but recommended for reliable syncing between applications.
 
+**Each property MUST be on its own line.** This allows values to contain spaces without quoting (e.g., `project:My Project title`).
+
 ```markdown
 <!--
 embridge:0.0.4
-project:My Project Name
+project:My Project title
 sync:2025-01-15T09:00:00-05:00
 uuid:0188b200-0000-7000-8000-000000000000
 lists:a1b2c3:"Backlog" d4e5f6:"In Progress" g7h8i9:"Done"
@@ -289,7 +301,7 @@ lists:a1b2c3:"Backlog" d4e5f6:"In Progress" g7h8i9:"Done"
 | Field | Description |
 |-------|-------------|
 | `embridge` | Format version (semver) — enables parsers to detect compatibility |
-| `project` | Project name (required — parsers must generate this field) |
+| `project` | Project title (required — parsers must generate this field) |
 | `lists` | Optional list registry (single line): `lists:{6-char id}:"{List Title}" {id}:"{Title}" ...` |
 | `sync` | ISO 8601 timestamp of last sync |
 | `uuid` | Unique document identifier (UUIDv7 recommended) for sync matching across renames/moves |
@@ -318,9 +330,9 @@ lists:a1b2c3:"Backlog" d4e5f6:"In Progress" g7h8i9:"Done"
       i.   Line starts with (spaces +) `-` → New item/task
            - Count leading spaces to determine nesting depth (0=top, 2=sub, 4=sub-sub, ...)
            - Parse checkbox state and title
-      ii.  Line after a `-` line, does NOT start with `-` → Metadata/description for item above
-           - If matches `key:value` pattern → Parse as metadata
-           - Otherwise → Treat as description text
+      ii.  Line after a `-` line, does NOT start with `-` → Metadata for item above
+           - Parse `key:value` pairs
+           - Lines not matching `key:value` pattern are invalid (ignore or warn)
       iii. Line starts with (more spaces +) `-` → New nested item (child of nearest shallower item)
 3. Parse HTML comment for document metadata
 4. If `project:` field missing → Generate default, mark file as modified
@@ -328,7 +340,7 @@ lists:a1b2c3:"Backlog" d4e5f6:"In Progress" g7h8i9:"Done"
 6. Items without `id` field → Generate ID, mark file as modified
 ```
 
-**Key insight:** The dash indentation determines hierarchy. Everything else (metadata, descriptions) just "belongs to" the most recent item above it.
+**Key insight:** The dash indentation determines hierarchy. Metadata lines belong to the most recent item above.
 
 ### Regex Patterns
 
@@ -398,7 +410,7 @@ The `.md` file wins for content fields. The application database wins for UI-onl
 
 | Field Type | Source of Truth |
 |------------|-----------------|
-| project name (`project:` field) | `.md` file |
+| Project title (`project:` field) | `.md` file |
 | title, status, prio, due, tags, descr | `.md` file |
 | list IDs (`lists:` line) | `.md` file |
 | list colors, sort order, UI preferences | App database |
