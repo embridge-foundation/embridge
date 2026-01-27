@@ -1,6 +1,6 @@
 # Embridge
 
-**Version** 0.0.4
+**Version** 0.0.5
 **Summary** A markdown-based format for item/task lists that work for humans and AI agents.
 **Author** xpiu
 **Licence** CC0, completely open source
@@ -10,7 +10,7 @@
 - create a Markdown-compliant format for items/tasks in lists
 - be human-friendly: easy to learn, read and edit, with some editing flexibility
 - be AI-friendly: easy to learn, read and edit
-- enable reliable automation - e.g. stable per-item `id`, simple `key:value` metadata
+- enable reliable automation - e.g. stable per-item `id`, simple `key: value` metadata
 - stay merge- and diff-friendly for git workflows
 - remain tool- and vendor-agnostic (portable across editors/apps/forges)
 - preserve forward compatibility (ignore/preserve unknown fields)
@@ -19,7 +19,7 @@
 
 - **Plain Markdown** - Edit in any text editor, render on any git forge
 - **Stable IDs** - Per-item `id` enables reliable automation, syncing, and merge conflict resolution
-- **Loose structure, predictable parsing** - Minimal rules (dash indentation, `key:value` metadata) without strict schemas
+- **Loose structure, predictable parsing** - Minimal rules (dash indentation, `key: value` metadata) without strict schemas
 - **Extensible** - Unknown fields preserved; apps can add custom metadata without breaking others
 - **Offline-first** - Edit anywhere, sync later; no SaaS required
 - **Source-of-truth clarity** - The `.md` file owns content; apps keep UI-only state elsewhere
@@ -57,16 +57,16 @@
 ```markdown
 # To-do
 - [ ] Fix login timeout bug
-prio:high due:2025-01-20 id:abc123
+prio: high, due: 2025-01-20, id: abc123
 - [ ] Add unit tests for auth module
-tags:testing,backend id:def456
+tags: "testing, backend", id: def456
 
 # Done
 - [x] Set up CI pipeline
-id:ghi789
+id: ghi789
 
 <!--
-embridge:0.0.4
+embridge:0.0.5
 project:Example Project
 sync:2025-01-15T09:00:00-05:00
 uuid:0188b200-0000-7000-8000-000000000000
@@ -78,25 +78,27 @@ lists:l1st01:"To-do" l1st02:"Done"
 
 1. **Lists** are H1 headings (`# To-do`, `# In Progress`, `# Done`)
 2. **Items/tasks** are markdown list items (`- [ ]`, `- [x]`, or just `-`)
-3. **Metadata** sits on the line below (indentation optional): `prio:high due:2025-01-20 id:abc123`
+3. **Metadata** sits on the line below, comma-separated: `prio: high, due: 2025-01-20, id: abc123`
 4. **Subitems/subtasks** use indented dashes (`  - ` for level 1, `    - ` for level 2, etc.)
 5. **Document metadata** lives in an HTML comment at the end
-   - Apps/agents maintain `project:` and `lists:` there (humans usually don’t)
+   - Apps/agents maintain `project:` and `lists:` there (humans usually don't)
+
+**Note for parsers:** Values containing commas must be quoted. For example, `tags: "apples, oranges"` is valid, but `tags: apples, oranges` would be parsed incorrectly (the parser would see `oranges` as a new key).
 
 ## Embridge compared to todo.txt format
 
 Embridge has some similarities to [todo.txt](https://github.com/todotxt/todo.txt): both are plain-text, human-editable, and git-friendly. The difference is focus:
 
 - **List-oriented** - Embridge organizes items into named sections (`# To-do`, `# Done`) and supports subitems via indentation. todo.txt is a flat file.
-- **Self-describing metadata** - Embridge uses `key:value` pairs (`prio:high`, `due:2025-01-20`). todo.txt relies on positional rules and symbols: `(A)` for priority, `+project` for projects, `@context` for contexts. You need to memorize what each symbol means.
+- **Self-describing metadata** - Embridge uses `key: value` pairs (`prio: high`, `due: 2025-01-20`). todo.txt relies on positional rules and symbols: `(A)` for priority, `+project` for projects, `@context` for contexts. You need to memorize what each symbol means.
 - **Markdown-native** - Embridge files render reasonably in any Markdown viewer. todo.txt is its own format.
 
 Embridge has its own quirks—the `- [ ]` checkbox syntax comes from GitHub-flavored Markdown, and metadata on a separate line takes getting used to. But if you already write Markdown, the learning curve is minimal.
 
 ## Documentation
 
-- [Full Specification](embridge_format_specifications.md) - Complete format reference
-- [Example File](embridge_output_demo_v0_0_4.md) - A working demo
+- [Full Specification](embridge_format_specifications_v0_0_5.md) - Complete format reference
+- [Example File](embridge_output_demo_v0_0_5.md) - A working demo
 
 ## License
 
