@@ -106,7 +106,7 @@ lists:{list_id}:"{List Title}" {list_id}:"{Another List Title}"
 -->
 ```
 
-Note: Metadata lines do not require indentation. The parser knows they belong to the item/task directly above. Descriptions use the `descr:` field.
+Note: Metadata lines do not require indentation. The parser knows they belong to the item/task directly above. Descriptions use the `description:` field.
 
 ### Project title
 
@@ -135,9 +135,9 @@ An item/task is a markdown list item. All of the following are valid:
 - `-` (no checkbox) → `completed: null` (app decides default)
 
 **Checkbox behavior:**
-- Checkboxes are optional — parsers MUST NOT add checkboxes to items that don't have them
-- The choice to include a checkbox is arbitrary and may be made by human, AI agent, or app setting
-- Items without checkboxes are equally valid and should be preserved as-is
+- **For humans:** Checkboxes are optional. You can write `- Buy milk` without a checkbox — it's valid and convenient for quick entry.
+- **For parsers/apps:** When writing items back to the file, parsers SHOULD add checkboxes (`[ ]` or `[X]`) to items and subitems that don't have them. This normalizes the format for consistent rendering and interoperability.
+- Items without checkboxes are treated as `completed: null` (unchecked by default when a parser adds the checkbox).
 
 ### Metadata Line
 
@@ -159,8 +159,9 @@ Indented metadata is also valid (for visual preference):
 - **Comma separates field pairs:** `key: value, key: value`
 - **Space after colon is allowed:** `key: value` or `key:value` (both valid; space recommended for readability)
 - **No space before the colon:** `key: value` (correct), `key : value` (incorrect)
-- Values containing spaces or commas must be quoted: `descr: "my long description"`
-- Order of fields does not matter
+- Values containing spaces or commas must be quoted: `description: "my long description"`
+- To include a literal double quote (`"`) inside a quoted value, escape it by doubling it (`""`): `description: "He said ""hello"""` (parses as `He said "hello"`)
+- Order of fields does not matter when reading/importing (parsers accept any order)
 - All fields are optional
 - Metadata indentation is optional — parsers accept both indented and non-indented
 - Trailing comma is allowed but not required: `prio: high, due: 2025-01-15,` (valid)
@@ -176,6 +177,10 @@ Since commas separate field pairs, any value containing a comma MUST be quoted. 
 | `tags: "apples, oranges", created: 2025-01-15` | ✓ | Quoted value, comma is protected |
 
 Parsers SHOULD automatically quote values containing commas when writing, and MUST handle quoted values when reading.
+
+**Parser note — escaping quotes in quoted values:**
+
+Inside a quoted value, a literal double quote is represented as two double quotes (`""`). Parsers MUST unescape `""` to `"` when reading quoted values, and parsers writing quoted values SHOULD escape `"` as `""`.
 
 ### Tags Field
 
@@ -199,7 +204,7 @@ The space after the comma inside quotes is recommended for readability but optio
 
 | Field | Aliases | Description | Example Values |
 |-------|---------|-------------|----------------|
-| `descr` | `description` | Short description | `"Fix the login bug"` |
+| `description` | `descr` | Short description | `"Fix the login bug"` |
 | `status` | | Workflow status | `todo`, `doing`, `done`, `backlog`, `ideas` |
 | `prio` | `priority` | Priority level | `high`, `med`, `low`, `1`, `2`, `3` |
 | `tags` | `keywords` | Labels (single or quoted list) | `backend` or `"backend, api, urgent"` |
@@ -209,6 +214,8 @@ The space after the comma inside quotes is recommended for readability but optio
 | `due` | `duedate` | Due date | `2025-01-15`, `tomorrow`, `next-week` |
 | `id` | | Unique identifier (6+ alphanumeric) | `a1b2c3`, `x7y8z9` |
 
+**Canonical Field Order:** The table above defines the canonical order for fields when exporting/writing. Parsers and apps SHOULD output fields in this order: `description` → `status` → `prio` → `tags` → `assignee` → `created` → `updated` → `due` → `id`. When importing/reading, field order does not matter — accept any order. This ensures consistent, diff-friendly output while remaining flexible for human editing.
+
 **Why 6-character IDs?** Using 6-character lowercase alphanumeric IDs (a-z, 0-9 — 36 ASCII characters, not UTF-8 extended), you get 36^6 ≈ 2.18 billion unique combinations. Due to the birthday paradox, collision probability reaches 1% at around 6,500 items and 50% at around 50,000 items. For a personal or small-team todo app where users realistically create hundreds to a few thousand items over their lifetime, the collision probability is effectively negligible (<0.1%). This format is also URL-safe, case-insensitive friendly, and easily readable/typeable by humans when needed.
 
 **Field Aliases:** Parsers SHOULD accept both the canonical field name and its aliases. When writing, prefer the canonical form.
@@ -217,11 +224,11 @@ The space after the comma inside quotes is recommended for readability but optio
 
 ### Descriptions
 
-Descriptions use the `descr:` metadata field (or its alias `description:`) with a quoted value:
+Descriptions use the `description:` metadata field (or its alias `descr:`) with a quoted value:
 
 ```markdown
 - [ ] Complex item/task
-prio: high, due: 2025-01-15, id: a1b2c3, descr: "This explains the item/task in detail"
+description: "This explains the item/task in detail", prio: high, due: 2025-01-15, id: a1b2c3
 ```
 
 Or on a separate metadata line:
@@ -229,7 +236,7 @@ Or on a separate metadata line:
 ```markdown
 - [ ] Complex item/task
 prio: high, id: a1b2c3
-descr: "This explains the item/task in detail"
+description: "This explains the item/task in detail"
 ```
 
 **Important:** Free-form text after an item is NOT valid. The line after a `- ` item must contain valid `key: value` pairs or be empty/another item.
@@ -252,7 +259,7 @@ prio: high, id: a1b2c3
   - [ ] Subitem/Subtask one
   status: todo, id: d4e5f6
   - Subitem/Subtask two (no checkbox)
-  descr: "Subitems/Subtasks can omit things like checkboxes and id"
+  description: "Subitems/Subtasks can omit things like checkboxes and id"
     - [ ] Sub-subitem/subtask
     id: nested123
 ```
@@ -370,6 +377,7 @@ lists:a1b2c3:"Backlog" d4e5f6:"In Progress" g7h8i9:"Done"
 4. If `project:` field missing → Generate default, mark file as modified
 5. Ensure the `lists:` line exists and contains an entry for each list heading (generate missing 6-char IDs using an implementation-defined strategy), mark file as modified
 6. Items without `id` field → Generate ID, mark file as modified
+7. Items without checkbox → Add `[ ]` (or `[X]` if completed), mark file as modified
 ```
 
 **Key insight:** The dash indentation determines hierarchy. Metadata lines belong to the most recent item above.
@@ -386,9 +394,9 @@ lists:a1b2c3:"Backlog" d4e5f6:"In Progress" g7h8i9:"Done"
 
 **Metadata pair (comma-separated, optional space after colon):**
 ```regex
-([a-z]+):\s*(?:"([^"]+)"|([^,]+))
+([a-z]+):\s*(?:"((?:[^"]|"")*)"|([^,]+))
 ```
-Note: Apply globally, then trim whitespace from unquoted values.
+Note: Apply globally, then trim whitespace from unquoted values. For quoted values, unescape by replacing `""` with `"` after capture.
 
 **List heading:**
 ```regex
@@ -402,8 +410,9 @@ Note: Apply globally, then trim whitespace from unquoted values.
 
 **List registry pair (within `lists:` value):**
 ```regex
-([a-z0-9]{6}):(?:"([^"]+)"|([^\s]+))
+([a-z0-9]{6}):(?:"((?:[^"]|"")*)"|([^\s]+))
 ```
+Note: For quoted list titles, unescape by replacing `""` with `"` after capture.
 
 **Document metadata:**
 ```regex
@@ -414,18 +423,20 @@ Note: Apply globally, then trim whitespace from unquoted values.
 
 ## Sync Behavior
 
-### App → Markdown
+### App → Markdown (export logic from apps)
 
 When the application writes to the `.md` file:
 
 1. Preserve existing structure and formatting where possible
-2. Add `id` field to any item/task missing one
-3. Ensure `project:` field exists in document metadata (generate if missing)
+2. Write metadata fields in canonical order: `description` → `status` → `prio` → `tags` → `assignee` → `created` → `updated` → `due` → `id` (see "Defined Fields" for rationale)
+3. Required: Ensure `project:` field exists in document metadata (generate if missing)
 4. Ensure the `lists:` line exists and contains an entry for each list heading (generate if missing) and write it as the last line in the metadata comment
 5. Update `sync` timestamp in document metadata
 6. Do NOT write app-only data (colors, UI state) to markdown
+7. Recommended but optional (some apps are better off without this): Add `id` field to any item/task missing one
+8. Recommended but optional (some apps are better off without this): Add checkbox (`[ ]` or `[X]`) to items/subitems that don't have one
 
-### Markdown → App
+### Markdown → App (import logic into apps)
 
 When the application reads the `.md` file:
 
@@ -513,7 +524,7 @@ lists:a1b2c3:"To-do"
 - [ ] Research caching strategies
 status: ideas, prio: high, tags: "research, backend", due: 2025-02-01, id: a1b2c3
   - [ ] Evaluate Redis
-  descr: "Test Redis for session storage", id: s1t2u3
+  description: "Test Redis for session storage", id: s1t2u3
   - [ ] Evaluate Memcached
   id: v4w5x6
 
