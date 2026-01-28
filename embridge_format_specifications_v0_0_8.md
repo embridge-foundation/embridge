@@ -726,9 +726,10 @@ This section separates **reading/importing** (parsing) from **writing/exporting*
            - Append line to current description buffer
            - If line contains closing `"` → Extract description up to `"`, parse remaining text after `",` as metadata fields, set inside_quote = false
       ii.  Line starts with (spaces +) `- ` OR (spaces +) `{number}. ` → New item/task
+           - `{number}` is `0` or a base-10 integer without leading zeros; lines like `01. Item` do not match this pattern and are not recognized as items
            - Count leading spaces to determine nesting depth (0=top, 2=sub, 4=sub-sub, ...)
            - Detect marker type: `-` = bullet, `{number}.` = ordered
-           - If ordered: extract `{number}` as a numeric display hint (reject/flag non-conformant ordered markers like `01.`)
+           - If ordered: extract `{number}` as a numeric display hint
            - Parse checkbox state and title
       iii. Line after a `- ` or `{number}. ` line, does NOT start with `- `, `{number}. `, or `>` → Metadata for item above
            - If line starts with `"` and contains closing `"` → Single-line description shorthand
@@ -820,7 +821,7 @@ Note: For quoted list titles, unescape by replacing `""` with `"` after capture.
 
 **Comment line (flexible — author and timestamp optional):**
 ```regex
-^( *)(>+)\s*(?:@?([^\[\s:]+)\s*)?(?:\[([^\]]+)\]\s*)?(?::\s*)?(.*)$
+^( *)(>+)\s*(?:(?:@?([^\[\s:]+)\s*)?(?:\[([^\]]+)\]\s*)?:\s*)?(.*)$
 ```
 - Capture group 1: leading spaces (length ÷ 2 = parent item nesting depth; 0 = top-level item, 2 = subitem, etc.)
 - Capture group 2: `>` characters (length = reply depth)

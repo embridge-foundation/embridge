@@ -94,7 +94,7 @@ An attempt at a 4-way venn-diagram in ASCII:
 - pears
 ```
 
-## Example 2:
+## Example 2 (bullet markers):
 
 ```markdown
 # To-do
@@ -116,12 +116,24 @@ lists:l1st01:"To-do" l1st02:"Done"
 -->
 ```
 
+## Example 3 (ordered markers):
+
+```markdown
+# Setup steps
+1. [ ] Install dependencies
+prio: high, id: abc123
+2. [ ] Configure environment
+id: def456
+3. [x] Run tests
+id: ghi789
+```
+
 ## How It Works
 
 1. **Lists** are H1 headings (`# To-do`, `# In Progress`, `# Done`)
-2. **Items/tasks** are markdown list items (`- [ ]`, `- [x]`, or just `-`)
+2. **Items/tasks** are markdown list items using either bullet (`- [ ]`, `- [x]`, or just `-`) or ordered (`1. [ ]`, `2. [x]`, or just `1.`) markers
 3. **Metadata** sits on the line below, comma-separated: `prio: high, due: 2025-01-20, id: abc123`
-4. **Subitems/subtasks** use indented dashes (`  - ` for level 1, `    - ` for level 2, etc.)
+4. **Subitems/subtasks** use indented markers (`  - ` or `  1. ` for level 1, `    - ` or `    1. ` for level 2, etc.)
 5. **Attachments** are represented as subitems whose title is a Markdown link/image (`  - [Spec](docs/spec.pdf)`, `  - ![Screenshot](assets/login.png)`)
 6. **Document metadata** lives in an HTML comment at the end
    - Apps/agents maintain `project:` and `lists:` there (humans usually don't)
@@ -141,7 +153,7 @@ Embridge has its own quirks—the `- [ ]` checkbox syntax comes from GitHub-flav
 ## Documentation
 
 - [Full Specification](embridge_format_specifications_v0_0_8.md) - Complete format reference
-- [Example File](embridge_output_demo_v0_0_7.md) - A working demo
+- [Example File](embridge_output_demo_v0_0_8.md) - A working demo
 
 ## License
 
