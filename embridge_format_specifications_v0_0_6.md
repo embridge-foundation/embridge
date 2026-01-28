@@ -1,8 +1,8 @@
 # Specifications for Embridge: an open source item/task list format
 
-**Version:** 0.0.5
+**Version:** 0.0.6
 **Last Updated:** 2026-01-27
-**Example of output** in `embridge_output_demo_v0_0_5.md`
+**Example of output** in `embridge_output_demo_v0_0_6.md`
 **Author** xpiu
 
 ---
@@ -106,7 +106,7 @@ lists:{list_id}:"{List Title}" {list_id}:"{Another List Title}"
 -->
 ```
 
-Note: Metadata lines do not require indentation. The parser knows they belong to the item/task directly above. Descriptions use the `description:` field.
+Note: Metadata lines do not require indentation. The parser knows they belong to the item/task directly above. Descriptions use the `description:` field (or shorthand: a quoted string at line start).
 
 ### Project title
 
@@ -231,15 +231,52 @@ Descriptions use the `description:` metadata field (or its alias `descr:`) with 
 description: "This explains the item/task in detail", prio: high, due: 2025-01-15, id: a1b2c3
 ```
 
-Or on a separate metadata line:
+**Shorthand syntax:** Since descriptions are common and always come first in canonical field order, a quoted string at the start of a metadata line is treated as an implicit `description:` value:
 
 ```markdown
 - [ ] Complex item/task
-prio: high, id: a1b2c3
-description: "This explains the item/task in detail"
+"This explains the item/task in detail", prio: high, due: 2025-01-15, id: a1b2c3
 ```
 
-**Important:** Free-form text after an item is NOT valid. The line after a `- ` item must contain valid `key: value` pairs or be empty/another item.
+Both forms are equivalent. The shorthand can also stand alone:
+
+```markdown
+- [ ] Simple item with just a description
+"More details about this item"
+```
+
+**Shorthand rules:**
+- Applies only when `"` is the first non-whitespace character on the metadata line
+- The quoted value is parsed as `description:` (same escaping rules: `""` → `"`)
+- Can be followed by other fields after a comma: `"My description", prio: high, id: abc123`
+- If both shorthand and explicit `description:` appear, parsers SHOULD treat this as an error (or use last-wins)
+- When exporting, parsers SHOULD prefer the shorthand form for brevity (explicit `description:` or `descr:` are also valid)
+
+**Multiline descriptions:** The shorthand syntax supports descriptions spanning multiple lines. The description starts with `"` on the first metadata line and continues until the closing `"` is found:
+
+```markdown
+- [ ] Complex item/task
+"This is a longer description
+that spans multiple lines.
+It can include detailed notes.", prio: high, id: a1b2c3
+```
+
+**Multiline rules:**
+- The opening `"` must be the first non-whitespace character on the metadata line (same as single-line shorthand)
+- All lines until the closing `"` are part of the description value
+- Newlines are preserved literally in the parsed description
+- Escaped quotes (`""`) work the same: `""` → `"`
+- Other metadata fields follow after the closing `"` and a comma (on the same line as the closing quote)
+- Parsers track "inside open quote" state across lines until the closing `"` is found
+
+```markdown
+- [ ] Item with multiline description and metadata
+"First line of description.
+Second line with more detail.
+Third line wrapping up.", status: todo, prio: high, id: x1y2z3
+```
+
+**Important:** Free-form text after an item is NOT valid. The line after a `- ` item must contain valid `key: value` pairs, a quoted description (single or multiline), or be empty/another item.
 
 ```markdown
 - [ ] Call the client
@@ -247,6 +284,9 @@ Note: they prefer mornings     ← NOT VALID (not a key: value pair)
 
 - [ ] Call the client
 note: "they prefer mornings"   ← VALID (proper key: value syntax)
+
+- [ ] Call the client
+"they prefer mornings"         ← VALID (description shorthand)
 ```
 
 ### Subitems/Subtasks
@@ -259,7 +299,7 @@ prio: high, id: a1b2c3
   - [ ] Subitem/Subtask one
   status: todo, id: d4e5f6
   - Subitem/Subtask two (no checkbox)
-  description: "Subitems/Subtasks can omit things like checkboxes and id"
+  "Subitems/Subtasks can omit things like checkboxes and id"
     - [ ] Sub-subitem/subtask
     id: nested123
 ```
@@ -272,7 +312,7 @@ prio: high, id: a1b2c3
    - `    - ` (4 spaces) → sub-subitem
    - And so on...
 
-2. **The line after any `- ` line is metadata for that item** (valid `key: value` pairs only). The parser associates it with the item/task directly above. Metadata for a subitem does NOT need to be indented to match its parent dash:
+2. **The line after any `- ` line is metadata for that item** (valid `key: value` pairs or description shorthand). The parser associates it with the item/task directly above. Metadata for a subitem does NOT need to be indented to match its parent dash:
 
    ```markdown
    - [ ] Parent item
@@ -329,7 +369,7 @@ An HTML comment at the end of the file contains document-level metadata. The `pr
 
 ```markdown
 <!--
-embridge:0.0.5
+embridge:0.0.6
 project:My Project title
 sync:2025-01-15T09:00:00-05:00
 uuid:0188b200-0000-7000-8000-000000000000
@@ -365,14 +405,19 @@ lists:a1b2c3:"Backlog" d4e5f6:"In Progress" g7h8i9:"Done"
 1. Split file into sections by H1 headings (`# `)
 2. For each section:
    a. Section name = list title
-   b. Process lines sequentially:
-      i.   Line starts with (spaces +) `-` → New item/task
+   b. Process lines sequentially (maintain "inside_quote" state, initially false):
+      i.   If inside_quote is true:
+           - Append line to current description buffer
+           - If line contains closing `"` → Extract description up to `"`, parse remaining text after `",` as metadata fields, set inside_quote = false
+      ii.  Line starts with (spaces +) `-` → New item/task
            - Count leading spaces to determine nesting depth (0=top, 2=sub, 4=sub-sub, ...)
            - Parse checkbox state and title
-      ii.  Line after a `-` line, does NOT start with `-` → Metadata for item above
-           - Parse comma-separated `key: value` pairs
-           - Lines not matching `key: value` pattern are invalid (ignore or warn)
-      iii. Line starts with (more spaces +) `-` → New nested item (child of nearest shallower item)
+      iii. Line after a `-` line, does NOT start with `-` → Metadata for item above
+           - If line starts with `"` and contains closing `"` → Single-line description shorthand
+           - If line starts with `"` but no closing `"` → Begin multiline description, set inside_quote = true
+           - Otherwise → Parse comma-separated `key: value` pairs
+           - Lines not matching `key: value` pattern or description shorthand are invalid (ignore or warn)
+      iv.  Line starts with (more spaces +) `-` → New nested item (child of nearest shallower item)
 3. Parse HTML comment for document metadata
 4. If `project:` field missing → Generate default, mark file as modified
 5. Ensure the `lists:` line exists and contains an entry for each list heading (generate missing 6-char IDs using an implementation-defined strategy), mark file as modified
@@ -380,7 +425,7 @@ lists:a1b2c3:"Backlog" d4e5f6:"In Progress" g7h8i9:"Done"
 7. Items without checkbox → Add `[ ]` (or `[X]` if completed), mark file as modified
 ```
 
-**Key insight:** The dash indentation determines hierarchy. Metadata lines belong to the most recent item above.
+**Key insight:** The dash indentation determines hierarchy. Metadata lines belong to the most recent item above. Multiline descriptions require stateful parsing to track open quotes.
 
 ### Regex Patterns
 
@@ -397,6 +442,22 @@ lists:a1b2c3:"Backlog" d4e5f6:"In Progress" g7h8i9:"Done"
 ([a-z]+):\s*(?:"((?:[^"]|"")*)"|([^,]+))
 ```
 Note: Apply globally, then trim whitespace from unquoted values. For quoted values, unescape by replacing `""` with `"` after capture.
+
+**Description shorthand — single-line (quoted string at line start):**
+```regex
+^\s*"((?:[^"]|"")*)"\s*(?:,\s*(.*))?$
+```
+- Capture group 1: description value (unescape `""` → `"`)
+- Capture group 2: remaining metadata (if present, parse as `key: value` pairs)
+
+**Description shorthand — multiline detection (opening quote without closing):**
+```regex
+^\s*"((?:[^"]|"")*)$
+```
+- If this matches (line starts with `"` but doesn't end with `"`), begin multiline mode
+- Capture group 1: first line of description (partial)
+- Continue accumulating lines until a line contains `"` followed by optional `, metadata`
+- Multiline descriptions require stateful parsing; regex alone cannot handle the full case
 
 **List heading:**
 ```regex
@@ -428,7 +489,7 @@ Note: For quoted list titles, unescape by replacing `""` with `"` after capture.
 When the application writes to the `.md` file:
 
 1. Preserve existing structure and formatting where possible
-2. Write metadata fields in canonical order: `description` → `status` → `prio` → `tags` → `assignee` → `created` → `updated` → `due` → `id` (see "Defined Fields" for rationale)
+2. Write metadata fields in canonical order: `description` → `status` → `prio` → `tags` → `assignee` → `created` → `updated` → `due` → `id` (see "Defined Fields" for rationale); prefer description shorthand (`"..."`) over explicit `description:` field
 3. Required: Ensure `project:` field exists in document metadata (generate if missing)
 4. Ensure the `lists:` line exists and contains an entry for each list heading (generate if missing) and write it as the last line in the metadata comment
 5. Update `sync` timestamp in document metadata
@@ -511,7 +572,7 @@ SaaS applications SHOULD support:
 - [ ] Call mom
 
 <!--
-embridge:0.0.5
+embridge:0.0.6
 project:Items/Tasks
 lists:a1b2c3:"To-do"
 -->
@@ -524,7 +585,7 @@ lists:a1b2c3:"To-do"
 - [ ] Research caching strategies
 status: ideas, prio: high, tags: "research, backend", due: 2025-02-01, id: a1b2c3
   - [ ] Evaluate Redis
-  description: "Test Redis for session storage", id: s1t2u3
+  "Test Redis for session storage", id: s1t2u3
   - [ ] Evaluate Memcached
   id: v4w5x6
 
@@ -533,7 +594,9 @@ tags: research, id: b2c3d4
 
 # To-do
 - [ ] Fix pagination bug
-prio: high, due: 2025-01-20, id: c3d4e5
+"Users report that page 2 shows
+duplicate items from page 1.
+Check offset calculation.", prio: high, due: 2025-01-20, id: c3d4e5
 
 - [ ] Update dependencies
 created: 2025-01-15, id: d4e5f6
@@ -550,7 +613,7 @@ status: done, created: 2025-01-10, id: f6g7h8
 id: g7h8i9
 
 <!--
-embridge:0.0.5
+embridge:0.0.6
 project:Project Demo
 sync:2025-01-15T09:00:00-05:00
 uuid:0188b200-0000-7000-8000-000000000000
