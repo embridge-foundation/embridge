@@ -53,7 +53,7 @@ Strict formats        ←────────────→        No forma
 (JSON, YAML)             THIS FORMAT            (prose)
 
 Humans often think JSON/YAML is too complex to edit, but machines love it.
-Machines struggle with interpretation if the text isn't formatted.
+Machines struggle with interpretation of spontaneous human-written lists.
 The Embridge format aims to find middle ground.
 ```
 
@@ -381,6 +381,83 @@ note: "they prefer mornings"   ← VALID (proper key: value syntax)
 "they prefer mornings"         ← VALID (description shorthand)
 ```
 
+### Comments (Optional)
+
+Comments attach notes to items/subitems. Unlike descriptions (which are a single explanatory text), comments are multiple entries that accumulate over time. Like other metadata, author and timestamp are optional.
+
+**Syntax (all valid):**
+
+```markdown
+> comment text
+> @author: comment text
+> [timestamp]: comment text
+> @author [timestamp]: comment text
+```
+
+**Example:**
+
+```markdown
+- [ ] Fix pagination bug
+prio: high, id: abc123
+> check the offset calculation
+> @alice [2025-01-20]: confirmed on page 3
+```
+
+**Validity (Basic Embridge):**
+- Comment lines MUST start with one or more `>` characters (markdown blockquote syntax)
+- Author and timestamp are OPTIONAL
+- If present, author format: `@username` or `username`
+- If present, timestamp format: ISO 8601 date, optionally with time (`2025-01-20` or `2025-01-20 14:30`)
+- Comment block belongs to the item/subitem directly above it
+- Comment block ends at next item line (`-`), heading (`#`), or non-`>` line
+
+**Threading (replies):**
+Multiple `>` characters indicate reply depth:
+- `>` = top-level comment
+- `>>` = reply to a comment
+- `>>>` = reply to a reply
+
+```markdown
+- [ ] Refactor auth
+id: abc123
+> @alice [2025-01-20]: Starting refactor today
+>> @bob [2025-01-21]: Use the new OAuth library
+>> @alice [2025-01-22]: Good idea, will do
+> @charlie [2025-01-23]: Ready for review
+```
+
+**Multiline comments:**
+Continuation lines use the same `>` prefix without author/timestamp:
+
+```markdown
+- [ ] Complex feature
+id: def456
+> @alice [2025-01-20]: This needs careful review.
+> The API changed since v2.0 and we need to
+> handle backwards compatibility.
+```
+
+**Comments on subitems:**
+
+```markdown
+- [ ] Main task
+prio: high, id: a1b2c3
+> starting today
+  - [ ] Subtask one
+  id: x1y2z3
+  > @bob: I'll handle this
+```
+
+**Tooling export/rewrite guidance (apps/parsers/AI agents):**
+- Tooling MAY add author/timestamp when context is available (e.g., current user, current date)
+- Tooling SHOULD preserve existing comment formatting and content
+- Tooling SHOULD output comments after the metadata line (if any), before the next item
+
+**Parser/import guidance:**
+- Parsers SHOULD accept comments with or without author/timestamp
+- Parsers SHOULD preserve the threading depth (count of `>` characters)
+- Parsers SHOULD treat continuation lines (no author/timestamp) as part of the previous comment
+
 ### Subitems/Subtasks
 
 Items/Tasks can contain nested subitems/subtasks. **Hierarchy is determined solely by the indentation of the dash (`-`) character.** Metadata lines do not require indentation.
@@ -539,12 +616,18 @@ This section separates **reading/importing** (parsing) from **writing/exporting*
       ii.  Line starts with (spaces +) `-` → New item/task
            - Count leading spaces to determine nesting depth (0=top, 2=sub, 4=sub-sub, ...)
            - Parse checkbox state and title
-      iii. Line after a `-` line, does NOT start with `-` → Metadata for item above
+      iii. Line after a `-` line, does NOT start with `-` or `>` → Metadata for item above
            - If line starts with `"` and contains closing `"` → Single-line description shorthand
            - If line starts with `"` but no closing `"` → Begin multiline description, set inside_quote = true
            - Otherwise → Parse comma-separated `key: value` pairs
            - Lines not matching `key: value` pattern or description shorthand are non-conformant (ignore or warn)
       iv.  Line starts with (more spaces +) `-` → New nested item (child of nearest shallower item)
+      v.   Line starts with `>` → Comment for item above
+           - Count leading `>` characters to determine reply depth (1=top, 2=reply, 3=reply-to-reply)
+           - Parse optional `@author` and `[timestamp]` prefix
+           - Remaining text is comment content
+           - Continue collecting `>` lines until non-`>` line encountered
+           - Continuation lines (no author/timestamp) are part of the previous comment's text
 3. Parse HTML comment for document metadata (if present)
 ```
 
@@ -613,6 +696,22 @@ Note: For quoted list titles, unescape by replacing `""` with `"` after capture.
 ```regex
 <!--\s*([\s\S]*?)\s*-->
 ```
+
+**Comment line (flexible — author and timestamp optional):**
+```regex
+^(>+)\s*(?:@?([^\[\s:]+)\s*)?(?:\[([^\]]+)\]\s*)?(?::\s*)?(.*)$
+```
+- Capture group 1: `>` characters (length = reply depth)
+- Capture group 2: author (optional, without `@` prefix)
+- Capture group 3: timestamp (optional, without brackets)
+- Capture group 4: comment text
+
+Examples:
+- `> just a note` → depth=1, text="just a note"
+- `> @alice: check this` → depth=1, author="alice", text="check this"
+- `> [2025-01-20]: note` → depth=1, timestamp="2025-01-20", text="note"
+- `> @alice [2025-01-20]: full form` → depth=1, author="alice", timestamp="2025-01-20", text="full form"
+- `>> reply here` → depth=2, text="reply here"
 
 ---
 

@@ -1,20 +1,30 @@
 # List with backlog
 - Research caching strategies
 "lorem ipsum", status: ideas, prio: high, tags: "research, tech", assignee: @alice, created: 2025-01-15, updated: 2025-01-18, due: 2025-01-20, id: a1b2c3
+> @bob [2025-01-16]: Consider Redis vs Memcached tradeoffs
+> @alice [2025-01-17]: Good point, will evaluate both
   - An example of a subitem/subtask, visibly separated by the two spaces prior to its dash symbol
   "subtask description text ....", id: 3b2k1o
+  > quick note on this subtask
   - Another subitem/subtask
   "another subitem/subtask, but now without checkbox or id, flexibly possible to drop these"
 - Explore new auth library
 "example of item without id or checkbox, which an online parser might have to add"
+> check if it supports OAuth 2.1
 
 # To-do
 - Fix pagination bug
 "Users report that page 2 shows
 duplicate items from page 1.
 Check offset calculation.", created: 2025-01-15, id: f8g9h0
+> @alice [2025-01-16]: Found the issue in paginate.js line 42
+>> @bob [2025-01-16]: Can you push a fix today?
+>> @alice [2025-01-17]: Done, see commit abc123
+> verified fix works
 - Update dependencies
 status: todo, created: 2025-01-15
+> waiting for security audit to complete
+> @charlie: I can help with this next week
 
 # In progress
 - [ ] Refactor user service
