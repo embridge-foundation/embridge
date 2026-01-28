@@ -1,7 +1,7 @@
 # List with backlog
 - Research caching strategies
 "lorem ipsum", status: ideas, prio: high, tags: "research, tech", assignee: @alice, created: 2025-01-15, updated: 2025-01-18, due: 2025-01-20, id: a1b2c3
-> @bob [2025-01-16]: Consider Redis vs Memcached tradeoffs
+> Consider Redis vs Memcached tradeoffs
 > @alice [2025-01-17]: Good point, will evaluate both
   - An example of a subitem/subtask, visibly separated by the two spaces prior to its dash symbol
   "subtask description text ....", id: 3b2k1o
