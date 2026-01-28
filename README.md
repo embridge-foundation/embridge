@@ -88,12 +88,18 @@ An attempt at a 4-way venn-diagram in ASCII:
 - Competing conventions inside note apps (Obsidian/Logseq task metadata patterns)
 - If the spec grows too strict/complex, it loses the “just Markdown” advantage
 
-## Quick Example
+## Example 1:
+```markdown
+- apples
+- pears
+```
+
+## Example 2:
 
 ```markdown
 # To-do
 - [ ] Fix login timeout bug
-prio: high, due: 2025-01-20, id: abc123
+"a description", prio: high, due: 2025-01-20, id: abc123
 - [ ] Add unit tests for auth module
 tags: "testing, backend", id: def456
 
