@@ -4,6 +4,25 @@
 **Last Updated:** 2026-01-27
 **Example of output** in `embridge_output_demo_v0_0_6.md`
 **Author** xpiu
+**Github**: Repo URL will be made available soon ...
+**Project website**: https://embridge.net
+
+---
+
+## Contents
+
+- [Overview](#overview)
+- [Project goals](#project-goals)
+- [Bridge Philosophy](#bridge-philosophy)
+- [File Structure](#file-structure)
+- [Syntax Reference](#syntax-reference)
+- [Parsing Algorithm](#parsing-algorithm)
+- [Sync Behavior](#sync-behavior)
+- [Integration with External SaaS GUIs](#integration-with-external-saas-guis)
+- [Examples](#examples)
+- [Versioning](#versioning)
+- [References](#references)
+- [License](#license)
 
 ---
 

@@ -1,9 +1,22 @@
 # Embridge
 
-**Version** 0.0.5
-**Summary** A markdown-based format for item/task lists that work for humans and AI agents.
-**Author** xpiu
-**Licence** CC0, completely open source
+**Version**: 0.0.5
+**Summary**: A markdown-based format for item/task lists that work for humans and AI agents.
+**Author**: xpiu
+**Licence**: CC0, completely open source
+**Github**: Repo URL will be made available soon ...
+**Project website**: https://embridge.net
+
+## Contents
+
+- [Project goals](#project-goals)
+- [Some reasons to go for embridge](#some-reasons-to-go-for-embridge)
+- [SWOT](#swot)
+- [Quick Example](#quick-example)
+- [How It Works](#how-it-works)
+- [Embridge compared to todo.txt format](#embridge-compared-to-todotxt-format)
+- [Documentation](#documentation)
+- [License](#license)
 
 ## Project goals
 
@@ -14,6 +27,29 @@
 - stay merge- and diff-friendly for git workflows
 - remain tool- and vendor-agnostic (portable across editors/apps/forges)
 - preserve forward compatibility (ignore/preserve unknown fields)
+
+```
+
+An attempt at a 4-way venn-diagram in ASCII:
+
+                  .-----------.
+               .-'             '-.
+             .'      HUMANS       '.
+            /  (Flexible editing)   \
+         .-+-------------------------+-.
+       .'  |            |            |  '.
+      /    |            |            |    \
+     :  AI |            |            | APPS :
+     |AGENTS            |            |(GUI) |
+     :     |        EMBRIDGE         |      :
+      \    |            |            |    /
+       '.  |            |            |  .'
+         '-+-------------------------+-'
+            \          GIT          /
+             '. (version control) .'
+               '-.             .-'
+                  '-----------'
+```
 
 ## Some reasons to go for embridge
 
