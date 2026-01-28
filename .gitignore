@@ -1,4 +1,5 @@
 .archive
 .tmp/
+.test/
 /research/
 /markdown-viewer/

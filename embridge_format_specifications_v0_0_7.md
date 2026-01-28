@@ -1,8 +1,8 @@
 # Specifications for Embridge: an open source item/task list format
 
-**Version:** 0.0.6
+**Version:** 0.0.7
 **Last Updated:** 2026-01-28
-**Example output:** `embridge_output_demo_v0_0_6.md`
+**Example output:** `embridge_output_demo_v0_0_7.md`
 **Author:** xpiu
 **Github:** Repo URL will be made available soon ...
 **Project website:** https://embridge.net
@@ -404,7 +404,7 @@ prio: high, id: abc123
 ```
 
 **Validity (Basic Embridge):**
-- Comment lines MUST start with one or more `>` characters (markdown blockquote syntax)
+- Comment lines MUST contain one or more `>` characters as the first non-whitespace content. Leading spaces MAY be used to visually align with the parent item/subitem and can help parsers determine ownership.
 - Author and timestamp are OPTIONAL
 - If present, author format: `@username` or `username`
 - If present, timestamp format: ISO 8601 date, optionally with time (`2025-01-20` or `2025-01-20 14:30`)
@@ -457,6 +457,7 @@ prio: high, id: a1b2c3
 - Parsers SHOULD accept comments with or without author/timestamp
 - Parsers SHOULD preserve the threading depth (count of `>` characters)
 - Parsers SHOULD treat continuation lines (no author/timestamp) as part of the previous comment
+- Parsers MAY use leading whitespace to match comments to their parent item/subitem (e.g., 0 spaces = top-level item, 2 spaces = level 1 subitem). If indentation is absent or ambiguous, parsers SHOULD attach the comment to the most recent item/subitem above.
 
 ### Subitems/Subtasks
 
@@ -606,7 +607,7 @@ An HTML comment at the end of the file can contain document-level metadata.
 
 ```markdown
 <!--
-embridge:0.0.6
+embridge:0.0.7
 project:My Project title
 sync:2025-01-15T09:00:00-05:00
 uuid:0188b200-0000-7000-8000-000000000000
@@ -664,8 +665,9 @@ This section separates **reading/importing** (parsing) from **writing/exporting*
            - Otherwise → Parse comma-separated `key: value` pairs
            - Lines not matching `key: value` pattern or description shorthand are non-conformant (ignore or warn)
       iv.  Line starts with (more spaces +) `-` → New nested item (child of nearest shallower item)
-      v.   Line starts with `>` → Comment for item above
-           - Count leading `>` characters to determine reply depth (1=top, 2=reply, 3=reply-to-reply)
+      v.   Line starts with optional spaces + `>` → Comment for item above
+           - Count leading spaces to determine parent item depth (0=top-level, 2=subitem, 4=sub-subitem)
+           - Count `>` characters to determine reply depth (1=top, 2=reply, 3=reply-to-reply)
            - Parse optional `@author` and `[timestamp]` prefix
            - Remaining text is comment content
            - Continue collecting `>` lines until non-`>` line encountered
@@ -741,12 +743,13 @@ Note: For quoted list titles, unescape by replacing `""` with `"` after capture.
 
 **Comment line (flexible — author and timestamp optional):**
 ```regex
-^(>+)\s*(?:@?([^\[\s:]+)\s*)?(?:\[([^\]]+)\]\s*)?(?::\s*)?(.*)$
+^( *)(>+)\s*(?:@?([^\[\s:]+)\s*)?(?:\[([^\]]+)\]\s*)?(?::\s*)?(.*)$
 ```
-- Capture group 1: `>` characters (length = reply depth)
-- Capture group 2: author (optional, without `@` prefix)
-- Capture group 3: timestamp (optional, without brackets)
-- Capture group 4: comment text
+- Capture group 1: leading spaces (length ÷ 2 = parent item nesting depth; 0 = top-level item, 2 = subitem, etc.)
+- Capture group 2: `>` characters (length = reply depth)
+- Capture group 3: author (optional, without `@` prefix)
+- Capture group 4: timestamp (optional, without brackets)
+- Capture group 5: comment text
 
 Examples:
 - `> just a note` → depth=1, text="just a note"
@@ -824,7 +827,7 @@ List headings are recommended but not required:
 - Charge battery
 
 <!--
-embridge:0.0.6
+embridge:0.0.7
 project:Items/Tasks
 lists:a1b2c3:"To-do"
 -->
@@ -865,7 +868,7 @@ status: done, created: 2025-01-10, id: f6g7h8
 id: g7h8i9
 
 <!--
-embridge:0.0.6
+embridge:0.0.7
 project:Project Demo
 sync:2025-01-15T09:00:00-05:00
 uuid:0188b200-0000-7000-8000-000000000000
