@@ -21,6 +21,9 @@ Check offset calculation.", created: 2025-01-15, id: f8g9h0
 >> @bob [2025-01-16]: Can you push a fix today?
 >> @alice [2025-01-17]: Done, see commit abc123
 > verified fix works
+  - [Bug screenshot](assets/pagination-page2.png)
+  - [Repro video](media/pagination-bug.mp4)
+  - ![Offset calculation notes](assets/pagination-offset.png)
 - Update dependencies
 status: todo, created: 2025-01-15
 > waiting for security audit to complete

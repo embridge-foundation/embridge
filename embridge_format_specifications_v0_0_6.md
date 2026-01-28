@@ -1,7 +1,7 @@
 # Specifications for Embridge: an open source item/task list format
 
 **Version:** 0.0.6
-**Last Updated:** 2026-01-27
+**Last Updated:** 2026-01-28
 **Example output:** `embridge_output_demo_v0_0_6.md`
 **Author:** xpiu
 **Github:** Repo URL will be made available soon ...
@@ -517,6 +517,48 @@ prio: high, id: a1b2c3
 - Subitems/Subtasks follow the same syntax as items/tasks (optional checkbox, optional metadata)
 - Nesting depth is unlimited but 2 levels is typical
 
+### Attachments (Convention)
+
+Embridge does not introduce a separate syntax for attachments. Instead, **attachments are represented as subitems** using standard Markdown link and image syntax.
+
+This is intentionally a *convention* (how apps/UIs interpret content), not a special Embridge token. Attachment lines are still valid list items.
+
+**Recommended attachment forms (as subitems):**
+
+```markdown
+- [ ] Parent item/task
+id: abc123
+  - [Design spec](docs/spec.pdf)
+  - [Demo video](media/demo.mp4)
+  - [Installer](dist/app.exe)
+  - ![Screenshot](assets/login.png)
+```
+
+Notes:
+- `- [title](path)` may be used for **any** attachment type (including images). This keeps the format flexible for humans.
+- `- ![alt](path)` is recommended for images because many Markdown renderers display the image inline.
+
+**Distinguishing attachments from subtasks (recommended UI interpretation):**
+- Checkboxes are optional in valid Embridge, so apps/tools SHOULD NOT rely on presence/absence of a checkbox to classify attachments.
+- An item/subitem MAY be interpreted as an attachment if its entire title is **exactly one** Markdown link (`[...](...)`) or image (`![...](...)`).
+- If an attachment item includes a checkbox, parsers/apps SHOULD still treat it as an attachment (not a subtask) and SHOULD ignore checkbox state for task completion; tooling SHOULD emit attachment items without checkboxes and SHOULD NOT add checkboxes to attachment items during normalization.
+
+**Important: bare paths are just titles**
+
+This is valid Embridge, but it is simply an item title (not an attachment signal):
+
+```markdown
+  - assets/login.png
+```
+
+**Tooling/export guidance (attachments):**
+- Tooling SHOULD treat attachment subitems as content, but SHOULD NOT require attachment items to have an `id`.
+- When stable syncing is a goal, tooling MAY still assign IDs to attachment subitems, but this is not required; apps may instead treat the attachment path/URL as the identifier.
+
+**Parser/import guidance (attachments):**
+- Parsers MAY detect attachments using the “link-only / image-only title” rule above.
+- If an app wants to show previews, it MAY infer media type from the link destination (e.g., `.png`, `.jpg`, `.gif`, `.mp4`) when an extension is present; if not, treat as a generic file/link.
+
 ### Lists (Sections)
 
 H1 headings (`# `) define lists/groups. The heading text is the list title.
@@ -728,8 +770,8 @@ When the application writes to the `.md` file:
 4. For sync-ready output, tooling SHOULD ensure the `lists:` line exists, contains an entry for each list heading (generate if missing), and is written as the last line in the metadata comment.
 5. Tooling SHOULD update `sync:` in document metadata when a sync/export is performed.
 6. Tooling MUST NOT write app-only data (colors, UI state) to markdown.
-7. Tooling SHOULD add an `id` field to any item/task missing one when stable syncing is a goal.
-8. Tooling MAY add checkboxes (`[ ]` or `[x]`) to items/subitems that don't have one as a normalization step (recommended for consistent rendering).
+7. Tooling SHOULD add an `id` field to any item/task missing one when stable syncing is a goal (attachment subitems MAY be excluded; see “Attachments (Convention)”).
+8. Tooling MAY add checkboxes (`[ ]` or `[x]`) to items/subitems that don't have one as a normalization step (recommended for consistent rendering), but SHOULD NOT add checkboxes to attachment items (see “Attachments (Convention)”).
 
 ### Markdown → App (import logic into apps)
 
