@@ -2,10 +2,10 @@
 
 **Version:** 0.0.6
 **Last Updated:** 2026-01-27
-**Example of output** in `embridge_output_demo_v0_0_6.md`
-**Author** xpiu
-**Github**: Repo URL will be made available soon ...
-**Project website**: https://embridge.net
+**Example output:** `embridge_output_demo_v0_0_6.md`
+**Author:** xpiu
+**Github:** Repo URL will be made available soon ...
+**Project website:** https://embridge.net
 
 ---
 
@@ -33,13 +33,14 @@ This specification defines a markdown-based format for storing item/task lists t
 
 ## Project goals
 
-- create a Markdown-compliant format for items/tasks in lists
-- be human-friendly: easy to learn, read and edit, with some editing flexibility
-- be AI-friendly: easy to learn, read and edit
-- enable reliable automation - e.g. stable per-item `id`, simple `key: value` metadata
-- stay merge- and diff-friendly for git workflows
-- remain tool- and vendor-agnostic (portable across editors/apps/forges)
-- preserve forward compatibility (ignore/preserve unknown fields)
+- Offer an item and list format that humans like to use (human-friendly first). Easy to learn, read and edit. With some editing flexibility.
+- Be AI-friendly. Easy for AI to pick up, read and edit.
+- Provide guidance on usage in apps 
+- Remain Markdown-compliant
+- Support reliable automation - e.g. stable per-item `id`, simple `key: value` metadata
+- Stay merge- and diff-friendly for git workflows
+- Remain tool- and vendor-agnostic (portable across editors/apps/forges)
+- Preserve forward compatibility (ignore/preserve unknown fields)
 
 ---
 
@@ -50,9 +51,13 @@ This format exists to solve a fundamental tension in item/task management:
 ```
 Strict formats        ←────────────→        No format
 (JSON, YAML)             THIS FORMAT            (prose)
+
+Humans often think JSON/YAML is too complex to edit, but machines love it.
+Machines struggle with interpretation if the text isn't formatted.
+The Embridge format aims to find middle ground.
 ```
 
-### Design Principles
+## Design Principles
 
 1. **Developers won't fight it, AI can still parse it.**
    The format is loose enough for quick hand-editing, structured enough for reliable parsing.
@@ -66,7 +71,7 @@ Strict formats        ←────────────→        No forma
 4. **The `.md` file is the source of truth for content.**
    Application databases store supplementary data (UI preferences, colors). The markdown file owns the items/tasks.
 
-### Integration Model
+## Integration Model
 
 ```
 ┌─────────────────────────────────────────────────────────────┐

@@ -1,11 +1,11 @@
 # Embridge
 
-**Version**: 0.0.6
-**Summary**: A markdown-based format for item/task lists that work for humans and AI agents.
-**Author**: xpiu
-**Licence**: CC0, completely open source
-**Github**: Repo URL will be made available soon ...
-**Project website**: https://embridge.net
+**Version:** 0.0.6
+**Summary:** A markdown-based format for item/task lists that work for humans and AI agents.
+**Author:** xpiu
+**Licence:** CC0, completely open source
+**Github:** Repo URL will be made available soon ...
+**Project website:** https://embridge.net
 
 ## Contents
 
