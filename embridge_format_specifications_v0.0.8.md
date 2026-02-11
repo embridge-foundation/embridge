@@ -1,7 +1,7 @@
 # Specifications for Embridge: an open source item/task list format
 
 **Version:** 0.0.8
-**Last Updated:** 2026-01-29
+**Last Updated:** 2026-02-11
 **Example output:** `embridge_output_demo_v0.0.8.md`
 **Author:** xpiu
 **Github:** Repo URL will be made available soon ...
@@ -16,18 +16,19 @@
 - Bridge Philosophy
 - Format architecture and design principles
 - On conformance
-- Syntax & File Structure
-  - Marker Forms
-  - Items/Tasks
-  - Metadata Line
-  - Tags Field
-  - Defined Fields
-  - Descriptions
+- Syntax and File Structure
+  - File Shape (Non-normative)
+  - Quick Reference (Non-normative)
+  - Document Model (Non-normative)
+  - Lexical Conventions
+  - Item Lines
+  - Nesting (Subitems/Subtasks)
+  - Item Metadata (Optional Line)
+  - Standard Fields (Non-exhaustive)
   - Comments (Optional)
-  - Subitems/Subtasks
   - Attachments (Convention)
-  - Lists (Sections)
-  - Document Metadata
+  - List Sections (H1 Headings)
+  - Document Metadata (HTML Comment)
 - Parsing
   - Reader (import / parse-only)
   - Tooling export/rewrite normalization (optional, recommended for sync-ready output)
@@ -116,21 +117,23 @@ When this spec says something is "required", it is either:
 
 ---
 
-## Syntax & File Structure
+## Syntax and File Structure
 
-An Embridge file follows this general shape:
+### File Shape (Non-normative)
+
+This example shows the typical layout of an Embridge document:
 
 ```markdown
 # {List Title}
 - [ ] {Item/Task title}
-{metadata line with key: value pairs, comma-separated}
+{optional item metadata (see below)}
 
 - {Item/Task without checkbox}
-{metadata line}
+{optional item metadata}
 
 # {Another List Title}
 - [x] {Completed item/task}
-{metadata line}
+{optional item metadata}
 
 <!--
 embridge:{version}
@@ -141,32 +144,69 @@ lists:{list_id}:"{List Title}" {list_id}:"{Another List Title}"
 -->
 ```
 
-Note: Metadata lines do not require indentation. The parser knows they belong to the item/task directly above. Descriptions use the `description:` field (or shorthand: a quoted string at line start).
+Notes:
+- Item metadata does not require indentation; parsers associate it with the item/task directly above.
+- Descriptions use the `description:` field or the shorthand `"..."` when the first non-whitespace character on the metadata line is `"`.
 
-The subsections below define the full validity, tooling, and parser rules for each element.
+The subsections below define the full validity, canonical output guidance, and reader tolerance rules for each element.
 
-### Marker Forms
+### Quick Reference (Non-normative)
 
-Embridge recognizes item/subitem markers as one of:
+- **Lists:** H1 headings (`# `) define list sections (optional).
+- **Items:** Markdown list items using either `- ` or `{number}. ` markers (a space after the marker is required).
+- **Completion:** An optional checkbox follows the marker: `[ ]` (incomplete) or `[x]` / `[X]` (complete). Items without checkboxes are valid and have an "unknown" completion state (`completed: null`).
+- **Item metadata (optional):** One metadata block may appear immediately after an item. It is either:
+  - a single metadata line of comma-separated `key: value` pairs, or
+  - a quoted description shorthand (`"..."`), which MAY span multiple lines until the closing `"`.
+- **Comments (optional):** Lines starting with `>` attach to the item/subitem above and MAY be threaded via `>>`, `>>>`, etc.
+- **Document metadata (optional):** An HTML comment at the end of the file stores document-level fields for sync-ready output.
 
-- **Bullet marker:** `- ` (dash followed by a single space)
-- **Ordered marker:** `{number}. ` where `{number}` is either `0` or a base-10 integer without leading zeros (e.g. `0`, `1`, `2`, `10`, `999`)
+### Document Model (Non-normative)
 
-This specification intentionally excludes `1)` markers to keep the format minimal.
+Conceptually, an Embridge document is:
 
-**Number semantics:**
-- The number is a display hint only (tooling/apps MAY show it, but it does not define sort order)
-- Numbers do NOT need to be sequential or start at 1
-- Parsers MUST NOT validate or enforce number ordering
-- Apps MAY use the number for display but SHOULD allow reordering
+- **Document**
+  - **Lists** (optional; derived from `# {List Title}` headings)
+    - **Items/Tasks** (a tree; nesting is based on marker indentation)
+      - **title** (required; remainder of the item line)
+      - **completed** (`true` / `false` / `null`)
+      - **fields** (optional; `key: value` pairs from the item metadata)
+      - **description** (optional; explicit `description:` field or shorthand `"..."`)
+      - **comments** (optional; `>` lines)
+      - **attachments** (convention; subitems whose title is exactly one Markdown link or image)
 
-**Ordered marker digit count (interoperability guidance):**
-- Tooling SHOULD emit ordered markers with 1–9 digits (e.g. `1. ` … `999999999. `) to maximize compatibility with common Markdown renderers
-- Parsers MAY accept more than 9 digits, but tooling that rewrites files SHOULD avoid emitting >9-digit ordered markers unless explicitly requested
+### Lexical Conventions
 
-### Items/Tasks
+The role of a line is determined by its first non-whitespace characters:
 
-An item/task is a markdown list item. All of the following are valid:
+- `# ` → list heading (section)
+- `- ` or `{number}. ` (optionally preceded by indentation spaces) → item/subitem line
+- `>` (optionally preceded by spaces) → comment line (belongs to the item/subitem above; detected before metadata parsing)
+- Otherwise, a non-empty line immediately following an item line is interpreted as that item's metadata (if it matches metadata/description rules); free-form text is non-conformant (see "Item metadata").
+
+**Indentation (marker only):** hierarchy is determined solely by the indentation spaces before the marker. Metadata indentation does not affect ownership.
+
+| Spaces before marker | Meaning |
+|----------------------|---------|
+| 0 | Top-level item/task |
+| 2 | Subitem/Subtask (level 1) |
+| 4 | Sub-subitem/subtask (level 2) |
+| 6 | Level 3, etc. |
+
+**Validity (Basic Embridge):**
+- Indentation before the marker SHOULD be in multiples of 2 spaces; odd indentation (1, 3, 5, … spaces) is non-conformant.
+
+**Tooling export/rewrite guidance:**
+- Tooling MUST NOT generate odd indentation because it makes hierarchy ambiguous across implementations.
+
+**Parser/import guidance:**
+- Parsers SHOULD treat odd indentation as non-conformant and MAY either reject the line, warn, or round down to the nearest even depth.
+
+### Item Lines
+
+An item/task is a Markdown list item: **marker** → **optional checkbox** → **title**.
+
+**Syntax (examples):**
 
 **Bullet marker forms:**
 ```markdown
@@ -186,34 +226,96 @@ An item/task is a markdown list item. All of the following are valid:
 **Validity (Basic Embridge):**
 - An item/task line MUST start with either:
   - `- ` (bullet marker followed by a single space), OR
-  - `{number}. ` where `{number}` is either `0` or does not start with `0` (ordered marker followed by a single space)
+  - `{number}. ` where `{number}` is either `0` or a base-10 integer without leading zeros (ordered marker followed by a single space)
 - A space MUST follow the marker — `1.Item` and `-Item` are invalid
 - Both markers MAY be preceded by indentation spaces for subitems
 - The checkbox, if present, MUST follow the marker with the same syntax: `- [ ]` or `1. [ ]`
 - The remainder of the line (after checkbox, if present) is the item/task title
 
-**Tooling export/rewrite guidance (apps/parsers/AI agents):**
+**Ordered marker constraints:**
+- This specification intentionally excludes `1)` markers to keep the format minimal.
+- Parsers MUST NOT validate or enforce number ordering (numbers do not need to be sequential or start at 1).
+- Tooling MUST NOT emit leading zeros in ordered markers (e.g., write `1.` not `01.`).
+
+**Ordered marker digit count (interoperability guidance):**
+- Tooling SHOULD emit ordered markers with 1–9 digits (e.g. `1. ` … `999999999. `) to maximize compatibility with common Markdown renderers.
+- Parsers MAY accept more than 9 digits, but tooling that rewrites files SHOULD avoid emitting >9-digit ordered markers unless explicitly requested.
+
+**Canonical output (tooling export/rewrite guidance):**
 - Tooling SHOULD emit checkboxes for interoperability and consistent rendering.
 - Tooling SHOULD prefer `- [ ]` or `1. [ ]` for incomplete and `- [x]` or `1. [x]` for complete (readers still accept uppercase `X`).
 - Tooling SHOULD preserve the original marker style when rewriting items (if an item was authored with `1.`, export as `1.`, not `-`).
-- Tooling MUST NOT emit leading zeros in ordered markers (e.g., write `1.` not `01.`).
 
-**Parser/import guidance:**
+**Reader tolerance (parser/import guidance):**
 - Parsers SHOULD accept items without checkboxes and treat their completion state as "unknown" (`completed: null`) until an app assigns a default.
 
-**Parsing rules:**
-- `- [ ]` or `1. [ ]` → `completed: false`
-- `- [x]`, `- [X]`, `1. [x]`, or `1. [X]` → `completed: true`
-- `-` or `1.` (no checkbox) → `completed: null` (app decides default)
+**Completion mapping:**
+
+| Item form | `completed` |
+|----------|-------------|
+| `- [ ] ...` or `1. [ ] ...` | `false` |
+| `- [x] ...`, `- [X] ...`, `1. [x] ...`, or `1. [X] ...` | `true` |
+| `- ...` or `1. ...` (no checkbox) | `null` |
 
 **Checkbox behavior:**
 - **For humans:** Checkboxes are optional. You can write `- Buy milk` or `1. Buy milk` without a checkbox — it's valid and convenient for quick entry.
 - **For parsers/apps:** When writing items back to the file, parsers SHOULD add checkboxes (`[ ]` or `[x]`) to items and subitems that don't have them. This normalizes the format for consistent rendering and interoperability.
 - Items without checkboxes are treated as `completed: null` (unchecked by default when a parser adds the checkbox).
 
-### Metadata Line
+### Nesting (Subitems/Subtasks)
 
-The line immediately following an item/task contains metadata as `key: value` pairs separated by commas. **Metadata does not require indentation** — the parser knows it belongs to the item/task directly above it.
+Items/Tasks can contain nested subitems/subtasks. **Hierarchy is determined solely by the indentation of the marker (bullet or ordered).**
+
+```markdown
+- [ ] Parent item/task
+prio: high, id: a1b2c3
+  - [ ] Subitem/Subtask one
+  status: todo, id: d4e5f6
+  - Subitem/Subtask two (no checkbox)
+  "Subitems/Subtasks can omit things like checkboxes and id"
+    - [ ] Sub-subitem/subtask
+    id: nested123
+```
+
+Ordered subitems follow the same indentation rules:
+
+```markdown
+1. [ ] Parent item
+prio: high, id: a1b2c3
+  1. [ ] Subitem one
+  id: d4e5f6
+  2. [ ] Subitem two
+  id: g7h8i9
+    1. [ ] Sub-subitem
+    id: j0k1l2
+```
+
+**Mixed styles (guidance, not enforced):**
+- Within the same section and indentation level, authors SHOULD prefer a consistent marker style for readability.
+- Parent and children MAY use different styles (valid but not recommended).
+
+**Parsing rules (nesting):**
+- Count leading spaces before the marker to determine nesting depth (0=top, 2=sub, 4=sub-sub, ...).
+- A new marker line starts a new item at the depth indicated by its indentation.
+- Subitems/Subtasks follow the same syntax as items/tasks (optional checkbox, optional metadata).
+- Nesting depth is unlimited, but 2 levels is typical.
+
+### Item Metadata (Optional Line)
+
+An item/task MAY be followed by an **item metadata block**. If present, it belongs to the item/task directly above it. **Metadata does not require indentation** — indentation is purely for visual preference.
+
+Metadata for a subitem does NOT need to match the subitem's indentation:
+
+```markdown
+- [ ] Parent item
+  - [ ] Subitem
+status: todo, id: def456      ← no indentation needed, still belongs to subitem above
+```
+
+An item metadata block is either:
+
+- a single metadata line of comma-separated `key: value` pairs, optionally beginning with description shorthand (`"..."`), OR
+- a quoted description shorthand that spans multiple lines until a closing `"`, optionally followed by additional `key: value` pairs after the closing quote.
 
 ```markdown
 - [ ] Example item/task
@@ -234,28 +336,26 @@ Ordered markers work the same way:
 status: todo, prio: high, tags: "backend, api", due: 2025-01-15, id: a1b2c3
 ```
 
-**Conformance:**
-
 **Validity (Basic Embridge):**
-- **Comma separates field pairs:** `key: value, key: value`
-- **Keys use lowercase letters:** `key` SHOULD match `[a-z]+` (unknown keys are allowed as long as they follow the same `key: value` shape)
-- **Space after colon is optional:** `key: value` and `key:value` are both valid
-- **Quoting:** Any value containing a comma MUST be quoted with `"` so it stays a single value
-- **Escaping quotes:** Inside a quoted value, a literal `"` is written as `""`
-- All fields are optional
-- Metadata indentation is optional — parsers accept both indented and non-indented
-- Trailing comma is allowed but not required: `prio: high, due: 2025-01-15,` (valid)
+- Item metadata is OPTIONAL. Items/tasks MAY appear without any metadata block.
+- A metadata line (when present) is a comma-separated list of field pairs: `key: value, key: value`.
+- Keys SHOULD match `[a-z]+` (unknown keys are allowed as long as they follow the same `key: value` shape).
+- Space after colon is optional: `key: value` and `key:value` are both valid.
+- Since commas separate field pairs, any value containing a comma MUST be quoted with `"` so it stays a single value.
+- Inside a quoted value, a literal `"` is written as `""`.
+- Trailing comma is allowed but not required: `prio: high, due: 2025-01-15,` (valid).
+- Metadata indentation is optional — parsers accept both indented and non-indented.
 
-**Tooling export/rewrite guidance (apps/parsers/AI agents):**
+**Canonical output (tooling export/rewrite guidance):**
 - Tooling SHOULD use `key: value` (with a single space after `:`) for readability.
 - Tooling SHOULD NOT output a space before the colon (`key : value`).
 - Tooling SHOULD quote values that contain commas, leading/trailing spaces, or `"` characters.
 
-**Parser/import guidance:**
+**Reader tolerance (parser/import guidance):**
 - Parsers SHOULD be tolerant about whitespace and MAY accept `key : value` (treat as non-canonical and warn if possible).
 - Parsers SHOULD trim surrounding whitespace from unquoted values.
 
-**Parser note — quoting values with commas:**
+**Quoting note — values with commas:**
 
 Since commas separate field pairs, any value containing a comma MUST be quoted. Parsers importing/exporting Embridge data MUST handle this:
 
@@ -267,65 +367,20 @@ Since commas separate field pairs, any value containing a comma MUST be quoted. 
 
 Parsers SHOULD automatically quote values containing commas when writing, and MUST handle quoted values when reading.
 
-**Parser note — escaping quotes in quoted values:**
+**Quoting note — escaping quotes:**
 
 Inside a quoted value, a literal double quote is represented as two double quotes (`""`). Parsers MUST unescape `""` to `"` when reading quoted values, and parsers writing quoted values SHOULD escape `"` as `""`.
 
-### Tags Field
+**Descriptions (as metadata):**
 
-Tags have special syntax to support both single and multiple values:
-
-**Single tag (no quotes needed):**
-```markdown
-tags: backend
-tags:backend
-```
-
-**Multiple tags (quoted, comma-separated):**
-```markdown
-tags: "backend, api, urgent"
-tags: "backend,api,urgent"
-```
-
-The space after the comma inside quotes is recommended for readability but optional. Both `"backend, api"` and `"backend,api"` are valid.
-
-### Defined Fields
-
-| Field | Aliases | Description | Example Values |
-|-------|---------|-------------|----------------|
-| `description` | `descr` | Short description | `"Fix the login bug"` |
-| `status` | | Workflow status | `todo`, `doing`, `done`, `backlog`, `ideas` |
-| `prio` | `priority` | Priority level | `high`, `med`, `low`, `1`, `2`, `3` |
-| `tags` | `keywords` | Labels (single or quoted list) | `backend` or `"backend, api, urgent"` |
-| `assignee` | `owner`, `assigned` | Who's responsible | `@alice`, `team-backend` |
-| `created` | `date`, `createddate` | Created/reference date | `2025-01-15` |
-| `updated` | `modified`, `mod` | Last modified date | `2025-01-18` |
-| `due` | `duedate` | Due date | `2025-01-15`, `tomorrow`, `next-week` |
-| `id` | | Stable identifier (recommended) | `a1b2c3`, `x7y8z9` |
-
-**Canonical Field Order:** The table above defines the canonical order for fields when exporting/writing. Parsers and apps SHOULD output fields in this order: `description` → `status` → `prio` → `tags` → `assignee` → `created` → `updated` → `due` → `id`. When importing/reading, field order does not matter — accept any order. This ensures consistent, diff-friendly output while remaining flexible for human editing.
-
-**ID conformance (recommended for sync-ready output):**
-- If an `id` field is present, it MUST be unique within the file (across all items and subitems).
-- Tooling SHOULD generate lowercase alphanumeric IDs and SHOULD default to 6 characters (`[a-z0-9]{6}`) for readability and interoperability.
-- Parsers SHOULD accept longer IDs and MAY accept non-canonical casing/characters, but tooling SHOULD normalize to the canonical form when rewriting.
-
-**Why 6-character IDs?** Using 6-character lowercase alphanumeric IDs (a-z, 0-9 — 36 ASCII characters, not UTF-8 extended), you get 36^6 ≈ 2.18 billion unique combinations. Due to the birthday paradox, collision probability reaches 1% at around 6,500 items and 50% at around 50,000 items. For a personal or small-team todo app where users realistically create hundreds to a few thousand items over their lifetime, the collision probability is effectively negligible (<0.1%). This format is also URL-safe, case-insensitive friendly, and easily readable/typeable by humans when needed.
-
-**Field Aliases:** Parsers SHOULD accept both the canonical field name and its aliases. When writing, prefer the canonical form.
-
-**Extensibility:** Parsers SHOULD accept and preserve any `key: value` pair, even if not defined above. This allows app-specific fields.
-
-### Descriptions
-
-Descriptions use the `description:` metadata field (or its alias `descr:`) with a quoted value:
+Descriptions use the `description:` field (or its alias `descr:`) with a quoted value:
 
 ```markdown
 - [ ] Complex item/task
 description: "This explains the item/task in detail", prio: high, due: 2025-01-15, id: a1b2c3
 ```
 
-**Shorthand syntax:** Since descriptions are common and always come first in canonical field order, a quoted string at the start of a metadata line is treated as an implicit `description:` value:
+**Description shorthand syntax:** A quoted string at the start of a metadata line is treated as an implicit `description:` value:
 
 ```markdown
 - [ ] Complex item/task
@@ -340,11 +395,11 @@ Both forms are equivalent. The shorthand can also stand alone:
 ```
 
 **Shorthand rules:**
-- Applies only when `"` is the first non-whitespace character on the metadata line
-- The quoted value is parsed as `description:` (same escaping rules: `""` → `"`)
-- Can be followed by other fields after a comma: `"My description", prio: high, id: abc123`
-- If both shorthand and explicit `description:` appear, parsers SHOULD treat this as an error (or use last-wins)
-- When exporting, parsers SHOULD prefer the shorthand form for brevity (explicit `description:` or `descr:` are also valid)
+- Applies only when `"` is the first non-whitespace character on the metadata line.
+- The quoted value is parsed as `description:` (same escaping rules: `""` → `"`).
+- Can be followed by other fields after a comma: `"My description", prio: high, id: abc123`.
+- If both shorthand and explicit `description:` appear, parsers SHOULD treat this as an error (or use last-wins).
+- When exporting, tooling SHOULD prefer the shorthand form for brevity (explicit `description:` / `descr:` are also valid).
 
 **Multiline descriptions:** The shorthand syntax supports descriptions spanning multiple lines. The description starts with `"` on the first metadata line and continues until the closing `"` is found:
 
@@ -356,12 +411,12 @@ It can include detailed notes.", prio: high, id: a1b2c3
 ```
 
 **Multiline rules:**
-- The opening `"` MUST be the first non-whitespace character on the metadata line (same as single-line shorthand)
-- All lines until the closing `"` are part of the description value
-- Newlines are preserved literally in the parsed description
-- Escaped quotes (`""`) work the same: `""` → `"`
-- Other metadata fields follow after the closing `"` and a comma (on the same line as the closing quote)
-- Parsers track "inside open quote" state across lines until the closing `"` is found
+- The opening `"` MUST be the first non-whitespace character on the metadata line (same as single-line shorthand).
+- All lines until the closing `"` are part of the description value.
+- Newlines are preserved literally in the parsed description.
+- Escaped quotes (`""`) work the same: `""` → `"`.
+- Other metadata fields follow after the closing `"` and a comma (on the same line as the closing quote).
+- Parsers track "inside open quote" state across lines until the closing `"` is found.
 
 ```markdown
 - [ ] Item with multiline description and metadata
@@ -370,13 +425,18 @@ Second line with more detail.
 Third line wrapping up.", status: todo, prio: high, id: x1y2z3
 ```
 
-**Important (Validity):** Free-form text immediately after an item/task is **non-conformant** Embridge. The line after a marker line MUST contain valid `key: value` pairs, a quoted description (single or multiline), or be empty/another item.
+**Important (Validity):** Free-form text immediately after an item/task is **non-conformant** Embridge. The first non-empty line after an item/task MUST be either:
 
-**Tooling export/rewrite guidance:** If you want to attach human notes, convert them into either:
+- a valid metadata line (`key: value, key: value`), OR
+- a description shorthand (`"..."`, single-line or multiline), OR
+- a comment line (`>`), OR
+- another item line (marker) / list heading.
+
+**Canonical output guidance:** If you want to attach human notes, convert them into either:
 - a description (`"..."` shorthand, including multiline), or
 - a custom field (e.g., `note: "..."`) that still follows `key: value`.
 
-**Parser/import guidance:** Parsers MAY choose to treat non-conformant free-form lines as a best-effort description during import (to avoid data loss), but tooling SHOULD NOT emit that form.
+**Reader tolerance guidance:** Readers MAY choose to treat non-conformant free-form lines as a best-effort description during import (to avoid data loss), but tooling SHOULD NOT emit that form.
 
 ```markdown
 - [ ] Call the client
@@ -389,11 +449,60 @@ note: "they prefer mornings"   ← VALID (proper key: value syntax)
 "they prefer mornings"         ← VALID (description shorthand)
 ```
 
+### Standard Fields (Non-exhaustive)
+
+Embridge is intentionally extensible: parsers SHOULD accept and preserve any `key: value` pair, even if not defined below. The fields listed here are **well-known keys** intended to improve interoperability across tools.
+
+| Field | Aliases | Description | Example Values |
+|-------|---------|-------------|----------------|
+| `description` | `descr` | Short description | `"Fix the login bug"` |
+| `status` | | Workflow status | `todo`, `doing`, `done`, `backlog`, `ideas` |
+| `prio` | `priority` | Priority level | `high`, `med`, `low`, `1`, `2`, `3` |
+| `tags` | `keywords` | Labels (single or quoted list) | `backend` or `"backend, api, urgent"` |
+| `assignee` | `owner`, `assigned` | Who's responsible | `@alice`, `team-backend` |
+| `created` | `date`, `createddate` | Created/reference date | `2025-01-15` |
+| `updated` | `modified`, `mod` | Last modified date | `2025-01-18` |
+| `due` | `duedate` | Due date | `2025-01-15`, `tomorrow`, `next-week` |
+| `id` | | Stable identifier (recommended) | `a1b2c3`, `x7y8z9` |
+
+**tags value shape (special rule):**
+
+Tags support both single and multiple values:
+
+- **Single tag (no quotes needed):**
+  ```markdown
+  tags: backend
+  tags:backend
+  ```
+- **Multiple tags (quoted, comma-separated):**
+  ```markdown
+  tags: "backend, api, urgent"
+  tags: "backend,api,urgent"
+  ```
+
+The space after the comma inside quotes is recommended for readability but optional. Both `"backend, api"` and `"backend,api"` are valid.
+
+**Canonical output (tooling export/rewrite guidance):**
+- Tooling SHOULD output fields in this canonical order for diff-friendly output:
+  `description` → `status` → `prio` → `tags` → `assignee` → `created` → `updated` → `due` → `id`.
+- Tooling SHOULD write canonical field names (not aliases).
+
+**Reader tolerance (parser/import guidance):**
+- Field order does not matter when importing/reading — accept any order.
+- Parsers SHOULD accept both the canonical field name and its aliases.
+
+**`id` conformance (recommended for sync-ready output):**
+- If an `id` field is present, it MUST be unique within the file (across all items and subitems).
+- Tooling SHOULD generate lowercase alphanumeric IDs and SHOULD default to 6 characters (`[a-z0-9]{6}`) for readability and interoperability.
+- Parsers SHOULD accept longer IDs and MAY accept non-canonical casing/characters, but tooling SHOULD normalize to the canonical form when rewriting.
+
+**Note — why 6-character IDs?** 6-character lowercase alphanumeric IDs provide 36^6 ≈ 2.18 billion combinations. Collision probability reaches ~1% around 6,500 items and ~50% around 50,000 items (birthday paradox). For typical personal/small-team usage (hundreds to a few thousand items), the collision probability is effectively negligible (<0.1%).
+
 ### Comments (Optional)
 
 Comments attach notes to items/subitems. Unlike descriptions (which are a single explanatory text), comments are multiple entries that accumulate over time. Like other metadata, author and timestamp are optional.
 
-**Syntax (all valid):**
+**Syntax (examples):**
 
 ```markdown
 > comment text
@@ -456,103 +565,20 @@ prio: high, id: a1b2c3
   > @bob: I'll handle this
 ```
 
-**Tooling export/rewrite guidance (apps/parsers/AI agents):**
+**Canonical output (tooling export/rewrite guidance):**
 - Tooling MAY add author/timestamp when context is available (e.g., current user, current date)
 - Tooling SHOULD preserve existing comment formatting and content
-- Tooling SHOULD output comments after the metadata line (if any), before the next item
+- Tooling SHOULD output comments after the item metadata block (if any), before the next item
 
-**Parser/import guidance:**
+**Reader tolerance (parser/import guidance):**
 - Parsers SHOULD accept comments with or without author/timestamp
 - Parsers SHOULD preserve the threading depth (count of `>` characters)
 - Parsers SHOULD treat continuation lines (no author/timestamp) as part of the previous comment
 - Parsers MAY use leading whitespace to match comments to their parent item/subitem (e.g., 0 spaces = top-level item, 2 spaces = level 1 subitem). If indentation is absent or ambiguous, parsers SHOULD attach the comment to the most recent item/subitem above.
 
-**Parser notes:**
+**Notes (parsing):**
 - **Precedence:** Comment lines (`>`) MUST be detected before checking for metadata patterns. Lines like `> @alice: text` contain substrings matching `key: value` syntax, but the leading `>` takes precedence.
 - **Colon requirement:** The colon (`:`) before content is required when author or timestamp is present. Without it, the entire text is treated as content: `> @alice: comment` → author="alice", but `> @alice comment` → content="@alice comment" (no author parsed).
-
-### Subitems/Subtasks
-
-Items/Tasks can contain nested subitems/subtasks. **Hierarchy is determined solely by the indentation of the marker (bullet or ordered).** Metadata lines do not require indentation.
-
-```markdown
-- [ ] Parent item/task
-prio: high, id: a1b2c3
-  - [ ] Subitem/Subtask one
-  status: todo, id: d4e5f6
-  - Subitem/Subtask two (no checkbox)
-  "Subitems/Subtasks can omit things like checkboxes and id"
-    - [ ] Sub-subitem/subtask
-    id: nested123
-```
-
-Ordered subitems follow the same indentation rules:
-
-```markdown
-1. [ ] Parent item
-prio: high, id: a1b2c3
-  1. [ ] Subitem one
-  id: d4e5f6
-  2. [ ] Subitem two
-  id: g7h8i9
-    1. [ ] Sub-subitem
-    id: j0k1l2
-```
-
-**The core principle:**
-
-1. **Spaces before the marker determine hierarchy level:**
-   - `- ` or `1. ` (0 spaces) → top-level item
-   - `  - ` or `  1. ` (2 spaces) → subitem (child of nearest item above with fewer spaces)
-   - `    - ` or `    1. ` (4 spaces) → sub-subitem
-   - And so on...
-
-2. **The line after any marker line is metadata for that item** (valid `key: value` pairs or description shorthand). The parser associates it with the item/task directly above. Metadata for a subitem does NOT need to be indented to match its parent marker:
-
-   ```markdown
-   - [ ] Parent item
-   prio: high, id: abc123
-     - [ ] Subitem
-   status: todo, id: def456      ← no indentation needed, still belongs to subitem above
-   ```
-
-3. **A line starting with spaces + marker starts a new item** at the corresponding nesting level.
-
-**Indentation rules (for the marker only):**
-
-| Spaces before marker | Meaning |
-|----------------------|---------|
-| 0 | Top-level item/task |
-| 2 | Subitem/Subtask (level 1) |
-| 4 | Sub-subitem/subtask (level 2) |
-| 6 | Level 3, etc. |
-
-**Mixed styles (guidance, not enforced):**
-- Within the same section and indentation level, authors SHOULD prefer a consistent marker style for readability
-- Parent and children MAY use different styles (valid but not recommended)
-- Example (valid but not recommended):
-  ```markdown
-  1. [ ] Numbered parent
-  id: abc123
-    - [ ] Bullet subitem
-    id: def456
-  ```
-
-**Validity (Basic Embridge):**
-- Indentation before the marker SHOULD be in multiples of 2 spaces; odd indentation (1, 3, 5, … spaces) is non-conformant.
-
-**Tooling export/rewrite guidance:**
-- Tooling MUST NOT generate odd indentation because it makes hierarchy ambiguous across implementations.
-
-**Parser/import guidance:**
-- Parsers SHOULD treat odd indentation as non-conformant and MAY either reject the line, warn, or round down to the nearest even depth.
-
-**Parsing rules:**
-- Count leading spaces before the marker to determine nesting depth
-- The line immediately after a marker line (that doesn't start with a marker) is metadata for that item (MUST be valid `key: value` pairs)
-- When a new marker line appears, it starts a new item at the depth indicated by its indentation
-- Subitems/Subtasks follow the same syntax as items/tasks (optional checkbox, optional metadata)
-- Nesting depth is unlimited but 2 levels is typical
 
 ### Attachments (Convention)
 
@@ -560,7 +586,7 @@ Embridge does not introduce a separate syntax for attachments. Instead, **attach
 
 This is intentionally a *convention* (how apps/UIs interpret content), not a special Embridge token. Attachment lines are still valid list items.
 
-**Recommended attachment forms (as subitems):**
+**Syntax (recommended forms as subitems):**
 
 ```markdown
 - [ ] Parent item/task
@@ -571,11 +597,11 @@ id: abc123
   - ![Screenshot](assets/login.png)
 ```
 
-Notes:
+**Notes:**
 - `- [title](path)` MAY be used for **any** attachment type (including images). This keeps the format flexible for humans.
 - `- ![alt](path)` is recommended for images because many Markdown renderers display the image inline.
 
-**Distinguishing attachments from subtasks (recommended UI interpretation):**
+**Recommended interpretation (UI):**
 - Checkboxes are optional in valid Embridge, so apps/tools SHOULD NOT rely on presence/absence of a checkbox to classify attachments.
 - An item/subitem MAY be interpreted as an attachment if its entire title is **exactly one** Markdown link (`[...](...)`) or image (`![...](...)`).
 - If an attachment item includes a checkbox, parsers/apps SHOULD still treat it as an attachment (not a subtask) and SHOULD ignore checkbox state for task completion; tooling SHOULD emit attachment items without checkboxes and SHOULD NOT add checkboxes to attachment items during normalization.
@@ -588,15 +614,15 @@ This is valid Embridge, but it is simply an item title (not an attachment signal
   - assets/login.png
 ```
 
-**Tooling/export guidance (attachments):**
+**Canonical output (tooling export/rewrite guidance):**
 - Tooling SHOULD treat attachment subitems as content, but SHOULD NOT require attachment items to have an `id`.
 - When stable syncing is a goal, tooling MAY still assign IDs to attachment subitems, but this is not required; apps MAY instead treat the attachment path/URL as the identifier.
 
-**Parser/import guidance (attachments):**
+**Reader tolerance (parser/import guidance):**
 - Parsers MAY detect attachments using the "link-only / image-only title" rule above.
 - If an app wants to show previews, it MAY infer media type from the link destination (e.g., `.png`, `.jpg`, `.gif`, `.mp4`) when an extension is present; if not, treat as a generic file/link.
 
-### Lists (Sections)
+### List Sections (H1 Headings)
 
 H1 headings (`# `) define lists/groups. The heading text is the list title.
 
@@ -616,24 +642,24 @@ H1 headings (`# `) define lists/groups. The heading text is the list title.
 - If present, list headers MUST start with `# ` (a hash and a space) at column 0.
 - Items/tasks belong to the most recent list header above them, or to an implicit default list if none precedes them.
 
-**Tooling export/rewrite guidance:**
+**Canonical output (tooling export/rewrite guidance):**
 - List titles are arbitrary (not predefined statuses).
 - List titles SHOULD be unique within a file (to avoid ambiguity when matching without `lists:` IDs).
 - When exporting, tooling SHOULD add a list heading for items that lack one.
 
-**Parser/import guidance:**
+**Reader tolerance (parser/import guidance):**
 - Parsers SHOULD tolerate duplicate list titles, but SHOULD prefer `lists:` IDs (when present) to disambiguate.
 - Parsers SHOULD accept items without a preceding list heading.
 - The `status` field is independent of list membership.
 
-### Document Metadata
+### Document Metadata (HTML Comment)
 
 An HTML comment at the end of the file can contain document-level metadata.
 
 **Validity (Basic Embridge):**
 - The document metadata block is OPTIONAL.
 
-**Tooling export/rewrite guidance (sync-ready output):**
+**Canonical output (tooling export/rewrite guidance, sync-ready output):**
 - Tooling SHOULD include this block for round-trip syncing between tools.
 - If the block is present, tooling MUST include `embridge:` (spec version) and `project:` (project title).
 - Tooling SHOULD include `lists:` to give list headings stable IDs across renames and reorderings.
@@ -666,13 +692,13 @@ lists:a1b2c3:"Backlog" d4e5f6:"In Progress" g7h8i9:"Done"
 - List titles in the `lists:` line SHOULD be quoted; list titles containing spaces MUST be quoted.
 - List IDs are separate from item/task `id` values (they live in document metadata, not item metadata).
 
-**Tooling export/rewrite guidance:**
+**Canonical output (tooling export/rewrite guidance):**
 - Ensure every `# {List Title}` heading has a corresponding `{id}:"{List Title}"` entry in the `lists:` line (generate missing IDs using an implementation-defined strategy).
 - Remove or ignore `lists:` entries whose titles no longer exist in the file.
 - Write the `lists:` line as the last line inside the document metadata comment to keep diffs stable.
 - Preserve list-pair ordering and other unknown metadata where possible to keep diffs stable.
 
-**Parser/import guidance:**
+**Reader tolerance (parser/import guidance):**
 - Parsers SHOULD accept missing `lists:` and fall back to matching lists by title.
 - Parsers SHOULD treat `lists:` as app-managed and SHOULD NOT require humans to keep it perfectly up to date.
 
@@ -813,7 +839,7 @@ When the application writes to the `.md` file:
 
 **Tooling export/rewrite guidance:**
 1. Tooling SHOULD preserve existing structure and formatting where possible, including marker style (bullet vs ordered).
-2. Tooling SHOULD write metadata fields in canonical order: `description` → `status` → `prio` → `tags` → `assignee` → `created` → `updated` → `due` → `id` (see "Defined Fields"); tooling SHOULD prefer description shorthand (`"..."`) over explicit `description:` when rewriting.
+2. Tooling SHOULD write metadata fields in canonical order: `description` → `status` → `prio` → `tags` → `assignee` → `created` → `updated` → `due` → `id` (see "Standard Fields (Non-exhaustive)"); tooling SHOULD prefer description shorthand (`"..."`) over explicit `description:` when rewriting.
 3. For sync-ready output, tooling MUST ensure `project:` exists in document metadata (generate if missing).
 4. For sync-ready output, tooling SHOULD ensure the `lists:` line exists, contains an entry for each list heading (generate if missing), and is written as the last line in the metadata comment.
 5. Tooling SHOULD update `sync:` in document metadata when a sync/export is performed.
@@ -985,24 +1011,6 @@ lists:k3m9p2:"Backlog" q7w2e1:"To-do" z8x4c3:"In Progress" r5t6y7:"Done"
 
 ---
 
-## References
-
-- [GitHub Flavored Markdown Spec](https://github.github.com/gfm/)
-- [CommonMark Spec](https://commonmark.org/)
-- [CommonMark Spec - List Items](https://spec.commonmark.org/0.31.2/#list-items)
-
----
-
-## License
-
-This specification is released under [CC0 1.0 Universal](https://creativecommons.org/publicdomain/zero/1.0/).
-
-To the extent possible under law, the author has waived all copyright and related
-rights to this work. You may copy, modify, distribute, and use for any purpose,
-including commercial, without attribution or permission.
-
----
-
 ## Integration Ideas
 
 ```
@@ -1023,11 +1031,20 @@ including commercial, without attribution or permission.
               │  (sync, enhance with UI metadata)   │
               └─────────────────────────────────────┘
 ```
+---
 
-**Sync behavior:**
-- Apps MUST read the `.md` file as the source of truth and create/update their local database accordingly.
-- Apps MUST write changes back to the `.md` file when local changes occur.
-- When fields are missing in the `.md` file, apps SHOULD fill in defaults (e.g., generate IDs, set timestamps).
-- When items are missing IDs, apps SHOULD generate and write them back for stable syncing.
-- When an item is deleted from the `.md` file, apps SHOULD remove it from their local database.
-- UI-only data (colors, sort preferences) MUST NOT be written to the `.md` file; apps MUST store these in their own database.
+## References
+
+- [GitHub Flavored Markdown Spec](https://github.github.com/gfm/)
+- [CommonMark Spec](https://commonmark.org/)
+- [CommonMark Spec - List Items](https://spec.commonmark.org/0.31.2/#list-items)
+
+---
+
+## License
+
+This specification is released under [CC0 1.0 Universal](https://creativecommons.org/publicdomain/zero/1.0/).
+
+To the extent possible under law, the author has waived all copyright and related
+rights to this work. You may copy, modify, distribute, and use for any purpose,
+including commercial, without attribution or permission.
