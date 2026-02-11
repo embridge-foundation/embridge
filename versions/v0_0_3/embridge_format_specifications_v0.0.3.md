@@ -1,8 +1,8 @@
 # Specifications for Embridge: an open source item/task list format
 
-**Version:** 0.0.5
-**Last Updated:** 2026-01-27
-**Example of output** in `embridge_output_demo_v0_0_5.md`
+**Version:** 0.0.3
+**Last Updated:** 2025-01-18
+**Example of output** in output file embridge_output_demo_v*.md
 **Author** xpiu
 
 ---
@@ -13,15 +13,13 @@ This specification defines a markdown-based format for storing item/task lists t
 
 ---
 
-## Project goals
+## Project requirements
 
-- create a Markdown-compliant format for items/tasks in lists
-- be human-friendly: easy to learn, read and edit, with some editing flexibility
-- be AI-friendly: easy to learn, read and edit
-- enable reliable automation - e.g. stable per-item `id`, simple `key: value` metadata
-- stay merge- and diff-friendly for git workflows
-- remain tool- and vendor-agnostic (portable across editors/apps/forges)
-- preserve forward compatibility (ignore/preserve unknown fields)
+- Humans can read and edit it naturally
+- Humans can edit it in simple interfaces, like a CLI
+- AI can edit and read it quickly
+- Git can track changes
+- No vendor lock-in (Open Source)
 
 ---
 
@@ -86,33 +84,38 @@ Strict formats        ←────────────→        No forma
 ## File Structure
 
 ```markdown
-# {List Title}
+## {List Name}
 - [ ] {Item/Task title}
-{metadata line with key: value pairs, comma-separated}
+{metadata line}
+{optional description line}
 
 - {Item/Task without checkbox}
 {metadata line}
 
-# {Another List Title}
+## {Another List Name}
 - [x] {Completed item/task}
 {metadata line}
 
 <!--
 embridge:{version}
-project:{Project title}
+project:{Project Name}
 sync:{ISO 8601 timestamp}
 uuid:{document identifier, UUIDv7 recommended}
-lists:{list_id}:"{List Title}" {list_id}:"{Another List Title}"
 -->
 ```
 
-Note: Metadata lines do not require indentation. The parser knows they belong to the item/task directly above. Descriptions use the `descr:` field.
+Note: Metadata lines do not require indentation. The parser knows they belong to the item/task directly above.
 
-### Project title
+### Project Name
 
-The Project title is stored in the document metadata's `project:` field. Parsers MUST always generate and maintain this field.
+The project name is stored in the document metadata's `project:` field. Parsers MUST always generate and maintain this field.
 
-Humans are not expected to manually edit document metadata; apps/parsers/AI agents SHOULD keep it up to date.
+Optionally, users may add an H1 heading (`# {Project Name}`) at the top of the file for human readability. This is user-added only — parsers MUST NOT generate or write H1 headings.
+
+**Sync behavior:**
+- If a user adds or modifies an H1 heading, the parser SHOULD recognize it as the project title and update the `project:` field in metadata to match
+- The `project:` field in metadata is the canonical storage location
+- The H1 heading, when present, takes precedence as the source of truth for the title value
 
 ---
 
@@ -135,70 +138,33 @@ An item/task is a markdown list item. All of the following are valid:
 - `-` (no checkbox) → `completed: null` (app decides default)
 
 **Checkbox behavior:**
-- **For humans:** Checkboxes are optional. You can write `- Buy milk` without a checkbox — it's valid and convenient for quick entry.
-- **For parsers/apps:** When writing items back to the file, parsers SHOULD add checkboxes (`[ ]` or `[X]`) to items and subitems that don't have them. This normalizes the format for consistent rendering and interoperability.
-- Items without checkboxes are treated as `completed: null` (unchecked by default when a parser adds the checkbox).
+- Checkboxes are optional — parsers MUST NOT add checkboxes to items that don't have them
+- The choice to include a checkbox is arbitrary and may be made by human, AI agent, or app setting
+- Items without checkboxes are equally valid and should be preserved as-is
 
 ### Metadata Line
 
-The line immediately following an item/task contains metadata as `key: value` pairs separated by commas. **Metadata does not require indentation** — the parser knows it belongs to the item/task directly above it.
+The line immediately following an item/task contains metadata as `key:value` pairs separated by spaces. **Metadata does not require indentation** — the parser knows it belongs to the item/task directly above it.
 
 ```markdown
 - [ ] Example item/task
-status: todo, prio: high, tags: "backend, api", due: 2025-01-15, id: a1b2c3
+status:todo prio:high tags:backend,api due:2025-01-15 id:a1b2c3
 ```
 
 Indented metadata is also valid (for visual preference):
 
 ```markdown
 - [ ] Example item/task
-  status: todo, prio: high, tags: "backend, api", due: 2025-01-15, id: a1b2c3
+  status:todo prio:high tags:backend,api due:2025-01-15 id:a1b2c3
 ```
 
 **Rules:**
-- **Comma separates field pairs:** `key: value, key: value`
-- **Space after colon is allowed:** `key: value` or `key:value` (both valid; space recommended for readability)
-- **No space before the colon:** `key: value` (correct), `key : value` (incorrect)
-- Values containing spaces or commas must be quoted: `descr: "my long description"`
-- To include a literal double quote (`"`) inside a quoted value, escape it by doubling it (`""`): `descr: "He said ""hello"""` (parses as `He said "hello"`)
+- No space before or after the colon in `key:value`
+- Values containing spaces must be quoted: `descr:"my long description"`
+- Multiple values use commas without spaces: `tags:one,two,three`
 - Order of fields does not matter
 - All fields are optional
 - Metadata indentation is optional — parsers accept both indented and non-indented
-- Trailing comma is allowed but not required: `prio: high, due: 2025-01-15,` (valid)
-
-**Parser note — quoting values with commas:**
-
-Since commas separate field pairs, any value containing a comma MUST be quoted. Parsers importing/exporting Embridge data must handle this:
-
-| Example | Valid? | Reason |
-|---------|--------|--------|
-| `tags: apples, created: 2025-01-15` | ✓ | Single tag, no ambiguity |
-| `tags: apples, oranges, created: 2025-01-15` | ✗ | Parser sees `oranges` as a key |
-| `tags: "apples, oranges", created: 2025-01-15` | ✓ | Quoted value, comma is protected |
-
-Parsers SHOULD automatically quote values containing commas when writing, and MUST handle quoted values when reading.
-
-**Parser note — escaping quotes in quoted values:**
-
-Inside a quoted value, a literal double quote is represented as two double quotes (`""`). Parsers MUST unescape `""` to `"` when reading quoted values, and parsers writing quoted values SHOULD escape `"` as `""`.
-
-### Tags Field
-
-Tags have special syntax to support both single and multiple values:
-
-**Single tag (no quotes needed):**
-```markdown
-tags: backend
-tags:backend
-```
-
-**Multiple tags (quoted, comma-separated):**
-```markdown
-tags: "backend, api, urgent"
-tags: "backend,api,urgent"
-```
-
-The space after the comma inside quotes is recommended for readability but optional. Both `"backend, api"` and `"backend,api"` are valid.
 
 ### Defined Fields
 
@@ -207,44 +173,33 @@ The space after the comma inside quotes is recommended for readability but optio
 | `descr` | `description` | Short description | `"Fix the login bug"` |
 | `status` | | Workflow status | `todo`, `doing`, `done`, `backlog`, `ideas` |
 | `prio` | `priority` | Priority level | `high`, `med`, `low`, `1`, `2`, `3` |
-| `tags` | `keywords` | Labels (single or quoted list) | `backend` or `"backend, api, urgent"` |
+| `tags` | `keywords` | Comma-separated labels | `backend,api,urgent` |
 | `assignee` | `owner`, `assigned` | Who's responsible | `@alice`, `team-backend` |
 | `created` | `date`, `createddate` | Created/reference date | `2025-01-15` |
 | `updated` | `modified`, `mod` | Last modified date | `2025-01-18` |
 | `due` | `duedate` | Due date | `2025-01-15`, `tomorrow`, `next-week` |
 | `id` | | Unique identifier (6+ alphanumeric) | `a1b2c3`, `x7y8z9` |
 
-**Why 6-character IDs?** Using 6-character lowercase alphanumeric IDs (a-z, 0-9 — 36 ASCII characters, not UTF-8 extended), you get 36^6 ≈ 2.18 billion unique combinations. Due to the birthday paradox, collision probability reaches 1% at around 6,500 items and 50% at around 50,000 items. For a personal or small-team todo app where users realistically create hundreds to a few thousand items over their lifetime, the collision probability is effectively negligible (<0.1%). This format is also URL-safe, case-insensitive friendly, and easily readable/typeable by humans when needed.
-
 **Field Aliases:** Parsers SHOULD accept both the canonical field name and its aliases. When writing, prefer the canonical form.
 
-**Extensibility:** Parsers SHOULD accept and preserve any `key: value` pair, even if not defined above. This allows app-specific fields.
+**Extensibility:** Parsers SHOULD accept and preserve any `key:value` pair, even if not defined above. This allows app-specific fields.
 
-### Descriptions
+### Description Line
 
-Descriptions use the `descr:` metadata field (or its alias `description:`) with a quoted value:
-
-```markdown
-- [ ] Complex item/task
-prio: high, due: 2025-01-15, id: a1b2c3, descr: "This explains the item/task in detail"
-```
-
-Or on a separate metadata line:
+An optional second line can contain a longer description (indentation optional):
 
 ```markdown
 - [ ] Complex item/task
-prio: high, id: a1b2c3
-descr: "This explains the item/task in detail"
+prio:high due:2025-01-15 id:a1b2c3
+descr:"This is a longer description that explains the item/task in detail"
 ```
 
-**Important:** Free-form text after an item is NOT valid. The line after a `- ` item must contain valid `key: value` pairs or be empty/another item.
+Or as a plain line (parser infers it's a description if it doesn't match `key:value` pattern):
 
 ```markdown
-- [ ] Call the client
-Note: they prefer mornings     ← NOT VALID (not a key: value pair)
-
-- [ ] Call the client
-note: "they prefer mornings"   ← VALID (proper key: value syntax)
+- [ ] Complex item/task
+prio:high id:a1b2c3
+This is the description without a key prefix
 ```
 
 ### Subitems/Subtasks
@@ -253,13 +208,13 @@ Items/Tasks can contain nested subitems/subtasks. **Hierarchy is determined sole
 
 ```markdown
 - [ ] Parent item/task
-prio: high, id: a1b2c3
+prio:high id:a1b2c3
   - [ ] Subitem/Subtask one
-  status: todo, id: d4e5f6
+  status:todo id:d4e5f6
   - Subitem/Subtask two (no checkbox)
-  descr: "Subitems/Subtasks can omit things like checkboxes and id"
+  descr:"Subitems/Subtasks can omit things like checkboxes and id"
     - [ ] Sub-subitem/subtask
-    id: nested123
+    id:nested123
 ```
 
 **The core principle:**
@@ -270,13 +225,13 @@ prio: high, id: a1b2c3
    - `    - ` (4 spaces) → sub-subitem
    - And so on...
 
-2. **The line after any `- ` line is metadata for that item** (valid `key: value` pairs only). The parser associates it with the item/task directly above. Metadata for a subitem does NOT need to be indented to match its parent dash:
+2. **The line after any `- ` line is metadata for that item** — regardless of indentation. The parser associates it with the item/task directly above. This means metadata for a subitem does NOT need to be indented to match its parent dash:
 
    ```markdown
    - [ ] Parent item
-   prio: high, id: abc123
+   prio:high id:abc123
      - [ ] Subitem
-   status: todo, id: def456      ← no indentation needed, still belongs to subitem above
+   status:todo id:def456      ← no indentation needed, still belongs to subitem above
    ```
 
 3. **A line starting with spaces + dash starts a new item** at the corresponding nesting level.
@@ -292,30 +247,28 @@ prio: high, id: a1b2c3
 
 **Parsing rules:**
 - Count leading spaces before `-` to determine nesting depth
-- The line immediately after a `- ` line (that doesn't start with `-`) is metadata for that item (must be valid `key: value` pairs)
+- The line immediately after a `- ` line (that doesn't start with `-`) is metadata/description for that item
 - When a new `- ` line appears, it starts a new item at the depth indicated by its indentation
 - Subitems/Subtasks follow the same syntax as items/tasks (optional checkbox, optional metadata)
 - Nesting depth is unlimited but 2 levels is typical
 
 ### Lists (Sections)
 
-H1 headings (`# `) define lists/groups. The heading text is the list title.
+H2 headings (`##`) define lists/groups. The heading text is the list name.
 
 ```markdown
-# Backlog
+## Backlog
 - [ ] Item/Task in backlog
 
-# In Progress
+## In Progress
 - [ ] Item/Task being worked on
 
-# Done
+## Done
 - [x] Completed item/task
 ```
 
 **Rules:**
-- List titles are arbitrary (not predefined statuses)
-- List headers MUST start with `# ` (a hash and a space) at column 0
-- List titles SHOULD be unique within a file
+- List names are arbitrary (not predefined statuses)
 - An item/task's list membership is determined by which section it's under
 - The `status` field is independent of list membership
 
@@ -323,62 +276,48 @@ H1 headings (`# `) define lists/groups. The heading text is the list title.
 
 An HTML comment at the end of the file contains document-level metadata. The `project` field is required; other fields are optional but recommended for reliable syncing between applications.
 
-**Each property MUST be on its own line.** This allows values to contain spaces without quoting (e.g., `project:My Project title`).
-
 ```markdown
 <!--
-embridge:0.0.5
-project:My Project title
+embridge:0.0.3
+project:My Project Name
 sync:2025-01-15T09:00:00-05:00
 uuid:0188b200-0000-7000-8000-000000000000
-lists:a1b2c3:"Backlog" d4e5f6:"In Progress" g7h8i9:"Done"
 -->
 ```
 
 | Field | Description |
 |-------|-------------|
 | `embridge` | Format version (semver) — enables parsers to detect compatibility |
-| `project` | Project title (required — parsers must generate this field) |
-| `lists` | Optional list registry (single line): `lists:{6-char id}:"{List Title}" {id}:"{Title}" ...` |
+| `project` | Project name (required — parsers must generate this field) |
 | `sync` | ISO 8601 timestamp of last sync |
 | `uuid` | Unique document identifier (UUIDv7 recommended) for sync matching across renames/moves |
-
-**List IDs (`lists:`)**
-- The `lists:` line is app-managed metadata used to give lists stable identifiers without requiring humans to edit IDs in headings.
-- List IDs MUST be 6 characters of lowercase alphanumeric (`[a-z0-9]{6}`) and MUST be unique within the file.
-- List ID generation is implementation-defined (e.g. random, hash-based, sequential) as long as it is collision-resistant within the file.
-- List titles in the `lists:` line SHOULD be quoted; list titles containing spaces MUST be quoted.
-- List IDs are separate from item/task `id` values (they live in document metadata, not item metadata).
-- Parsers SHOULD:
-  - Ensure every `# {List Title}` heading has a corresponding `{id}:"{List Title}"` entry in the `lists:` line (generate missing IDs using an implementation-defined strategy)
-  - Remove or ignore `lists:` entries whose titles no longer exist in the file
-  - Write the `lists:` line as the last line inside the document metadata comment to keep diffs stable
-  - Preserve list-pair ordering and other unknown metadata where possible to keep diffs stable
 
 ---
 
 ## Parsing Algorithm
 
 ```
-1. Split file into sections by H1 headings (`# `)
-2. For each section:
-   a. Section name = list title
+1. Check for H1 heading at start of file → If present, use as project title
+2. Split file into sections by H2 headings
+3. For each section:
+   a. Section name = list name
    b. Process lines sequentially:
       i.   Line starts with (spaces +) `-` → New item/task
            - Count leading spaces to determine nesting depth (0=top, 2=sub, 4=sub-sub, ...)
            - Parse checkbox state and title
-      ii.  Line after a `-` line, does NOT start with `-` → Metadata for item above
-           - Parse comma-separated `key: value` pairs
-           - Lines not matching `key: value` pattern are invalid (ignore or warn)
+      ii.  Line after a `-` line, does NOT start with `-` → Metadata/description for item above
+           - If matches `key:value` pattern → Parse as metadata
+           - Otherwise → Treat as description text
       iii. Line starts with (more spaces +) `-` → New nested item (child of nearest shallower item)
-3. Parse HTML comment for document metadata
-4. If `project:` field missing → Generate default, mark file as modified
-5. Ensure the `lists:` line exists and contains an entry for each list heading (generate missing 6-char IDs using an implementation-defined strategy), mark file as modified
-6. Items without `id` field → Generate ID, mark file as modified
-7. Items without checkbox → Add `[ ]` (or `[X]` if completed), mark file as modified
+4. Parse HTML comment for document metadata
+5. If H1 heading exists and differs from `project:` field → Update `project:` to match H1
+6. If `project:` field missing → Generate from H1 or use default, mark file as modified
+7. Items without `id` field → Generate ID, mark file as modified
 ```
 
-**Key insight:** The dash indentation determines hierarchy. Metadata lines belong to the most recent item above.
+**Important:** Parsers MUST NOT write H1 headings. The H1 heading is user-added only for readability.
+
+**Key insight:** The dash indentation determines hierarchy. Everything else (metadata, descriptions) just "belongs to" the most recent item above it.
 
 ### Regex Patterns
 
@@ -390,27 +329,10 @@ lists:a1b2c3:"Backlog" d4e5f6:"In Progress" g7h8i9:"Done"
 - Capture group 2: checkbox state (space, x, X, or absent)
 - Capture group 3: item title
 
-**Metadata pair (comma-separated, optional space after colon):**
+**Metadata pair:**
 ```regex
-([a-z]+):\s*(?:"((?:[^"]|"")*)"|([^,]+))
+([a-z]+):(?:"([^"]+)"|([^\s]+))
 ```
-Note: Apply globally, then trim whitespace from unquoted values. For quoted values, unescape by replacing `""` with `"` after capture.
-
-**List heading:**
-```regex
-^# (.+)$
-```
-
-**List registry line (document metadata):**
-```regex
-^lists:(.*)$
-```
-
-**List registry pair (within `lists:` value):**
-```regex
-([a-z0-9]{6}):(?:"((?:[^"]|"")*)"|([^\s]+))
-```
-Note: For quoted list titles, unescape by replacing `""` with `"` after capture.
 
 **Document metadata:**
 ```regex
@@ -421,29 +343,28 @@ Note: For quoted list titles, unescape by replacing `""` with `"` after capture.
 
 ## Sync Behavior
 
-### App → Markdown (export logic from apps)
+### App → Markdown
 
 When the application writes to the `.md` file:
 
 1. Preserve existing structure and formatting where possible
-2. Required: Ensure `project:` field exists in document metadata (generate if missing)
-3. Ensure the `lists:` line exists and contains an entry for each list heading (generate if missing) and write it as the last line in the metadata comment
-4. Update `sync` timestamp in document metadata
-5. Do NOT write app-only data (colors, UI state) to markdown
-6. Recommended but optional. (some apps are better off without this): Add `id` field to any item/task missing one
-7. Recommended but optional. (some apps are better off without this): Add checkbox (`[ ]` or `[X]`) to items/subitems that don't have one
+2. Add `id` field to any item/task missing one
+3. Ensure `project:` field exists in document metadata (generate if missing)
+4. If H1 heading exists, sync its value to `project:` field
+5. Update `sync` timestamp in document metadata
+6. Do NOT write app-only data (colors, UI state) to markdown
+7. Do NOT write H1 headings (user-added only)
 
-### Markdown → App (import logic into apps)
+### Markdown → App
 
 When the application reads the `.md` file:
 
-1. Use `project:` field as the project title
-2. Match lists by `lists:` IDs when available (by matching list titles to `{id}:"{List Title}"` entries within the `lists:` line)
-3. Match items/tasks by `id` field
-4. Items/Tasks with new IDs → Create in database
-5. Items/Tasks with known IDs → Update database from markdown (markdown wins)
-6. Items/Tasks in database but missing from markdown → Delete from database
-7. Apply default values for missing fields
+1. If H1 heading exists, use it as project title; otherwise use `project:` field
+2. Match items/tasks by `id` field
+3. Items/Tasks with new IDs → Create in database
+4. Items/Tasks with known IDs → Update database from markdown (markdown wins)
+5. Items/Tasks in database but missing from markdown → Delete from database
+6. Apply default values for missing fields
 
 ### Conflict Resolution
 
@@ -451,9 +372,8 @@ The `.md` file wins for content fields. The application database wins for UI-onl
 
 | Field Type | Source of Truth |
 |------------|-----------------|
-| Project title (`project:` field) | `.md` file |
+| project name (H1 if present, else `project:` field) | `.md` file |
 | title, status, prio, due, tags, descr | `.md` file |
-| list IDs (`lists:` line) | `.md` file |
 | list colors, sort order, UI preferences | App database |
 
 ---
@@ -503,55 +423,53 @@ SaaS applications SHOULD support:
 ### Minimal Valid File
 
 ```markdown
-# To-do
+## To-do
 - Buy milk
 - [ ] Call mom
 
 <!--
-embridge:0.0.5
+embridge:0.0.3
 project:Items/Tasks
-lists:a1b2c3:"To-do"
 -->
 ```
 
 ### Full-Featured File
 
 ```markdown
-# Backlog
+## Backlog
 - [ ] Research caching strategies
-status: ideas, prio: high, tags: "research, backend", due: 2025-02-01, id: a1b2c3
+status:ideas prio:high tags:research,backend due:2025-02-01 id:a1b2c3
   - [ ] Evaluate Redis
-  descr: "Test Redis for session storage", id: s1t2u3
+  descr:"Test Redis for session storage" id:s1t2u3
   - [ ] Evaluate Memcached
-  id: v4w5x6
+  id:v4w5x6
 
 - Explore new auth library
-tags: research, id: b2c3d4
+tags:research id:b2c3d4
 
-# To-do
+## To-do
 - [ ] Fix pagination bug
-prio: high, due: 2025-01-20, id: c3d4e5
+prio:high due:2025-01-20 id:c3d4e5
 
 - [ ] Update dependencies
-created: 2025-01-15, id: d4e5f6
+created:2025-01-15 id:d4e5f6
 
-# In Progress
+## In Progress
 - [ ] Refactor user service
-status: doing, prio: med, id: e5f6g7
+status:doing prio:med id:e5f6g7
 
-# Done
+## Done
 - [x] Write API documentation
-status: done, created: 2025-01-10, id: f6g7h8
+status:done created:2025-01-10 id:f6g7h8
 
 - [x] Set up CI pipeline
-id: g7h8i9
+id:g7h8i9
 
 <!--
-embridge:0.0.5
+embridge:0.0.3
 project:Project Demo
 sync:2025-01-15T09:00:00-05:00
 uuid:0188b200-0000-7000-8000-000000000000
-lists:k3m9p2:"Backlog" q7w2e1:"To-do" z8x4c3:"In Progress" r5t6y7:"Done"
 -->
 ```
 

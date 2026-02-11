@@ -10,6 +10,7 @@
 ## Contents
 
 - [Project goals](#project-goals)
+- [Value proposition of the Embridge format](#value-proposition-of-the-embridge-format)
 - [Some reasons to go for embridge](#some-reasons-to-go-for-embridge)
 - [SWOT](#swot)
 - [Quick Example](#quick-example)
@@ -49,9 +50,14 @@ An attempt at a 4-way venn-diagram in ASCII:
              '. (version control) .'
                '-.             .-'
                   '-----------'
+
+ *Embridge is where all 4 overlap
+
 ```
 
-## Some reasons to go for embridge
+## Value proposition of the Embridge format
+
+Embridge is a strong fit for teams/people who already live in **git + Markdown** and want tasks to be **portable across editors/apps** without committing to a vendor or a database.
 
 - **Plain Markdown** - Edit in any text editor, render on any git forge
 - **Stable IDs** - Per-item `id` enables reliable automation, syncing, and merge conflict resolution
@@ -59,6 +65,7 @@ An attempt at a 4-way venn-diagram in ASCII:
 - **Extensible** - Unknown fields preserved; apps can add custom metadata without breaking others
 - **Offline-first** - Edit anywhere, sync later; no SaaS required
 - **Source-of-truth clarity** - The `.md` file owns content; apps keep UI-only state elsewhere
+- **Interoperability is the differentiator** - A reference parser/formatter and clear “sync-ready” rules are what make this more than “just another Markdown task convention”
 
 ## SWOT
 
@@ -152,8 +159,8 @@ Embridge has its own quirks—the `- [ ]` checkbox syntax comes from GitHub-flav
 
 ## Documentation
 
-- [Full Specification](embridge_format_specifications_v0_0_8.md) - Complete format reference
-- [Example File](embridge_output_demo_v0_0_8.md) - A working demo
+- [Full Specification](embridge_format_specifications_v0.0.8.md) - Complete format reference
+- [Example File](embridge_output_demo_v0.0.8.md) - A working demo
 
 ## License
 
