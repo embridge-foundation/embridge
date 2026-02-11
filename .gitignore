@@ -4,6 +4,7 @@
 .test/
 /research/
 /markdown-viewer/
+/backups/
 
 # === AI agents / IDEs ===
 CLAUDE.md
