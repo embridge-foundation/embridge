@@ -496,6 +496,15 @@ The space after the comma inside quotes is recommended for readability but optio
 - Tooling SHOULD generate lowercase alphanumeric IDs and SHOULD default to 6 characters (`[a-z0-9]{6}`) for readability and interoperability.
 - Parsers SHOULD accept longer IDs and MAY accept non-canonical casing/characters, but tooling SHOULD normalize to the canonical form when rewriting.
 
+**Parsing notes — duplicate item `id` values:**
+- Parsers SHOULD NOT assume humans or AI agents always keep item IDs unique; duplicate `id` values are an expected input-quality error.
+- Parsers SHOULD detect duplicate item IDs during import and SHOULD surface a warning/event for observability.
+- Duplicate-ID resolution is implementation-defined. Parsers MAY:
+  - keep the first occurrence and auto-assign new IDs to later duplicates (recommended default), OR
+  - import with collisions flagged for later repair, OR
+  - reject import in strict-validation mode.
+- If tooling rewrites/exports after import, emitted item IDs MUST be unique within the file.
+
 **Note — why 6-character IDs?** 6-character lowercase alphanumeric IDs provide 36^6 ≈ 2.18 billion combinations. Collision probability reaches ~1% around 6,500 items and ~50% around 50,000 items (birthday paradox). For typical personal/small-team usage (hundreds to a few thousand items), the collision probability is effectively negligible (<0.1%).
 
 ### Comments (Optional)
@@ -860,12 +869,14 @@ When the application reads the `.md` file:
 **Parser/import guidance:**
 1. If present, use the `project:` field as the project title; otherwise derive a fallback title (e.g., filename) without requiring a write.
 2. Match lists by `lists:` IDs when available (by matching list titles to `{id}:"{List Title}"` entries within the `lists:` line); otherwise match lists by heading title.
-3. Match items/tasks by `id` when present.
-4. Items/tasks with new or missing IDs → create in database (and optionally generate IDs later on export).
-5. Items/tasks with known IDs → update database from markdown (markdown wins for content fields).
-6. Items/tasks in database but missing from markdown → delete from database (or mark archived, implementation-defined).
-7. Apply default values for missing fields.
-8. Preserve the marker style (bullet vs ordered) and ordered number for later export.
+3. Build an item-ID index and detect duplicate item `id` values (do not assume humans/AI authored unique IDs).
+4. Resolve duplicate item IDs using implementation-defined parser policy (recommended default: keep first occurrence, auto-assign new IDs to later duplicates, warn).
+5. Match items/tasks by `id` when present (after duplicate-resolution policy is applied).
+6. Items/tasks with new or missing IDs → create in database (and optionally generate IDs later on export).
+7. Items/tasks with known IDs → update database from markdown (markdown wins for content fields).
+8. Items/tasks in database but missing from markdown → delete from database (or mark archived, implementation-defined).
+9. Apply default values for missing fields.
+10. Preserve the marker style (bullet vs ordered) and ordered number for later export.
 
 ### Conflict Resolution
 
