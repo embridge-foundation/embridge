@@ -3,3 +3,8 @@
 .test/
 /research/
 /markdown-viewer/
+
+CLAUDE.md
+.claude/
+.cursor/
+AGENTS.md
