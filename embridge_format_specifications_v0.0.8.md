@@ -3,8 +3,8 @@
 **Version:** 0.0.8
 **Last Updated:** 2026-02-11
 **Example output:** `embridge_output_demo_v0.0.8.md`
-**Author:** xpiu
-**Github:** Repo URL will be made available soon ...
+**Authors:** xpiu, ... help?
+**Github:** https://github.com/embridge-foundation/embridge
 **Project website:** https://embridge.net
 
 ---
