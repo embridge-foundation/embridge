@@ -39,6 +39,7 @@
   - Conflict Resolution
 - Examples
   - Minimal Basic Embridge File
+  - Minimal Blank-Lines Mode File (Syntax Extension)
   - Minimal Numbered List
   - Numbered List with Metadata
   - Nested Numbered Items
@@ -140,7 +141,6 @@ title: {Title of document content}
 sync: {ISO 8601 timestamp}
 uuid: {document identifier, UUIDv7 recommended}
 lists: {list_id}: "{List Title}", {list_id}: "{Another List Title}"
-syntax: separator: blank lines, checkbox: true
 format: Embridge v0.0.9, github.com/embridge-foundation/embridge
 -->
 ```
@@ -676,6 +676,8 @@ An HTML comment at the end of the file can contain document-level metadata.
 - Tooling SHOULD include `sync:` (last sync timestamp).
 - Tooling SHOULD include `uuid:` (UUIDv7 recommended) to match documents across renames/moves.
 - Tooling MAY include `syntax:` to store parser/agent syntax hints in document metadata.
+- If `syntax:` is present, tooling SHOULD include a `mode` key.
+- Tooling SHOULD omit `syntax:` when using default marker mode and no additional syntax hints.
 - Tooling SHOULD write metadata fields in this recommended order for stable diffs: `title` → `sync` → `uuid` → `lists` → `syntax` → `format`.
 
 **If the document metadata block is present, each property MUST be on its own line.** This allows values to contain spaces without quoting (e.g., `title: My Project title`).
@@ -686,7 +688,6 @@ title: My Project title
 sync: 2025-01-15T09:00:00-05:00
 uuid: 0188b200-0000-7000-8000-000000000000
 lists: a1b2c3: "Backlog", d4e5f6: "In Progress", g7h8i9: "Done"
-syntax: separator: blank lines, checkbox: true
 format: Embridge v0.0.9, github.com/embridge-foundation/embridge
 -->
 ```
@@ -697,7 +698,7 @@ format: Embridge v0.0.9, github.com/embridge-foundation/embridge
 | `sync` | ISO 8601 timestamp of last sync |
 | `uuid` | Unique document identifier (UUIDv7 recommended) for sync matching across renames/moves |
 | `lists` | List registry (recommended for sync-ready output): `lists:{6-char id}: "{List Title}", {id}: "{Title}" ...` |
-| `syntax` | Optional syntax hints for parsing/export behavior (e.g., `syntax: separator: blank lines, checkbox: true`) |
+| `syntax` | Optional syntax hints for parsing/export behavior. The key `mode` selects parsing behavior (e.g., `syntax: mode: marker` or `syntax: mode: blank-lines`) |
 | `format` | Format descriptor (required for sync-ready output), e.g. `Embridge v0.0.9, github.com/embridge-foundation/embridge` |
 
 **List IDs (`lists:`)**
@@ -719,12 +720,16 @@ format: Embridge v0.0.9, github.com/embridge-foundation/embridge
 - Parsers SHOULD treat `lists:` as app-managed and SHOULD NOT require humans to keep it perfectly up to date.
 
 **Syntax hints (`syntax:`)**
-- `syntax:` is an optional document-level parser/agent hint field; it does not affect Basic Embridge validity.
+- `syntax:` is an optional document-level parser/agent hint field.
 - Recommended inline format: comma-separated key/value pairs inside the `syntax:` value.
-  Example: `syntax: separator: blank lines, checkbox: true`
-- Known syntax keys are implementation-defined (for example: `separator`, `checkbox`).
+- `mode` is the primary syntax key:
+  - `syntax: mode: marker` (default behavior; marker-based item boundaries)
+  - `syntax: mode: blank-lines` (optional extension; blank lines delimit item/subitem blocks)
 - Parsers SHOULD ignore unknown syntax keys and SHOULD keep reading the document even if `syntax:` is malformed.
+- Parsers SHOULD default to `mode: marker` when `syntax:` is missing, invalid, or has an unknown `mode`.
 - Tooling SHOULD preserve `syntax:` on rewrite, and MAY apply supported keys when generating output.
+- Exporters/tooling SHOULD NOT emit `syntax: mode: marker` by default; omit `syntax:` unless non-default behavior (for example `mode: blank-lines`) needs to be signaled.
+- Basic Embridge validity remains marker-based; `mode: blank-lines` is an optional parsing extension for cooperative tooling/parsers.
 
 ---
 
@@ -732,7 +737,18 @@ format: Embridge v0.0.9, github.com/embridge-foundation/embridge
 
 This section separates **reading/importing** (parsing) from **writing/exporting** (normalization). A Basic Embridge file can be read without any modifications; normalization is a tooling concern.
 
-### Reader (import / parse-only)
+### Bootstrap (mode selection)
+
+Before running the main body parser:
+
+1. Parse the trailing HTML metadata comment (lightweight pre-pass) to read document metadata keys.
+2. Read `syntax:` (if present) and parse `mode`.
+3. If `mode: blank-lines` is recognized and supported by the parser, use the blank-lines reader.
+4. Otherwise, use marker mode (`mode: marker` default).
+
+This bootstrap behavior is critical because syntax mode can change boundary detection rules.
+
+### Reader (import / parse-only) — marker mode
 
 ```
 1. Split file into sections by H1 headings (`# `)
@@ -766,6 +782,30 @@ This section separates **reading/importing** (parsing) from **writing/exporting*
 3. Parse HTML comment for document metadata (if present)
 ```
 
+### Blank-Lines Mode (optional syntax extension)
+
+Hard rules for `syntax: mode: blank-lines`:
+
+1. List titles still use H1 headings (`# ` at column 0).
+2. Item/subitem boundaries are determined by blank lines (one or more empty lines) when not inside an open quoted description.
+3. Each item/subitem block starts at the first non-empty, non-heading line after a heading or blank-line boundary.
+4. The first line of a block is the item/subitem title.
+5. Nesting depth is determined by leading spaces on the title line (0 = top-level, 2 = subitem, 4 = sub-subitem, ...). Indentation SHOULD be multiples of 2.
+6. Metadata and comments belong to the current block:
+   - Metadata lines follow the same `key: value` and quoted-description rules as marker mode.
+   - Comment lines start with `>` and attach to the current block.
+7. Multiline description ownership is quote-scoped:
+   - If a description starts with `"` and has no closing quote on that line, parser enters `inside_quote = true`.
+   - While `inside_quote = true`, blank lines are part of the description and MUST NOT terminate the block.
+   - Block termination by blank line is only allowed when `inside_quote = false`.
+8. Free-form non-metadata lines after the title are non-conformant (ignore or warn, implementation-defined).
+
+Notes:
+- In blank-lines mode, `- ` and `{number}. ` markers are not required to detect item/subitem boundaries.
+- A parser that does not support blank-lines mode SHOULD fall back to marker mode.
+- The "mode: blank-lines" metadata for the meta field `syntax` is critical for parsers to deal with content that aims to be both Embridge-compliant and separate its list titles/items/subitems with blank lines.
+- Cooperative apps/tools MAY also emit blank-lines mode output when explicitly configured, and SHOULD write `syntax: mode: blank-lines`.
+
 ### Tooling export/rewrite normalization (optional, recommended for sync-ready output)
 
 When exporting/rewriting, tooling MAY normalize files to improve interoperability and round-tripping:
@@ -774,6 +814,8 @@ When exporting/rewriting, tooling MAY normalize files to improve interoperabilit
    - If `title:` is missing → generate a default and write it back
    - If `format:` is missing → write canonical format descriptor
    - If `syntax:` is present → parse supported syntax keys as output hints; ignore unknown keys
+   - If `syntax.mode` is missing/invalid/unknown → default to `mode: marker`
+   - If selected mode is `marker` and there are no additional syntax hints → omit `syntax:` from emitted metadata
    - Ensure the `lists:` line exists and contains an entry for each list heading (generate missing 6-char IDs using an implementation-defined strategy)
    - Write metadata fields in recommended order for stable diffs: `title` → `sync` → `uuid` → `lists` → `syntax` → `format`
 2. For items/tasks:
@@ -833,6 +875,11 @@ Note: Apply globally, then trim whitespace from unquoted values. For quoted valu
 ^syntax:(.*)$
 ```
 
+**Syntax mode key (within `syntax:` value):**
+```regex
+(?:^|,\s*)mode:\s*(marker|blank-lines)\s*(?:,|$)
+```
+
 **Title line (document metadata):**
 ```regex
 ^title:(.*)$
@@ -885,13 +932,15 @@ When the application writes to the `.md` file:
 3. For sync-ready output, tooling MUST ensure `title:` exists in document metadata (generate if missing).
 4. For sync-ready output, tooling MUST ensure `format:` exists in document metadata (generate if missing).
 5. For sync-ready output, tooling SHOULD ensure the `lists:` line exists and contains an entry for each list heading (generate if missing).
-6. If `syntax:` is present, tooling MAY apply supported syntax hints (for example `separator` and `checkbox`) during rewrite/export.
-7. Tooling SHOULD update `sync:` in document metadata when a sync/export is performed.
-8. Tooling SHOULD write document metadata fields in this recommended order for stable diffs: `title` → `sync` → `uuid` → `lists` → `syntax` → `format`.
-9. Tooling MUST NOT write app-only data (colors, UI state) to markdown.
-10. Tooling SHOULD add an `id` field to any item/task missing one when stable syncing is a goal (attachment subitems MAY be excluded; see "Attachments (Convention)").
-11. Tooling MAY add checkboxes (`[ ]` or `[x]`) to items/subitems that don't have one as a normalization step (recommended for consistent rendering), but SHOULD NOT add checkboxes to attachment items (see "Attachments (Convention)").
-12. When rewriting items, tooling SHOULD preserve the original marker style. If an item was authored with `1.`, export as `1.` (not `-`). Tooling MUST NOT emit leading zeros (e.g., write `1.` not `01.`).
+6. If `syntax:` is present, tooling MAY apply supported syntax hints during rewrite/export. Tooling SHOULD treat `mode` as parse-critical.
+7. Tooling MAY emit blank-lines mode output when explicitly configured (`syntax: mode: blank-lines`), but SHOULD default to marker mode for maximum interoperability.
+8. In default marker mode, tooling SHOULD omit `syntax:` from metadata unless non-default syntax behavior must be signaled.
+9. Tooling SHOULD update `sync:` in document metadata when a sync/export is performed.
+10. Tooling SHOULD write document metadata fields in this recommended order for stable diffs: `title` → `sync` → `uuid` → `lists` → `syntax` → `format`.
+11. Tooling MUST NOT write app-only data (colors, UI state) to markdown.
+12. Tooling SHOULD add an `id` field to any item/task missing one when stable syncing is a goal (attachment subitems MAY be excluded; see "Attachments (Convention)").
+13. Tooling MAY add checkboxes (`[ ]` or `[x]`) to items/subitems that don't have one as a normalization step (recommended for consistent rendering), but SHOULD NOT add checkboxes to attachment items (see "Attachments (Convention)").
+14. When rewriting items, tooling SHOULD preserve the original marker style. If an item was authored with `1.`, export as `1.` (not `-`). Tooling MUST NOT emit leading zeros (e.g., write `1.` not `01.`).
 
 **Renumbering (optional):**
 - When items are reordered in an app, tooling MAY renumber to maintain sequential order.
@@ -904,16 +953,18 @@ When the application reads the `.md` file:
 
 **Parser/import guidance:**
 1. Parse known document metadata fields by key name (`title`, `sync`, `uuid`, `lists`, `syntax`, `format`) and do not depend on field order.
-2. If present, use the `title:` field as the document title; otherwise derive a fallback title (e.g., filename) without requiring a write.
-3. Match lists by `lists:` IDs when available (by matching list titles to `{id}:"{List Title}"` entries within the `lists:` line); otherwise match lists by heading title.
-4. Build an item-ID index and detect duplicate item `id` values (do not assume humans/AI authored unique IDs).
-5. Resolve duplicate item IDs using implementation-defined parser policy (recommended default: keep first occurrence, auto-assign new IDs to later duplicates, warn).
-6. Match items/tasks by `id` when present (after duplicate-resolution policy is applied).
-7. Items/tasks with new or missing IDs → create in database (and optionally generate IDs later on export).
-8. Items/tasks with known IDs → update database from markdown (markdown wins for content fields).
-9. Items/tasks in database but missing from markdown → delete from database (or mark archived, implementation-defined).
-10. Apply default values for missing fields.
-11. Preserve the marker style (bullet vs ordered) and ordered number for later export.
+2. Determine syntax mode from `syntax.mode`; if missing/invalid/unknown, default to `mode: marker`.
+3. Use bootstrap behavior: parse metadata first, then parse body using the selected mode (`marker` or `blank-lines`).
+4. If present, use the `title:` field as the document title; otherwise derive a fallback title (e.g., filename) without requiring a write.
+5. Match lists by `lists:` IDs when available (by matching list titles to `{id}:"{List Title}"` entries within the `lists:` line); otherwise match lists by heading title.
+6. Build an item-ID index and detect duplicate item `id` values (do not assume humans/AI authored unique IDs).
+7. Resolve duplicate item IDs using implementation-defined parser policy (recommended default: keep first occurrence, auto-assign new IDs to later duplicates, warn).
+8. Match items/tasks by `id` when present (after duplicate-resolution policy is applied).
+9. Items/tasks with new or missing IDs → create in database (and optionally generate IDs later on export).
+10. Items/tasks with known IDs → update database from markdown (markdown wins for content fields).
+11. Items/tasks in database but missing from markdown → delete from database (or mark archived, implementation-defined).
+12. Apply default values for missing fields.
+13. Preserve marker style (where present) and ordered number for later export.
 
 ### Conflict Resolution
 
@@ -943,6 +994,25 @@ List headings are recommended but not required:
 # To-do
 - Buy apples
 - Charge battery
+```
+
+### Minimal Blank-Lines Mode File (Syntax Extension)
+
+```markdown
+apples
+
+oranges
+
+pears
+"fresh batch"
+
+  golden pears
+
+  green pears
+
+<!--
+syntax: mode: blank-lines
+-->
 ```
 
 ### Minimal Numbered List
@@ -1055,7 +1125,6 @@ title: Project Demo
 sync: 2025-01-15T09:00:00-05:00
 uuid: 0188b200-0000-7000-8000-000000000000
 lists: k3m9p2: "Backlog", q7w2e1: "To-do", z8x4c3: "In Progress", r5t6y7: "Done"
-syntax: separator: blank lines, checkbox: true
 format: Embridge v0.0.9, github.com/embridge-foundation/embridge
 -->
 ```
