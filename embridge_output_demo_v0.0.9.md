@@ -38,9 +38,10 @@ created: 2025-01-15
 status: done, created: 2025-01-15
 
 <!--
-embridge:0.0.8
-project:Project title
-sync:2025-01-15T09:00:00-05:00
-uuid:0188b200-0000-7000-8000-000000000000
-lists:p3k9x2:"List with backlog" w7q2e1:"To-do" z8c4r6:"In progress" t5y6u7:"Done"
+title: Project title
+sync: 2025-01-15T09:00:00-05:00
+uuid: 0188b200-0000-7000-8000-000000000000
+lists: p3k9x2: "List with backlog", w7q2e1: "To-do", z8c4r6: "In progress", t5y6u7: "Done"
+syntax: separator: blank lines, checkbox: true
+format: Embridge v0.0.9, github.com/embridge-foundation/embridge
 -->

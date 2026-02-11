@@ -136,11 +136,12 @@ This example shows the typical layout of an Embridge document:
 {optional item metadata}
 
 <!--
-embridge:{version}
-project:{Project title}
-sync:{ISO 8601 timestamp}
-uuid:{document identifier, UUIDv7 recommended}
-lists:{list_id}:"{List Title}" {list_id}:"{Another List Title}"
+title: {Title of document content}
+sync: {ISO 8601 timestamp}
+uuid: {document identifier, UUIDv7 recommended}
+lists: {list_id}: "{List Title}", {list_id}: "{Another List Title}"
+syntax: separator: blank lines, checkbox: true
+format: Embridge v0.0.9, github.com/embridge-foundation/embridge
 -->
 ```
 
@@ -670,29 +671,34 @@ An HTML comment at the end of the file can contain document-level metadata.
 
 **Canonical output (tooling export/rewrite guidance, sync-ready output):**
 - Tooling SHOULD include this block for round-trip syncing between tools.
-- If the block is present, tooling MUST include `embridge:` (spec version) and `project:` (project title).
+- For sync-ready output, tooling MUST include `title:` (document title) and `format:` (format descriptor).
 - Tooling SHOULD include `lists:` to give list headings stable IDs across renames and reorderings.
+- Tooling SHOULD include `sync:` (last sync timestamp).
 - Tooling SHOULD include `uuid:` (UUIDv7 recommended) to match documents across renames/moves.
+- Tooling MAY include `syntax:` to store parser/agent syntax hints in document metadata.
+- Tooling SHOULD write metadata fields in this recommended order for stable diffs: `title` → `sync` → `uuid` → `lists` → `syntax` → `format`.
 
-**If the document metadata block is present, each property MUST be on its own line.** This allows values to contain spaces without quoting (e.g., `project:My Project title`).
+**If the document metadata block is present, each property MUST be on its own line.** This allows values to contain spaces without quoting (e.g., `title: My Project title`).
 
 ```markdown
 <!--
-embridge:0.0.8
-project:My Project title
-sync:2025-01-15T09:00:00-05:00
-uuid:0188b200-0000-7000-8000-000000000000
-lists:a1b2c3:"Backlog" d4e5f6:"In Progress" g7h8i9:"Done"
+title: My Project title
+sync: 2025-01-15T09:00:00-05:00
+uuid: 0188b200-0000-7000-8000-000000000000
+lists: a1b2c3: "Backlog", d4e5f6: "In Progress", g7h8i9: "Done"
+syntax: separator: blank lines, checkbox: true
+format: Embridge v0.0.9, github.com/embridge-foundation/embridge
 -->
 ```
 
 | Field | Description |
 |-------|-------------|
-| `embridge` | Format version (semver) — enables parsers to detect compatibility |
-| `project` | Project title (required for sync-ready output). Tooling MUST generate and maintain this field; if missing, generate a default (e.g., derived from filename/repo) and write it back. Humans are not expected to manually edit document metadata; apps/parsers/AI agents SHOULD keep it up to date. |
-| `lists` | List registry (recommended for sync-ready output): `lists:{6-char id}:"{List Title}" {id}:"{Title}" ...` |
+| `title` | Document title (required for sync-ready output). Tooling MUST generate and maintain this field; if missing, generate a default (e.g., derived from filename/repo) and write it back. Humans are not expected to manually edit document metadata; apps/parsers/AI agents SHOULD keep it up to date. |
 | `sync` | ISO 8601 timestamp of last sync |
 | `uuid` | Unique document identifier (UUIDv7 recommended) for sync matching across renames/moves |
+| `lists` | List registry (recommended for sync-ready output): `lists:{6-char id}: "{List Title}", {id}: "{Title}" ...` |
+| `syntax` | Optional syntax hints for parsing/export behavior (e.g., `syntax: separator: blank lines, checkbox: true`) |
+| `format` | Format descriptor (required for sync-ready output), e.g. `Embridge v0.0.9, github.com/embridge-foundation/embridge` |
 
 **List IDs (`lists:`)**
 - The `lists:` line is app-managed metadata used to give lists stable identifiers without requiring humans to edit IDs in headings.
@@ -704,12 +710,21 @@ lists:a1b2c3:"Backlog" d4e5f6:"In Progress" g7h8i9:"Done"
 **Canonical output (tooling export/rewrite guidance):**
 - Ensure every `# {List Title}` heading has a corresponding `{id}:"{List Title}"` entry in the `lists:` line (generate missing IDs using an implementation-defined strategy).
 - Remove or ignore `lists:` entries whose titles no longer exist in the file.
-- Write the `lists:` line as the last line inside the document metadata comment to keep diffs stable.
 - Preserve list-pair ordering and other unknown metadata where possible to keep diffs stable.
 
 **Reader tolerance (parser/import guidance):**
+- Parsers MUST parse known document metadata fields by key name and MUST NOT rely on field order.
+- Parsers SHOULD ignore unknown document metadata fields.
 - Parsers SHOULD accept missing `lists:` and fall back to matching lists by title.
 - Parsers SHOULD treat `lists:` as app-managed and SHOULD NOT require humans to keep it perfectly up to date.
+
+**Syntax hints (`syntax:`)**
+- `syntax:` is an optional document-level parser/agent hint field; it does not affect Basic Embridge validity.
+- Recommended inline format: comma-separated key/value pairs inside the `syntax:` value.
+  Example: `syntax: separator: blank lines, checkbox: true`
+- Known syntax keys are implementation-defined (for example: `separator`, `checkbox`).
+- Parsers SHOULD ignore unknown syntax keys and SHOULD keep reading the document even if `syntax:` is malformed.
+- Tooling SHOULD preserve `syntax:` on rewrite, and MAY apply supported keys when generating output.
 
 ---
 
@@ -756,8 +771,11 @@ This section separates **reading/importing** (parsing) from **writing/exporting*
 When exporting/rewriting, tooling MAY normalize files to improve interoperability and round-tripping:
 
 1. If the document metadata block is present or the tooling is producing sync-ready output:
-   - If `project:` is missing → generate a default and write it back
+   - If `title:` is missing → generate a default and write it back
+   - If `format:` is missing → write canonical format descriptor
+   - If `syntax:` is present → parse supported syntax keys as output hints; ignore unknown keys
    - Ensure the `lists:` line exists and contains an entry for each list heading (generate missing 6-char IDs using an implementation-defined strategy)
+   - Write metadata fields in recommended order for stable diffs: `title` → `sync` → `uuid` → `lists` → `syntax` → `format`
 2. For items/tasks:
    - If `id` is missing → generate an ID and write it back (recommended for syncing)
    - If checkbox is missing → add `[ ]` (or `[x]` if completed), if the tooling chooses to normalize checkboxes
@@ -810,6 +828,21 @@ Note: Apply globally, then trim whitespace from unquoted values. For quoted valu
 ^lists:(.*)$
 ```
 
+**Syntax line (document metadata):**
+```regex
+^syntax:(.*)$
+```
+
+**Title line (document metadata):**
+```regex
+^title:(.*)$
+```
+
+**Format line (document metadata):**
+```regex
+^format:(.*)$
+```
+
 **List registry pair (within `lists:` value):**
 ```regex
 ([a-z0-9]{6}):(?:"((?:[^"]|"")*)"|([^\s]+))
@@ -849,13 +882,16 @@ When the application writes to the `.md` file:
 **Tooling export/rewrite guidance:**
 1. Tooling SHOULD preserve existing structure and formatting where possible, including marker style (bullet vs ordered).
 2. Tooling SHOULD write metadata fields in canonical order: `description` → `status` → `prio` → `tags` → `assignee` → `created` → `updated` → `due` → `id` (see "Standard Fields (Non-exhaustive)"); tooling SHOULD prefer description shorthand (`"..."`) over explicit `description:` when rewriting.
-3. For sync-ready output, tooling MUST ensure `project:` exists in document metadata (generate if missing).
-4. For sync-ready output, tooling SHOULD ensure the `lists:` line exists, contains an entry for each list heading (generate if missing), and is written as the last line in the metadata comment.
-5. Tooling SHOULD update `sync:` in document metadata when a sync/export is performed.
-6. Tooling MUST NOT write app-only data (colors, UI state) to markdown.
-7. Tooling SHOULD add an `id` field to any item/task missing one when stable syncing is a goal (attachment subitems MAY be excluded; see "Attachments (Convention)").
-8. Tooling MAY add checkboxes (`[ ]` or `[x]`) to items/subitems that don't have one as a normalization step (recommended for consistent rendering), but SHOULD NOT add checkboxes to attachment items (see "Attachments (Convention)").
-9. When rewriting items, tooling SHOULD preserve the original marker style. If an item was authored with `1.`, export as `1.` (not `-`). Tooling MUST NOT emit leading zeros (e.g., write `1.` not `01.`).
+3. For sync-ready output, tooling MUST ensure `title:` exists in document metadata (generate if missing).
+4. For sync-ready output, tooling MUST ensure `format:` exists in document metadata (generate if missing).
+5. For sync-ready output, tooling SHOULD ensure the `lists:` line exists and contains an entry for each list heading (generate if missing).
+6. If `syntax:` is present, tooling MAY apply supported syntax hints (for example `separator` and `checkbox`) during rewrite/export.
+7. Tooling SHOULD update `sync:` in document metadata when a sync/export is performed.
+8. Tooling SHOULD write document metadata fields in this recommended order for stable diffs: `title` → `sync` → `uuid` → `lists` → `syntax` → `format`.
+9. Tooling MUST NOT write app-only data (colors, UI state) to markdown.
+10. Tooling SHOULD add an `id` field to any item/task missing one when stable syncing is a goal (attachment subitems MAY be excluded; see "Attachments (Convention)").
+11. Tooling MAY add checkboxes (`[ ]` or `[x]`) to items/subitems that don't have one as a normalization step (recommended for consistent rendering), but SHOULD NOT add checkboxes to attachment items (see "Attachments (Convention)").
+12. When rewriting items, tooling SHOULD preserve the original marker style. If an item was authored with `1.`, export as `1.` (not `-`). Tooling MUST NOT emit leading zeros (e.g., write `1.` not `01.`).
 
 **Renumbering (optional):**
 - When items are reordered in an app, tooling MAY renumber to maintain sequential order.
@@ -867,16 +903,17 @@ When the application writes to the `.md` file:
 When the application reads the `.md` file:
 
 **Parser/import guidance:**
-1. If present, use the `project:` field as the project title; otherwise derive a fallback title (e.g., filename) without requiring a write.
-2. Match lists by `lists:` IDs when available (by matching list titles to `{id}:"{List Title}"` entries within the `lists:` line); otherwise match lists by heading title.
-3. Build an item-ID index and detect duplicate item `id` values (do not assume humans/AI authored unique IDs).
-4. Resolve duplicate item IDs using implementation-defined parser policy (recommended default: keep first occurrence, auto-assign new IDs to later duplicates, warn).
-5. Match items/tasks by `id` when present (after duplicate-resolution policy is applied).
-6. Items/tasks with new or missing IDs → create in database (and optionally generate IDs later on export).
-7. Items/tasks with known IDs → update database from markdown (markdown wins for content fields).
-8. Items/tasks in database but missing from markdown → delete from database (or mark archived, implementation-defined).
-9. Apply default values for missing fields.
-10. Preserve the marker style (bullet vs ordered) and ordered number for later export.
+1. Parse known document metadata fields by key name (`title`, `sync`, `uuid`, `lists`, `syntax`, `format`) and do not depend on field order.
+2. If present, use the `title:` field as the document title; otherwise derive a fallback title (e.g., filename) without requiring a write.
+3. Match lists by `lists:` IDs when available (by matching list titles to `{id}:"{List Title}"` entries within the `lists:` line); otherwise match lists by heading title.
+4. Build an item-ID index and detect duplicate item `id` values (do not assume humans/AI authored unique IDs).
+5. Resolve duplicate item IDs using implementation-defined parser policy (recommended default: keep first occurrence, auto-assign new IDs to later duplicates, warn).
+6. Match items/tasks by `id` when present (after duplicate-resolution policy is applied).
+7. Items/tasks with new or missing IDs → create in database (and optionally generate IDs later on export).
+8. Items/tasks with known IDs → update database from markdown (markdown wins for content fields).
+9. Items/tasks in database but missing from markdown → delete from database (or mark archived, implementation-defined).
+10. Apply default values for missing fields.
+11. Preserve the marker style (bullet vs ordered) and ordered number for later export.
 
 ### Conflict Resolution
 
@@ -884,8 +921,8 @@ The `.md` file wins for content fields. The application database wins for UI-onl
 
 | Field Type | Source of Truth |
 |------------|-----------------|
-| Project title (`project:` field) | `.md` file |
-| title, status, prio, due, tags, descr | `.md` file |
+| Document title (`title:` field) | `.md` file |
+| Item fields (`title`, `status`, `prio`, `due`, `tags`, `descr`) | `.md` file |
 | list IDs (`lists:` line) | `.md` file |
 | list colors, sort order, UI preferences | App database |
 
@@ -971,9 +1008,11 @@ id: db01
 - Charge battery
 
 <!--
-embridge:0.0.8
-project:Items/Tasks
-lists:a1b2c3:"To-do"
+title: Items/Tasks
+sync: 2025-01-15T09:00:00-05:00
+uuid: 0188b200-0000-7000-8000-000000000000
+lists: a1b2c3: "To-do"
+format: Embridge v0.0.9, github.com/embridge-foundation/embridge
 -->
 ```
 
@@ -1012,11 +1051,12 @@ status: done, created: 2025-01-10, id: f6g7h8
 id: g7h8i9
 
 <!--
-embridge:0.0.8
-project:Project Demo
-sync:2025-01-15T09:00:00-05:00
-uuid:0188b200-0000-7000-8000-000000000000
-lists:k3m9p2:"Backlog" q7w2e1:"To-do" z8x4c3:"In Progress" r5t6y7:"Done"
+title: Project Demo
+sync: 2025-01-15T09:00:00-05:00
+uuid: 0188b200-0000-7000-8000-000000000000
+lists: k3m9p2: "Backlog", q7w2e1: "To-do", z8x4c3: "In Progress", r5t6y7: "Done"
+syntax: separator: blank lines, checkbox: true
+format: Embridge v0.0.9, github.com/embridge-foundation/embridge
 -->
 ```
 
