@@ -1,6 +1,6 @@
 # Specifications for Embridge: an open source item/task list format
 
-**Version:** 0.0.8
+**Version:** 0.0.9
 **Last Updated:** 2026-02-11
 **Example output:** `embridge_output_demo_v0.0.8.md`
 **Authors:** xpiu, ... help?
