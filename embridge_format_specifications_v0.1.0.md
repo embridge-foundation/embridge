@@ -1,7 +1,7 @@
 # Specifications for Embridge: an open source item/task list format
 
 **Version:** 0.1.0
-**Last Updated:** 2026-02-11
+**Last Updated:** 2026-02-14
 **Example output:** `embridge_output_demo_v0.1.0.md`
 **Authors:** xpiu, ... help?
 **Github:** https://github.com/embridge-foundation/embridge
@@ -30,7 +30,9 @@
   - List Sections (H1 Headings)
   - Document Metadata (HTML Comment)
 - Parsing
-  - Reader (import / parse-only)
+  - Bootstrap (mode selection)
+  - Reader (import / parse-only) — marker mode
+  - Blank-Lines Mode (optional syntax extension)
   - Tooling export/rewrite normalization (optional, recommended for sync-ready output)
   - Regex Patterns
 - Synchronisation
@@ -46,9 +48,9 @@
   - Numbered Items with Comments
   - Minimal Sync-Ready File
   - Full-Featured File
+- Integration Ideas
 - References
 - License
-- Integration Ideas
 
 ---
 

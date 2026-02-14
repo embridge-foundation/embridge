@@ -1,7 +1,7 @@
 # Embridge
 
-**Version:** 0.0.8
-**Authors:** xpiu, ... help?
+**Version:** 0.1.0
+**Authors:** xpiu
 **Licence:** CC0, completely open source
 **Github:** https://github.com/embridge-foundation/embridge
 **Project website:** https://embridge.net
@@ -11,9 +11,10 @@
 
 - [Project goals](#project-goals)
 - [Value proposition of the Embridge format](#value-proposition-of-the-embridge-format)
-- [Some reasons to go for embridge](#some-reasons-to-go-for-embridge)
 - [SWOT](#swot)
-- [Quick Example](#quick-example)
+- [Example 1](#example-1)
+- [Example 2 (bullet markers)](#example-2-bullet-markers)
+- [Example 3 (ordered markers)](#example-3-ordered-markers)
 - [How It Works](#how-it-works)
 - [Embridge compared to todo.txt format](#embridge-compared-to-todotxt-format)
 - [Documentation](#documentation)
@@ -115,7 +116,7 @@ tags: "testing, backend", id: def456a
 id: ghi789a
 
 <!--
-embridge:0.0.8
+embridge:0.1.0
 project:Example Project
 sync:2025-01-15T09:00:00-05:00
 uuid:0188b200-0000-7000-8000-000000000000
@@ -159,8 +160,8 @@ Embridge has its own quirks—the `- [ ]` checkbox syntax comes from GitHub-flav
 
 ## Documentation
 
-- [Full Specification](embridge_format_specifications_v0.0.8.md) - Complete format reference
-- [Example File](embridge_output_demo_v0.0.8.md) - A working demo
+- [Full Specification](embridge_format_specifications_v0.1.0.md) - Complete format reference
+- [Example File](embridge_output_demo_v0.1.0.md) - A working demo
 
 ## License
 
