@@ -1,8 +1,8 @@
 # Specifications for Embridge: an open source item/task list format
 
-**Version:** 0.0.9
+**Version:** 0.1.0
 **Last Updated:** 2026-02-11
-**Example output:** `embridge_output_demo_v0.0.8.md`
+**Example output:** `embridge_output_demo_v0.1.0.md`
 **Authors:** xpiu, ... help?
 **Github:** https://github.com/embridge-foundation/embridge
 **Project website:** https://embridge.net
@@ -140,8 +140,7 @@ This example shows the typical layout of an Embridge document:
 title: {Title of document content}
 sync: {ISO 8601 timestamp}
 uuid: {document identifier, UUIDv7 recommended}
-lists: {list_id}: "{List Title}", {list_id}: "{Another List Title}"
-format: Embridge v0.0.9, github.com/embridge-foundation/embridge
+format: Embridge v0.1.0, github.com/embridge-foundation/embridge
 -->
 ```
 
@@ -269,26 +268,26 @@ Items/Tasks can contain nested subitems/subtasks. **Hierarchy is determined sole
 
 ```markdown
 - [ ] Parent item/task
-prio: high, id: a1b2c3
+prio: high, id: a1b2c3d
   - [ ] Subitem/Subtask one
-  status: todo, id: d4e5f6
+  status: todo, id: d4e5f6a
   - Subitem/Subtask two (no checkbox)
   "Subitems/Subtasks can omit things like checkboxes and id"
     - [ ] Sub-subitem/subtask
-    id: nested123
+    id: nested12
 ```
 
 Ordered subitems follow the same indentation rules:
 
 ```markdown
 1. [ ] Parent item
-prio: high, id: a1b2c3
+prio: high, id: a1b2c3d
   1. [ ] Subitem one
-  id: d4e5f6
+  id: d4e5f6a
   2. [ ] Subitem two
-  id: g7h8i9
+  id: g7h8i9b
     1. [ ] Sub-subitem
-    id: j0k1l2
+    id: j0k1l2c
 ```
 
 **Mixed styles (guidance, not enforced):**
@@ -310,7 +309,7 @@ Metadata for a subitem does NOT need to match the subitem's indentation:
 ```markdown
 - [ ] Parent item
   - [ ] Subitem
-status: todo, id: def456      ← no indentation needed, still belongs to subitem above
+status: todo, id: def456a      ← no indentation needed, still belongs to subitem above
 ```
 
 An item metadata block is either:
@@ -320,21 +319,21 @@ An item metadata block is either:
 
 ```markdown
 - [ ] Example item/task
-status: todo, prio: high, tags: "backend, api", due: 2025-01-15, id: a1b2c3
+status: todo, prio: high, tags: "backend, api", due: 2025-01-15, id: a1b2c3d
 ```
 
 Indented metadata is also valid (for visual preference):
 
 ```markdown
 - [ ] Example item/task
-  status: todo, prio: high, tags: "backend, api", due: 2025-01-15, id: a1b2c3
+  status: todo, prio: high, tags: "backend, api", due: 2025-01-15, id: a1b2c3d
 ```
 
 Ordered markers work the same way:
 
 ```markdown
 1. [ ] Example item/task
-status: todo, prio: high, tags: "backend, api", due: 2025-01-15, id: a1b2c3
+status: todo, prio: high, tags: "backend, api", due: 2025-01-15, id: a1b2c3d
 ```
 
 **Validity (Basic Embridge):**
@@ -378,14 +377,14 @@ Descriptions use the `description:` field (or its alias `descr:`) with a quoted 
 
 ```markdown
 - [ ] Complex item/task
-description: "This explains the item/task in detail", prio: high, due: 2025-01-15, id: a1b2c3
+description: "This explains the item/task in detail", prio: high, due: 2025-01-15, id: a1b2c3d
 ```
 
 **Description shorthand syntax:** A quoted string at the start of a metadata line is treated as an implicit `description:` value:
 
 ```markdown
 - [ ] Complex item/task
-"This explains the item/task in detail", prio: high, due: 2025-01-15, id: a1b2c3
+"This explains the item/task in detail", prio: high, due: 2025-01-15, id: a1b2c3d
 ```
 
 Both forms are equivalent. The shorthand can also stand alone:
@@ -398,7 +397,7 @@ Both forms are equivalent. The shorthand can also stand alone:
 **Shorthand rules:**
 - Applies only when `"` is the first non-whitespace character on the metadata line.
 - The quoted value is parsed as `description:` (same escaping rules: `""` → `"`).
-- Can be followed by other fields after a comma: `"My description", prio: high, id: abc123`.
+- Can be followed by other fields after a comma: `"My description", prio: high, id: abc123d`.
 - If both shorthand and explicit `description:` appear, parsers SHOULD treat this as an error (or use last-wins).
 - When exporting, tooling SHOULD prefer the shorthand form for brevity (explicit `description:` / `descr:` are also valid).
 
@@ -408,7 +407,7 @@ Both forms are equivalent. The shorthand can also stand alone:
 - [ ] Complex item/task
 "This is a longer description
 that spans multiple lines.
-It can include detailed notes.", prio: high, id: a1b2c3
+It can include detailed notes.", prio: high, id: a1b2c3d
 ```
 
 **Multiline rules:**
@@ -423,7 +422,7 @@ It can include detailed notes.", prio: high, id: a1b2c3
 - [ ] Item with multiline description and metadata
 "First line of description.
 Second line with more detail.
-Third line wrapping up.", status: todo, prio: high, id: x1y2z3
+Third line wrapping up.", status: todo, prio: high, id: x1y2z3e
 ```
 
 **Important (Validity):** Free-form text immediately after an item/task is **non-conformant** Embridge. The first non-empty line after an item/task MUST be either:
@@ -494,8 +493,9 @@ The space after the comma inside quotes is recommended for readability but optio
 
 **`id` conformance (recommended for sync-ready output):**
 - If an `id` field is present, it MUST be unique within the file (across all items and subitems).
-- Tooling SHOULD generate lowercase alphanumeric IDs and SHOULD default to 6 characters (`[a-z0-9]{6}`) for readability and interoperability.
-- Parsers SHOULD accept longer IDs and MAY accept non-canonical casing/characters, but tooling SHOULD normalize to the canonical form when rewriting.
+- The Embridge format does not impose requirements on the shape, casing, or character set of `id` values — the format of IDs is chosen by the user, app, or AI agent generating them.
+- When generating IDs, tooling SHOULD use at least 7 characters for collision resistance. Lowercase alphanumeric IDs (e.g. `[a-z0-9]`) are a sensible default, but other schemes (UUIDs, hashes, sequential IDs, etc.) are equally valid.
+- Parsers MUST accept any non-empty `id` value and MUST NOT reject items based on ID length, casing, or character set.
 
 **Parsing notes — duplicate item `id` values:**
 - Parsers SHOULD NOT assume humans or AI agents always keep item IDs unique; duplicate `id` values are an expected input-quality error.
@@ -506,7 +506,7 @@ The space after the comma inside quotes is recommended for readability but optio
   - reject import in strict-validation mode.
 - If tooling rewrites/exports after import, emitted item IDs MUST be unique within the file.
 
-**Note — why 6-character IDs?** 6-character lowercase alphanumeric IDs provide 36^6 ≈ 2.18 billion combinations. Collision probability reaches ~1% around 6,500 items and ~50% around 50,000 items (birthday paradox). For typical personal/small-team usage (hundreds to a few thousand items), the collision probability is effectively negligible (<0.1%).
+**Note — why at least 7 characters?** 7-character lowercase alphanumeric IDs provide 36^7 ≈ 78.4 billion combinations. Collision probability reaches ~1% around 39,500 items (birthday paradox). For typical personal/small-team usage (hundreds to a few thousand items), the collision probability is effectively negligible. Longer IDs or other formats (UUIDs, hashes) are fine — use whatever suits your workflow.
 
 ### Comments (Optional)
 
@@ -525,7 +525,7 @@ Comments attach notes to items/subitems. Unlike descriptions (which are a single
 
 ```markdown
 - [ ] Fix pagination bug
-prio: high, id: abc123
+prio: high, id: abc123d
 > check the offset calculation
 > @alice [2025-01-20]: confirmed on page 3
 ```
@@ -546,7 +546,7 @@ Multiple `>` characters indicate reply depth:
 
 ```markdown
 - [ ] Refactor auth
-id: abc123
+id: abc123d
 > @alice [2025-01-20]: Starting refactor today
 >> @bob [2025-01-21]: Use the new OAuth library
 >> @alice [2025-01-22]: Good idea, will do
@@ -558,7 +558,7 @@ Continuation lines use the same `>` prefix without author/timestamp:
 
 ```markdown
 - [ ] Complex feature
-id: def456
+id: def456a
 > @alice [2025-01-20]: This needs careful review.
 > The API changed since v2.0 and we need to
 > handle backwards compatibility.
@@ -568,10 +568,10 @@ id: def456
 
 ```markdown
 - [ ] Main task
-prio: high, id: a1b2c3
+prio: high, id: a1b2c3d
 > starting today
   - [ ] Subtask one
-  id: x1y2z3
+  id: x1y2z3e
   > @bob: I'll handle this
 ```
 
@@ -600,7 +600,7 @@ This is intentionally a *convention* (how apps/UIs interpret content), not a spe
 
 ```markdown
 - [ ] Parent item/task
-id: abc123
+id: abc123d
   - [Design spec](docs/spec.pdf)
   - [Demo video](media/demo.mp4)
   - [Installer](dist/app.exe)
@@ -654,11 +654,11 @@ H1 headings (`# `) define lists/groups. The heading text is the list title.
 
 **Canonical output (tooling export/rewrite guidance):**
 - List titles are arbitrary (not predefined statuses).
-- List titles SHOULD be unique within a file (to avoid ambiguity when matching without `lists:` IDs).
+- List titles SHOULD be unique within a file (to avoid ambiguity).
 - When exporting, tooling SHOULD add a list heading for items that lack one.
 
 **Reader tolerance (parser/import guidance):**
-- Parsers SHOULD tolerate duplicate list titles, but SHOULD prefer `lists:` IDs (when present) to disambiguate.
+- Parsers SHOULD tolerate duplicate list titles.
 - Parsers SHOULD accept items without a preceding list heading.
 - The `status` field is independent of list membership.
 
@@ -672,13 +672,13 @@ An HTML comment at the end of the file can contain document-level metadata.
 **Canonical output (tooling export/rewrite guidance, sync-ready output):**
 - Tooling SHOULD include this block for round-trip syncing between tools.
 - For sync-ready output, tooling MUST include `title:` (document title) and `format:` (format descriptor).
-- Tooling SHOULD include `lists:` to give list headings stable IDs across renames and reorderings.
+- Tooling MAY include `lists:` to give list headings stable identifiers.
 - Tooling SHOULD include `sync:` (last sync timestamp).
 - Tooling SHOULD include `uuid:` (UUIDv7 recommended) to match documents across renames/moves.
 - Tooling MAY include `syntax:` to store parser/agent syntax hints in document metadata.
 - If `syntax:` is present, tooling SHOULD include a `mode` key.
 - Tooling SHOULD omit `syntax:` when using default marker mode and no additional syntax hints.
-- Tooling SHOULD write metadata fields in this recommended order for stable diffs: `title` → `sync` → `uuid` → `lists` → `syntax` → `format`.
+- Tooling SHOULD write metadata fields in this recommended order for stable diffs: `title` → `sync` → `uuid` → `syntax` → `format`.
 
 **If the document metadata block is present, each property MUST be on its own line.** This allows values to contain spaces without quoting (e.g., `title: My Project title`).
 
@@ -687,8 +687,8 @@ An HTML comment at the end of the file can contain document-level metadata.
 title: My Project title
 sync: 2025-01-15T09:00:00-05:00
 uuid: 0188b200-0000-7000-8000-000000000000
-lists: a1b2c3: "Backlog", d4e5f6: "In Progress", g7h8i9: "Done"
-format: Embridge v0.0.9, github.com/embridge-foundation/embridge
+lists: a1b2c3d: "Backlog", d4e5f6a: "In Progress", g7h8i9b: "Done"
+format: Embridge v0.1.0, github.com/embridge-foundation/embridge
 -->
 ```
 
@@ -697,27 +697,13 @@ format: Embridge v0.0.9, github.com/embridge-foundation/embridge
 | `title` | Document title (required for sync-ready output). Tooling MUST generate and maintain this field; if missing, generate a default (e.g., derived from filename/repo) and write it back. Humans are not expected to manually edit document metadata; apps/parsers/AI agents SHOULD keep it up to date. |
 | `sync` | ISO 8601 timestamp of last sync |
 | `uuid` | Unique document identifier (UUIDv7 recommended) for sync matching across renames/moves |
-| `lists` | List registry (recommended for sync-ready output): `lists:{6-char id}: "{List Title}", {id}: "{Title}" ...` |
+| `lists` | Optional list registry: `lists:{id}: "{List Title}", {id}: "{Title}" ...`. Apps MAY use this to give list headings stable identifiers. |
 | `syntax` | Optional syntax hints for parsing/export behavior. The key `mode` selects parsing behavior (e.g., `syntax: mode: marker` or `syntax: mode: blank-lines`) |
-| `format` | Format descriptor (required for sync-ready output), e.g. `Embridge v0.0.9, github.com/embridge-foundation/embridge` |
-
-**List IDs (`lists:`)**
-- The `lists:` line is app-managed metadata used to give lists stable identifiers without requiring humans to edit IDs in headings.
-- List IDs MUST be 6 characters of lowercase alphanumeric (`[a-z0-9]{6}`) and MUST be unique within the file.
-- List ID generation is implementation-defined (e.g. random, hash-based, sequential) as long as it is collision-resistant within the file.
-- List titles in the `lists:` line SHOULD be quoted; list titles containing spaces MUST be quoted.
-- List IDs are separate from item/task `id` values (they live in document metadata, not item metadata).
-
-**Canonical output (tooling export/rewrite guidance):**
-- Ensure every `# {List Title}` heading has a corresponding `{id}:"{List Title}"` entry in the `lists:` line (generate missing IDs using an implementation-defined strategy).
-- Remove or ignore `lists:` entries whose titles no longer exist in the file.
-- Preserve list-pair ordering and other unknown metadata where possible to keep diffs stable.
+| `format` | Format descriptor (required for sync-ready output), e.g. `Embridge v0.1.0, github.com/embridge-foundation/embridge` |
 
 **Reader tolerance (parser/import guidance):**
 - Parsers MUST parse known document metadata fields by key name and MUST NOT rely on field order.
 - Parsers SHOULD ignore unknown document metadata fields.
-- Parsers SHOULD accept missing `lists:` and fall back to matching lists by title.
-- Parsers SHOULD treat `lists:` as app-managed and SHOULD NOT require humans to keep it perfectly up to date.
 
 **Syntax hints (`syntax:`)**
 - `syntax:` is an optional document-level parser/agent hint field.
@@ -816,8 +802,7 @@ When exporting/rewriting, tooling MAY normalize files to improve interoperabilit
    - If `syntax:` is present → parse supported syntax keys as output hints; ignore unknown keys
    - If `syntax.mode` is missing/invalid/unknown → default to `mode: marker`
    - If selected mode is `marker` and there are no additional syntax hints → omit `syntax:` from emitted metadata
-   - Ensure the `lists:` line exists and contains an entry for each list heading (generate missing 6-char IDs using an implementation-defined strategy)
-   - Write metadata fields in recommended order for stable diffs: `title` → `sync` → `uuid` → `lists` → `syntax` → `format`
+   - Write metadata fields in recommended order for stable diffs: `title` → `sync` → `uuid` → `syntax` → `format`
 2. For items/tasks:
    - If `id` is missing → generate an ID and write it back (recommended for syncing)
    - If checkbox is missing → add `[ ]` (or `[x]` if completed), if the tooling chooses to normalize checkboxes
@@ -892,7 +877,7 @@ Note: Apply globally, then trim whitespace from unquoted values. For quoted valu
 
 **List registry pair (within `lists:` value):**
 ```regex
-([a-z0-9]{6}):(?:"((?:[^"]|"")*)"|([^\s]+))
+([^\s:]+):(?:"((?:[^"]|"")*)"|([^\s,]+))
 ```
 Note: For quoted list titles, unescape by replacing `""` with `"` after capture.
 
@@ -931,16 +916,15 @@ When the application writes to the `.md` file:
 2. Tooling SHOULD write metadata fields in canonical order: `description` → `status` → `prio` → `tags` → `assignee` → `created` → `updated` → `due` → `id` (see "Standard Fields (Non-exhaustive)"); tooling SHOULD prefer description shorthand (`"..."`) over explicit `description:` when rewriting.
 3. For sync-ready output, tooling MUST ensure `title:` exists in document metadata (generate if missing).
 4. For sync-ready output, tooling MUST ensure `format:` exists in document metadata (generate if missing).
-5. For sync-ready output, tooling SHOULD ensure the `lists:` line exists and contains an entry for each list heading (generate if missing).
-6. If `syntax:` is present, tooling MAY apply supported syntax hints during rewrite/export. Tooling SHOULD treat `mode` as parse-critical.
-7. Tooling MAY emit blank-lines mode output when explicitly configured (`syntax: mode: blank-lines`), but SHOULD default to marker mode for maximum interoperability.
-8. In default marker mode, tooling SHOULD omit `syntax:` from metadata unless non-default syntax behavior must be signaled.
-9. Tooling SHOULD update `sync:` in document metadata when a sync/export is performed.
-10. Tooling SHOULD write document metadata fields in this recommended order for stable diffs: `title` → `sync` → `uuid` → `lists` → `syntax` → `format`.
-11. Tooling MUST NOT write app-only data (colors, UI state) to markdown.
-12. Tooling SHOULD add an `id` field to any item/task missing one when stable syncing is a goal (attachment subitems MAY be excluded; see "Attachments (Convention)").
-13. Tooling MAY add checkboxes (`[ ]` or `[x]`) to items/subitems that don't have one as a normalization step (recommended for consistent rendering), but SHOULD NOT add checkboxes to attachment items (see "Attachments (Convention)").
-14. When rewriting items, tooling SHOULD preserve the original marker style. If an item was authored with `1.`, export as `1.` (not `-`). Tooling MUST NOT emit leading zeros (e.g., write `1.` not `01.`).
+5. If `syntax:` is present, tooling MAY apply supported syntax hints during rewrite/export. Tooling SHOULD treat `mode` as parse-critical.
+6. Tooling MAY emit blank-lines mode output when explicitly configured (`syntax: mode: blank-lines`), but SHOULD default to marker mode for maximum interoperability.
+7. In default marker mode, tooling SHOULD omit `syntax:` from metadata unless non-default syntax behavior must be signaled.
+8. Tooling SHOULD update `sync:` in document metadata when a sync/export is performed.
+9. Tooling SHOULD write document metadata fields in this recommended order for stable diffs: `title` → `sync` → `uuid` → `syntax` → `format`.
+10. Tooling MUST NOT write app-only data (colors, UI state) to markdown.
+11. Tooling SHOULD add an `id` field to any item/task missing one when stable syncing is a goal (attachment subitems MAY be excluded; see "Attachments (Convention)").
+12. Tooling MAY add checkboxes (`[ ]` or `[x]`) to items/subitems that don't have one as a normalization step (recommended for consistent rendering), but SHOULD NOT add checkboxes to attachment items (see "Attachments (Convention)").
+13. When rewriting items, tooling SHOULD preserve the original marker style. If an item was authored with `1.`, export as `1.` (not `-`). Tooling MUST NOT emit leading zeros (e.g., write `1.` not `01.`).
 
 **Renumbering (optional):**
 - When items are reordered in an app, tooling MAY renumber to maintain sequential order.
@@ -952,11 +936,11 @@ When the application writes to the `.md` file:
 When the application reads the `.md` file:
 
 **Parser/import guidance:**
-1. Parse known document metadata fields by key name (`title`, `sync`, `uuid`, `lists`, `syntax`, `format`) and do not depend on field order.
+1. Parse known document metadata fields by key name (`title`, `sync`, `uuid`, `syntax`, `format`) and do not depend on field order.
 2. Determine syntax mode from `syntax.mode`; if missing/invalid/unknown, default to `mode: marker`.
 3. Use bootstrap behavior: parse metadata first, then parse body using the selected mode (`marker` or `blank-lines`).
 4. If present, use the `title:` field as the document title; otherwise derive a fallback title (e.g., filename) without requiring a write.
-5. Match lists by `lists:` IDs when available (by matching list titles to `{id}:"{List Title}"` entries within the `lists:` line); otherwise match lists by heading title.
+5. Match lists by heading title.
 6. Build an item-ID index and detect duplicate item `id` values (do not assume humans/AI authored unique IDs).
 7. Resolve duplicate item IDs using implementation-defined parser policy (recommended default: keep first occurrence, auto-assign new IDs to later duplicates, warn).
 8. Match items/tasks by `id` when present (after duplicate-resolution policy is applied).
@@ -974,8 +958,7 @@ The `.md` file wins for content fields. The application database wins for UI-onl
 |------------|-----------------|
 | Document title (`title:` field) | `.md` file |
 | Item fields (`title`, `status`, `prio`, `due`, `tags`, `descr`) | `.md` file |
-| list IDs (`lists:` line) | `.md` file |
-| list colors, sort order, UI preferences | App database |
+| List colors, sort order, UI preferences | App database |
 
 ---
 
@@ -1028,45 +1011,45 @@ syntax: mode: blank-lines
 ```markdown
 # Shopping
 1. [ ] Buy apples
-prio: high, id: abc123
+prio: high, id: abc123d
 2. [ ] Buy oranges
-tags: fruit, id: def456
+tags: fruit, id: def456a
 3. [x] Buy bananas
-status: done, id: ghi789
+status: done, id: ghi789a
 ```
 
 ### Nested Numbered Items
 
 ```markdown
 1. [ ] Set up development environment
-"Install all required tools and dependencies", id: setup01
+"Install all required tools and dependencies", id: setup01a
   1. [ ] Install Node.js
-  id: node01
+  id: node01b
   2. [ ] Install Docker
-  id: docker01
+  id: dockr01
   3. [ ] Clone repository
-  id: clone01
+  id: clone01c
 
 2. [ ] Implement feature
-id: impl01
+id: impl01d
   1. [ ] Write unit tests
-  id: test01
+  id: test01e
   2. [ ] Write implementation
-  id: code01
+  id: code01f
   3. [ ] Update documentation
-  id: docs01
+  id: docs01g
 ```
 
 ### Numbered Items with Comments
 
 ```markdown
 1. [ ] Fix login bug
-prio: high, id: login01
+prio: high, id: logn01h
 > @alice [2026-01-29]: Found the root cause
 >> @bob [2026-01-29]: Can you share details?
 
 2. [ ] Optimize database queries
-id: db01
+id: db01abc
 > check the slow query log
 ```
 
@@ -1081,8 +1064,8 @@ id: db01
 title: Items/Tasks
 sync: 2025-01-15T09:00:00-05:00
 uuid: 0188b200-0000-7000-8000-000000000000
-lists: a1b2c3: "To-do"
-format: Embridge v0.0.9, github.com/embridge-foundation/embridge
+lists: a1b2c3d: "To-do"
+format: Embridge v0.1.0, github.com/embridge-foundation/embridge
 -->
 ```
 
@@ -1091,41 +1074,41 @@ format: Embridge v0.0.9, github.com/embridge-foundation/embridge
 ```markdown
 # Backlog
 - [ ] Research caching strategies
-status: ideas, prio: high, tags: "research, backend", due: 2025-02-01, id: a1b2c3
+status: ideas, prio: high, tags: "research, backend", due: 2025-02-01, id: a1b2c3d
   - [ ] Evaluate Redis
-  "Test Redis for session storage", id: s1t2u3
+  "Test Redis for session storage", id: s1t2u3f
   - [ ] Evaluate Memcached
-  id: v4w5x6
+  id: v4w5x6g
 
 - Explore new auth library
-tags: research, id: b2c3d4
+tags: research, id: b2c3d4h
 
 # To-do
 - [ ] Fix pagination bug
 "Users report that page 2 shows
 duplicate items from page 1.
-Check offset calculation.", prio: high, due: 2025-01-20, id: c3d4e5
+Check offset calculation.", prio: high, due: 2025-01-20, id: c3d4e5i
 
 - [ ] Update dependencies
-created: 2025-01-15, id: d4e5f6
+created: 2025-01-15, id: d4e5f6a
 
 # In Progress
 - [ ] Refactor user service
-status: doing, prio: med, id: e5f6g7
+status: doing, prio: med, id: e5f6g7j
 
 # Done
 - [x] Write API documentation
-status: done, created: 2025-01-10, id: f6g7h8
+status: done, created: 2025-01-10, id: f6g7h8k
 
 - [x] Set up CI pipeline
-id: g7h8i9
+id: g7h8i9b
 
 <!--
 title: Project Demo
 sync: 2025-01-15T09:00:00-05:00
 uuid: 0188b200-0000-7000-8000-000000000000
-lists: k3m9p2: "Backlog", q7w2e1: "To-do", z8x4c3: "In Progress", r5t6y7: "Done"
-format: Embridge v0.0.9, github.com/embridge-foundation/embridge
+lists: k3m9p2a: "Backlog", q7w2e1b: "To-do", z8x4c3d: "In Progress", r5t6y7e: "Done"
+format: Embridge v0.1.0, github.com/embridge-foundation/embridge
 -->
 ```
 

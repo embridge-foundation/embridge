@@ -106,20 +106,20 @@ Embridge is a strong fit for teams/people who already live in **git + Markdown**
 ```markdown
 # To-do
 - [ ] Fix login timeout bug
-"a description", prio: high, due: 2025-01-20, id: abc123
+"a description", prio: high, due: 2025-01-20, id: abc123d
 - [ ] Add unit tests for auth module
-tags: "testing, backend", id: def456
+tags: "testing, backend", id: def456a
 
 # Done
 - [x] Set up CI pipeline
-id: ghi789
+id: ghi789a
 
 <!--
 embridge:0.0.8
 project:Example Project
 sync:2025-01-15T09:00:00-05:00
 uuid:0188b200-0000-7000-8000-000000000000
-lists:l1st01:"To-do" l1st02:"Done"
+lists:l1st01a:"To-do" l1st02b:"Done"
 -->
 ```
 
@@ -128,18 +128,18 @@ lists:l1st01:"To-do" l1st02:"Done"
 ```markdown
 # Setup steps
 1. [ ] Install dependencies
-prio: high, id: abc123
+prio: high, id: abc123d
 2. [ ] Configure environment
-id: def456
+id: def456a
 3. [x] Run tests
-id: ghi789
+id: ghi789a
 ```
 
 ## How It Works
 
 1. **Lists** are H1 headings (`# To-do`, `# In Progress`, `# Done`)
 2. **Items/tasks** are markdown list items using either bullet (`- [ ]`, `- [x]`, or just `-`) or ordered (`1. [ ]`, `2. [x]`, or just `1.`) markers
-3. **Metadata** sits on the line below, comma-separated: `prio: high, due: 2025-01-20, id: abc123`
+3. **Metadata** sits on the line below, comma-separated: `prio: high, due: 2025-01-20, id: abc123d`
 4. **Subitems/subtasks** use indented markers (`  - ` or `  1. ` for level 1, `    - ` or `    1. ` for level 2, etc.)
 5. **Attachments** are represented as subitems whose title is a Markdown link/image (`  - [Spec](docs/spec.pdf)`, `  - ![Screenshot](assets/login.png)`)
 6. **Document metadata** lives in an HTML comment at the end
