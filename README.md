@@ -1,7 +1,7 @@
 # Embridge
 
 **Version:** 0.1.0
-**Authors:** xpiu
+**Author:** xpiu
 **Licence:** CC0, completely open source
 **Github:** https://github.com/embridge-foundation/embridge
 **Project website:** https://embridge.net
@@ -17,6 +17,7 @@
 - [Example 3 (ordered markers)](#example-3-ordered-markers)
 - [How It Works](#how-it-works)
 - [Embridge compared to todo.txt format](#embridge-compared-to-todotxt-format)
+- [How to contribute](#how-to-contribute)
 - [Documentation](#documentation)
 - [License](#license)
 
@@ -157,6 +158,15 @@ Embridge has some similarities to [todo.txt](https://github.com/todotxt/todo.txt
 - **Markdown-native** - Embridge files render reasonably in any Markdown viewer. todo.txt is its own format.
 
 Embridge has its own quirks—the `- [ ]` checkbox syntax comes from GitHub-flavored Markdown, and metadata on a separate line takes getting used to. But if you already write Markdown, the learning curve is minimal.
+
+## About the core contributor
+
+- Flo (xpiu) is happy to work on Embridge in his spare time. He works on the to-do app `Todoi` to make a living. You can support him by visiting https://todoi.com and considering the app for your to-do lists.
+
+## How to contribute
+
+- Open an [issue](https://github.com/embridge-foundation/embridge/issues) for bugs or ideas.
+- Submit a PR for spec or doc changes; keep edits aligned with the [format specification](embridge_format_specifications_v0.1.0.md).
 
 ## Documentation
 
