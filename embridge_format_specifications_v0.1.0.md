@@ -1,11 +1,11 @@
 # Specifications for Embridge: an open source item/task list format
 
-- **Version:** 0.1.0
-- **Last Updated:** 2026-02-14
-- **Example output:** `embridge_output_demo_v0.1.0.md`
-- **Authors:** xpiu
-- **Github:** https://github.com/embridge-foundation/embridge
-- **Project website:** https://embridge.net
+- **Version:** 0.1.0  
+- **Last Updated:** 2026-02-14  
+- **Example output:** `embridge_output_demo_v0.1.0.md`  
+- **Authors:** xpiu  
+- **Github:** https://github.com/embridge-foundation/embridge  
+- **Project website:** https://embridge.net  
 
 ---
 
