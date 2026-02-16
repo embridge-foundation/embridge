@@ -1,11 +1,11 @@
 # Specifications for Embridge: an open source item/task list format
 
-**Version:** 0.1.0
-**Last Updated:** 2026-02-14
-**Example output:** `embridge_output_demo_v0.1.0.md`
-**Authors:** xpiu, ... help?
-**Github:** https://github.com/embridge-foundation/embridge
-**Project website:** https://embridge.net
+- **Version:** 0.1.0
+- **Last Updated:** 2026-02-14
+- **Example output:** `embridge_output_demo_v0.1.0.md`
+- **Authors:** xpiu
+- **Github:** https://github.com/embridge-foundation/embridge
+- **Project website:** https://embridge.net
 
 ---
 
@@ -1143,6 +1143,7 @@ format: Embridge v0.1.0, github.com/embridge-foundation/embridge
 - [GitHub Flavored Markdown Spec](https://github.github.com/gfm/)
 - [CommonMark Spec](https://commonmark.org/)
 - [CommonMark Spec - List Items](https://spec.commonmark.org/0.31.2/#list-items)
+- [Minimal to-do](https://github.com/xpiu/minimal-to-do)
 
 ---
 

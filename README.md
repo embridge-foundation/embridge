@@ -166,12 +166,12 @@ Embridge has its own quirks—the `- [ ]` checkbox syntax comes from GitHub-flav
 ## How to contribute
 
 - Open an [issue](https://github.com/embridge-foundation/embridge/issues) for bugs or ideas.
-- Submit a PR for spec or doc changes; keep edits aligned with the [format specification](embridge_format_specifications_v0.1.0.md).
+- Submit a PR for spec or doc changes; keep edits aligned with the format requirements.
 
 ## Documentation
 
-- [Full Specification](embridge_format_specifications_v0.1.0.md) - Complete format reference
-- [Example File](embridge_output_demo_v0.1.0.md) - A working demo
+- [Full Specification](https://github.com/embridge-foundation/embridge/blob/main/embridge_format_specifications_v0.1.0.md) - Complete format reference
+- [Example File](https://github.com/embridge-foundation/embridge/blob/main/embridge_output_demo_v0.1.0.md) 
 
 ## License
 
