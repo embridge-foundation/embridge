@@ -2,7 +2,7 @@
 
 **Version:** 0.1.0  
 **Author:** xpiu  
-**Licence:** CC0, completely open source  
+**Licence:** MIT
 **Github:** https://github.com/embridge-foundation/embridge  
 **Project website:** https://embridge.net  
 **Summary:** A markdown-based format for item/task lists that work for humans and AI agents.  
@@ -33,7 +33,7 @@
 
 ```
 
-An attempt at a 4-way venn-diagram in ASCII:
+Four-way venn-diagram in ASCII:
 
                   .-----------.
                .-'             '-.
@@ -53,7 +53,7 @@ An attempt at a 4-way venn-diagram in ASCII:
                '-.             .-'
                   '-----------'
 
- *Embridge is where all 4 overlap
+ *Embridge is where all four overlap
 
 ```
 
@@ -175,4 +175,4 @@ Embridge has its own quirks—the `- [ ]` checkbox syntax comes from GitHub-flav
 
 ## License
 
-CC0 1.0 Universal - Public domain. Use it however you want.
+This project is licensed under the [MIT License](LICENSE).

@@ -1149,8 +1149,4 @@ format: Embridge v0.1.0, github.com/embridge-foundation/embridge
 
 ## License
 
-This specification is released under [CC0 1.0 Universal](https://creativecommons.org/publicdomain/zero/1.0/).
-
-To the extent possible under law, the author has waived all copyright and related
-rights to this work. You may copy, modify, distribute, and use for any purpose,
-including commercial, without attribution or permission.
+This specification is released under the [MIT License](LICENSE).
