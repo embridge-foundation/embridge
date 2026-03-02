@@ -23,13 +23,13 @@
 
 ## Project goals
 
-- create a Markdown-compliant format for items/tasks in lists
-- be human-friendly: easy to learn, read and edit, with some editing flexibility
-- be AI-friendly: easy to learn, read and edit
-- enable reliable automation - e.g. stable per-item `id`, simple `key: value` metadata
-- stay merge- and diff-friendly for git workflows
-- remain tool- and vendor-agnostic (portable across editors/apps/forges)
-- preserve forward compatibility (ignore/preserve unknown fields)
+1. **Primary goal:** Offer an item and list format that humans like to use (human-friendly first). Easy to learn, read and edit. With some editing flexibility.
+2. Be AI-friendly. Easy for AI to read, understand and edit.
+3. Provide guidance on usage in apps
+4. Stay merge- and diff-friendly for git workflows
+5. Remain tool- and vendor-agnostic (portable across editors/apps/forges)
+6. Preserve forward compatibility (ignore/preserve unknown fields)
+7. Use Markdown-inspired syntax (designed to degrade gracefully in Markdown renderers; see [Rendering Compatibility](#rendering-compatibility-appendix))
 
 ```
 

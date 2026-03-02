@@ -49,6 +49,7 @@
   - Minimal Sync-Ready File
   - Full-Featured File
 - Integration Ideas
+- Rendering Compatibility (Appendix)
 - References
 - License
 
@@ -62,14 +63,13 @@ This specification defines a markdown-based format for storing item/task lists t
 
 ## Project goals
 
-- Offer an item and list format that humans like to use (human-friendly first). Easy to learn, read and edit. With some editing flexibility.
-- Be AI-friendly. Easy for AI to pick up, read and edit.
+- **Primary goal:** Offer an item and list format that humans like to use (human-friendly first). Easy to learn, read and edit. With some editing flexibility.
+- Be AI-friendly. Easy for AI to read, understand and edit.
 - Provide guidance on usage in apps
-- Remain Markdown-compliant
-- Support reliable automation - e.g. stable per-item `id`, simple `key: value` metadata
 - Stay merge- and diff-friendly for git workflows
 - Remain tool- and vendor-agnostic (portable across editors/apps/forges)
 - Preserve forward compatibility (ignore/preserve unknown fields)
+- Use Markdown-inspired syntax (designed to degrade gracefully in Markdown renderers; see [Rendering Compatibility](#rendering-compatibility-appendix))
 
 ---
 
@@ -1136,6 +1136,65 @@ format: Embridge v0.1.0, github.com/embridge-foundation/embridge
               │  (sync, enhance with UI metadata)   │
               └─────────────────────────────────────┘
 ```
+---
+
+## Rendering Compatibility (Appendix)
+
+Embridge uses Markdown-inspired syntax but deviates from [CommonMark](https://commonmark.org/) in several deliberate ways to prioritize human ergonomics. These deviations mean that Embridge files rendered in a standard Markdown viewer (GitHub, VS Code preview, etc.) will not display with perfect fidelity. This appendix documents the known differences.
+
+### 1. Fixed 2-space nesting vs. CommonMark marker-width indentation
+
+Embridge determines hierarchy by counting leading spaces before the marker in fixed 2-space increments (0 = top, 2 = sub, 4 = sub-sub). CommonMark determines child-list indentation based on the marker width (`- ` = 2 chars, `10. ` = 4 chars).
+
+For unordered lists (`- `), the two systems agree. For ordered lists with multi-digit numbers, they diverge:
+
+```markdown
+10. [ ] Parent task
+  1. [ ] Subtask
+```
+
+| Viewer | Interpretation |
+|---|---|
+| **Embridge** | `Subtask` is a child of `Parent task` (2 spaces = depth 1) |
+| **CommonMark** | `Subtask` starts a new separate list (needs 4 spaces to be a child of a `10. ` marker) |
+
+**Impact:** Ordered lists with multi-digit markers (10+) will render nesting incorrectly in CommonMark viewers. Single-digit ordered markers and all unordered markers render correctly.
+
+### 2. Non-indented metadata breaks list continuation
+
+Embridge metadata lines (e.g., `prio: high, id: abc123d`) follow an item line without requiring indentation. In CommonMark, continuation content must be indented to the content column to remain part of the list item. A bare, non-indented line breaks the list.
+
+```markdown
+- [ ] Fix the login bug
+prio: high, id: abc123d
+- [ ] Next task
+```
+
+| Viewer | Interpretation |
+|---|---|
+| **Embridge** | `prio: high, id: abc123d` is metadata belonging to `Fix the login bug` |
+| **CommonMark** | `prio: high, id: abc123d` is a paragraph that terminates the list; `Next task` starts a new list |
+
+**Impact:** Metadata lines render as free-standing paragraphs that visually break lists in Markdown viewers. The data is still visible, but the list structure is interrupted.
+
+### 3. `>` repurposed from blockquotes to comments
+
+Embridge uses `>` lines as item-level comments (with optional author, timestamp, and threading). In standard Markdown, `>` denotes a blockquote.
+
+```markdown
+- [ ] Refactor auth module
+id: abc123d
+> @alice [2025-01-20]: Starting refactor today
+>> @bob [2025-01-21]: Use the new OAuth library
+```
+
+| Viewer | Interpretation |
+|---|---|
+| **Embridge** | Two comments: a top-level comment by alice and a threaded reply by bob |
+| **CommonMark / GitHub** | A blockquote containing `@alice [2025-01-20]: Starting refactor today` and a nested blockquote containing `@bob [2025-01-21]: Use the new OAuth library` |
+
+**Impact:** Comments render as blockquotes in Markdown viewers. Content is readable but loses its semantic meaning as item-attached discussion. Threading via `>>` renders as nested blockquotes, which is visually similar but semantically different.
+
 ---
 
 ## References
