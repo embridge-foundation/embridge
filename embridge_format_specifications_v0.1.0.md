@@ -341,7 +341,9 @@ status: todo, prio: high, tags: "backend, api", due: 2025-01-15, id: a1b2c3d
 **Validity (Basic Embridge):**
 - Item metadata is OPTIONAL. Items/tasks MAY appear without any metadata block.
 - A metadata line (when present) is a comma-separated list of field pairs: `key: value, key: value`.
-- Keys SHOULD match `[a-z]+` (unknown keys are allowed as long as they follow the same `key: value` shape).
+- Keys SHOULD be written in lowercase (`[a-z]+`), but capitalization MAY be used (e.g., `Prio: high` and `prio: high` are both valid).
+- A line is recognized as item metadata when it contains at least one **known key** — a standard field (or alias) from the table below, or a custom key declared via `fields:` in the document metadata block. All `key: value` pairs on that line are parsed and preserved, including any undeclared keys alongside a known key.
+- A line containing only undeclared keys (e.g., `remember: call the client`) is not recognized as metadata and is treated as non-conformant free-form text. This prevents English prose containing colons from being misinterpreted as metadata.
 - Space after colon is optional: `key: value` and `key:value` are both valid.
 - Since commas separate field pairs, any value containing a comma MUST be quoted with `"` so it stays a single value.
 - Inside a quoted value, a literal `"` is written as `""`.
@@ -349,6 +351,7 @@ status: todo, prio: high, tags: "backend, api", due: 2025-01-15, id: a1b2c3d
 - Metadata indentation is optional — parsers accept both indented and non-indented.
 
 **Canonical output (tooling export/rewrite guidance):**
+- Tooling SHOULD emit keys in lowercase (e.g., `prio: high`, not `Prio: high`).
 - Tooling SHOULD use `key: value` (with a single space after `:`) for readability.
 - Tooling SHOULD NOT output a space before the colon (`key : value`).
 - Tooling SHOULD quote values that contain commas, leading/trailing spaces, or `"` characters.
@@ -436,16 +439,23 @@ Third line wrapping up.", status: todo, prio: high, id: x1y2z3e
 
 **Canonical output guidance:** If you want to attach human notes, convert them into either:
 - a description (`"..."` shorthand, including multiline), or
-- a custom field (e.g., `note: "..."`) that still follows `key: value`.
+- a declared custom field (e.g., declare `note` via `fields:` in document metadata, then use `note: "..."`).
 
 **Reader tolerance guidance:** Readers MAY choose to treat non-conformant free-form lines as a best-effort description during import (to avoid data loss), but tooling SHOULD NOT emit that form.
 
 ```markdown
 - [ ] Call the client
-Note: they prefer mornings     ← NOT VALID (not a key: value pair)
+They prefer mornings            ← NOT VALID (free-form text, not key: value)
 
 - [ ] Call the client
-note: "they prefer mornings"   ← VALID (proper key: value syntax)
+Remember: call the client      ← NOT VALID (remember is not a known key)
+
+- [ ] Call the client
+descr: they prefer mornings    ← VALID (descr is a standard field)
+
+- [ ] Call the client
+note: they prefer mornings     ← VALID only if note is declared via fields:
+                                  in document metadata; otherwise non-conformant
 
 - [ ] Call the client
 "they prefer mornings"         ← VALID (description shorthand)
@@ -453,7 +463,7 @@ note: "they prefer mornings"   ← VALID (proper key: value syntax)
 
 ### Standard Fields (Non-exhaustive)
 
-Embridge is intentionally extensible: parsers SHOULD accept and preserve any `key: value` pair, even if not defined below. The fields listed here are **well-known keys** intended to improve interoperability across tools.
+The fields listed here (and their aliases) are the **known keys** that parsers use to recognize a line as item metadata. Parsers MUST recognize these keys (case-insensitively). Custom keys MAY be declared via `fields:` in the document metadata block to extend the known set. Once a line is recognized as metadata, all `key: value` pairs on it are parsed and preserved — including undeclared keys alongside a known key.
 
 | Field | Aliases | Description | Example Values |
 |-------|---------|-------------|----------------|
@@ -680,7 +690,7 @@ An HTML comment at the end of the file can contain document-level metadata.
 - Tooling MAY include `syntax:` to store parser/agent syntax hints in document metadata.
 - If `syntax:` is present, tooling SHOULD include a `mode` key.
 - Tooling SHOULD omit `syntax:` when using default marker mode and no additional syntax hints.
-- Tooling SHOULD write metadata fields in this recommended order for stable diffs: `title` → `sync` → `uuid` → `syntax` → `format`.
+- Tooling SHOULD write metadata fields in this recommended order for stable diffs: `title` → `sync` → `uuid` → `lists` → `fields` → `syntax` → `format`.
 
 **If the document metadata block is present, each property MUST be on its own line.** This allows values to contain spaces without quoting (e.g., `title: My Project title`).
 
@@ -690,6 +700,7 @@ title: My Project title
 sync: 2025-01-15T09:00:00-05:00
 uuid: 0188b200-0000-7000-8000-000000000000
 lists: a1b2c3d: "Backlog", d4e5f6a: "In Progress", g7h8i9b: "Done"
+fields: note, sprint, client
 format: Embridge v0.1.0, github.com/embridge-foundation/embridge
 -->
 ```
@@ -701,6 +712,7 @@ format: Embridge v0.1.0, github.com/embridge-foundation/embridge
 | `uuid` | Unique document identifier (UUIDv7 recommended) for sync matching across renames/moves |
 | `lists` | Optional list registry: `lists:{id}: "{List Title}", {id}: "{Title}" ...`. Apps MAY use this to give list headings stable identifiers. |
 | `syntax` | Optional syntax hints for parsing/export behavior. The key `mode` selects parsing behavior (e.g., `syntax: mode: marker` or `syntax: mode: blank-lines`) |
+| `fields` | Optional comma-separated list of custom metadata key names. Declares additional keys that parsers recognize as valid item metadata (e.g., `fields: note, sprint, client`). See "Standard Fields" for the built-in known keys. |
 | `format` | Format descriptor (required for sync-ready output), e.g. `Embridge v0.1.0, github.com/embridge-foundation/embridge` |
 
 **Reader tolerance (parser/import guidance):**
@@ -730,9 +742,10 @@ This section separates **reading/importing** (parsing) from **writing/exporting*
 Before running the main body parser:
 
 1. Parse the trailing HTML metadata comment (lightweight pre-pass) to read document metadata keys.
-2. Read `syntax:` (if present) and parse `mode`.
-3. If `mode: blank-lines` is recognized and supported by the parser, use the blank-lines reader.
-4. Otherwise, use marker mode (`mode: marker` default).
+2. Read `fields:` (if present) and add declared keys to the set of known item metadata keys.
+3. Read `syntax:` (if present) and parse `mode`.
+4. If `mode: blank-lines` is recognized and supported by the parser, use the blank-lines reader.
+5. Otherwise, use marker mode (`mode: marker` default).
 
 This bootstrap behavior is critical because syntax mode can change boundary detection rules.
 
@@ -804,7 +817,7 @@ When exporting/rewriting, tooling MAY normalize files to improve interoperabilit
    - If `syntax:` is present → parse supported syntax keys as output hints; ignore unknown keys
    - If `syntax.mode` is missing/invalid/unknown → default to `mode: marker`
    - If selected mode is `marker` and there are no additional syntax hints → omit `syntax:` from emitted metadata
-   - Write metadata fields in recommended order for stable diffs: `title` → `sync` → `uuid` → `syntax` → `format`
+   - Write metadata fields in recommended order for stable diffs: `title` → `sync` → `uuid` → `lists` → `fields` → `syntax` → `format`
 2. For items/tasks:
    - If `id` is missing → generate an ID and write it back (recommended for syncing)
    - If checkbox is missing → add `[ ]` (or `[x]` if completed), if the tooling chooses to normalize checkboxes
@@ -827,7 +840,7 @@ Note: If you want to enforce 1–9 digits for ordered markers at parse-time, use
 
 **Metadata pair (comma-separated, optional space after colon):**
 ```regex
-([a-z]+):\s*(?:"((?:[^"]|"")*)"|([^,]+))
+([a-zA-Z]+):\s*(?:"((?:[^"]|"")*)"|([^,]+))
 ```
 Note: Apply globally, then trim whitespace from unquoted values. For quoted values, unescape by replacing `""` with `"` after capture.
 
@@ -856,6 +869,12 @@ Note: Apply globally, then trim whitespace from unquoted values. For quoted valu
 ```regex
 ^lists:(.*)$
 ```
+
+**Fields line (document metadata):**
+```regex
+^fields:(.*)$
+```
+Note: Split the captured value on `,` and trim whitespace from each entry to get the list of custom key names.
 
 **Syntax line (document metadata):**
 ```regex
@@ -922,7 +941,7 @@ When the application writes to the `.md` file:
 6. Tooling MAY emit blank-lines mode output when explicitly configured (`syntax: mode: blank-lines`), but SHOULD default to marker mode for maximum interoperability.
 7. In default marker mode, tooling SHOULD omit `syntax:` from metadata unless non-default syntax behavior must be signaled.
 8. Tooling SHOULD update `sync:` in document metadata when a sync/export is performed.
-9. Tooling SHOULD write document metadata fields in this recommended order for stable diffs: `title` → `sync` → `uuid` → `syntax` → `format`.
+9. Tooling SHOULD write document metadata fields in this recommended order for stable diffs: `title` → `sync` → `uuid` → `lists` → `fields` → `syntax` → `format`.
 10. Tooling MUST NOT write app-only data (colors, UI state) to markdown.
 11. Tooling SHOULD add an `id` field to any item/task missing one when stable syncing is a goal (attachment subitems MAY be excluded; see "Attachments (Convention)").
 12. Tooling MAY add checkboxes (`[ ]` or `[x]`) to items/subitems that don't have one as a normalization step (recommended for consistent rendering), but SHOULD NOT add checkboxes to attachment items (see "Attachments (Convention)").
@@ -938,7 +957,7 @@ When the application writes to the `.md` file:
 When the application reads the `.md` file:
 
 **Parser/import guidance:**
-1. Parse known document metadata fields by key name (`title`, `sync`, `uuid`, `syntax`, `format`) and do not depend on field order.
+1. Parse known document metadata fields by key name (`title`, `sync`, `uuid`, `syntax`, `fields`, `format`) and do not depend on field order. If `fields:` is present, add its entries to the set of known item metadata keys.
 2. Determine syntax mode from `syntax.mode`; if missing/invalid/unknown, default to `mode: marker`.
 3. Use bootstrap behavior: parse metadata first, then parse body using the selected mode (`marker` or `blank-lines`).
 4. If present, use the `title:` field as the document title; otherwise derive a fallback title (e.g., filename) without requiring a write.
