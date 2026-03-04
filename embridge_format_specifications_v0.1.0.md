@@ -1,11 +1,12 @@
 # Specifications for Embridge: an open source item/task list format
 
 - **Version:** 0.1.0  
-- **Last Updated:** 2026-02-14  
-- **Example output:** `embridge_output_demo_v0.1.0.md`  
-- **Authors:** xpiu  
+- **Last Updated:** 2026-03-04  
+- **Example output:** `embridge_output_demo_v0.1.0.md`   
 - **Github:** https://github.com/embridge-foundation/embridge  
 - **Project website:** https://embridge.net  
+- **Author:** xpiu 
+- **Licence:** MIT
 
 ---
 
@@ -349,6 +350,7 @@ status: todo, prio: high, tags: "backend, api", due: 2025-01-15, id: a1b2c3d
 - Inside a quoted value, a literal `"` is written as `""`.
 - Trailing comma is allowed but not required: `prio: high, due: 2025-01-15,` (valid).
 - Metadata indentation is optional — parsers accept both indented and non-indented.
+- Each item/task gets at most **one** metadata block. If a second metadata-like line appears after an item's metadata block, parsers MUST ignore it and SHOULD emit a diagnostic warning (e.g., "line 5: additional metadata line ignored").
 
 **Canonical output (tooling export/rewrite guidance):**
 - Tooling SHOULD emit keys in lowercase (e.g., `prio: high`, not `Prio: high`).
@@ -766,6 +768,7 @@ This bootstrap behavior is critical because syntax mode can change boundary dete
            - If ordered: extract `{number}` as a numeric display hint
            - Parse checkbox state and title
       iii. Line after a `- ` or `{number}. ` line, does NOT start with `- `, `{number}. `, or `>` → Metadata for item above
+           - Only the **first** metadata-like line after an item is parsed as metadata. If the item already has a metadata block, ignore the line and emit a warning.
            - If line starts with `"` and contains closing `"` → Single-line description shorthand
            - If line starts with `"` but no closing `"` → Begin multiline description, set inside_quote = true
            - Otherwise → Parse comma-separated `key: value` pairs
@@ -799,7 +802,8 @@ Hard rules for `syntax: mode: blank-lines`:
    - If a description starts with `"` and has no closing quote on that line, parser enters `inside_quote = true`.
    - While `inside_quote = true`, blank lines are part of the description and MUST NOT terminate the block.
    - Block termination by blank line is only allowed when `inside_quote = false`.
-8. Free-form non-metadata lines after the title are non-conformant (ignore or warn, implementation-defined).
+8. Only the first metadata-like line after a title is parsed as metadata. Additional metadata-like lines MUST be ignored and parsers SHOULD emit a warning.
+9. Free-form non-metadata lines after the title are non-conformant (ignore or warn, implementation-defined).
 
 Notes:
 - In blank-lines mode, `- ` and `{number}. ` markers are not required to detect item/subitem boundaries.
