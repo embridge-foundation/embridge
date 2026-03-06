@@ -545,7 +545,7 @@ prio: high, id: abc123d
 ```
 
 **Validity (Basic Embridge):**
-- Comment lines MUST contain one or more `>` characters as the first non-whitespace content. Leading spaces MAY be used to visually align with the parent item/subitem and can help parsers determine ownership.
+- Comment lines MUST contain one or more `>` characters as the first non-whitespace content. Leading spaces determine ownership: a `>` line indented to the same depth as an item/subitem belongs to that item/subitem (e.g., 0 spaces = top-level item, 2 spaces = level-1 subitem).
 - Author and timestamp are OPTIONAL
 - If present, author format: `@username` or `username`
 - If present, timestamp format: ISO 8601 date, optionally with time (`2025-01-20` or `2025-01-20 14:30`)
@@ -598,7 +598,7 @@ prio: high, id: a1b2c3d
 - Parsers SHOULD accept comments with or without author/timestamp
 - Parsers SHOULD preserve the threading depth (count of `>` characters)
 - Parsers SHOULD treat continuation lines (no author/timestamp) as part of the previous comment
-- Parsers MAY use leading whitespace to match comments to their parent item/subitem (e.g., 0 spaces = top-level item, 2 spaces = level 1 subitem). If indentation is absent or ambiguous, parsers SHOULD attach the comment to the most recent item/subitem above.
+- Comment ownership is determined by indentation: a `>` line at column 0 belongs to the most recent top-level item; a `>` line at column 2 belongs to the most recent level-1 subitem, and so on. If indentation is absent or ambiguous, parsers SHOULD fall back to the most recent item/subitem above.
 
 **Notes (parsing):**
 - **Precedence:** Comment lines (`>`) MUST be detected before checking for metadata patterns. Lines like `> @alice: text` contain substrings matching `key: value` syntax, but the leading `>` takes precedence.
@@ -674,7 +674,7 @@ H1 headings (`# `) define lists/groups. The heading text is the list title.
 **Reader tolerance (parser/import guidance):**
 - Parsers SHOULD tolerate duplicate list titles.
 - Parsers SHOULD accept items without a preceding list heading.
-- The `status` field is independent of list membership.
+- The `status` field is independent of list membership. When an explicit `status:` value conflicts with the containing section heading (e.g., an item under `# Done` with `status: todo`), tools SHOULD treat the `status:` field as authoritative.
 
 ### Document Metadata (HTML Comment)
 
