@@ -11,12 +11,15 @@
 
 - [Project goals](#project-goals)
 - [Value proposition of the Embridge format](#value-proposition-of-the-embridge-format)
+- [Examples](#examples)
+  - [Example 1: a simple list](#example-1-a-simple-list)
+  - [Example 2: dash markers](#example-2-dash-markers)
+  - [Example 3: numbered markers](#example-3-numbered-markers)
+  - [Example 4: a simple list, in explicitly defined 'blank-lines' mode](#example-4-a-simple-list-in-explicitly-defined-blank-lines-mode)
 - [SWOT](#swot)
-- [Example 1](#example-1)
-- [Example 2 (bullet markers)](#example-2-bullet-markers)
-- [Example 3 (ordered markers)](#example-3-ordered-markers)
 - [How It Works](#how-it-works)
 - [Embridge compared to todo.txt format](#embridge-compared-to-todotxt-format)
+- [About the core contributor](#about-the-core-contributor)
 - [How to contribute](#how-to-contribute)
 - [Documentation](#documentation)
 - [License](#license)
@@ -69,6 +72,58 @@ Embridge is a strong fit for teams/people who already live in **git + Markdown**
 - **Source-of-truth clarity** - The `.md` file owns content; apps keep UI-only state elsewhere
 - **Interoperability is the differentiator** - A reference parser/formatter and clear “sync-ready” rules are what make this more than “just another Markdown task convention”
 
+## Examples
+
+### Example 1: a simple list
+```markdown
+- apples
+- pears
+- oranges
+```
+
+### Example 2: dash markers
+
+```markdown
+# To-do
+- [ ] Fix login timeout bug
+"a description", prio: high, due: 2025-01-20, id: abc123d
+- [ ] Add unit tests for auth module
+tags: "testing, backend", id: def456a
+
+# Done
+- [x] Set up CI pipeline
+id: ghi789a
+
+<!--
+embridge:0.1.0
+project:Example Project
+sync:2025-01-15T09:00:00-05:00
+uuid:0188b200-0000-7000-8000-000000000000
+lists:l1st01a:"To-do" l1st02b:"Done"
+-->
+```
+
+### Example 3: numbered markers
+
+```markdown
+# Setup steps
+1. [ ] Install dependencies
+prio: high, id: abc123d
+2. [ ] Configure environment
+id: def456a
+3. [x] Run tests
+id: ghi789a
+```
+
+### Example 4: a simple list, in explicitly defined 'blank-lines' mode
+```markdown
+apples
+
+pears
+
+oranges
+```
+
 ## SWOT
 
 ### Strengths
@@ -96,46 +151,6 @@ Embridge is a strong fit for teams/people who already live in **git + Markdown**
 - “Good enough” alternatives: plain Markdown checklists, Org-mode, `todo.txt`, Taskwarrior
 - Competing conventions inside note apps (Obsidian/Logseq task metadata patterns)
 - If the spec grows too strict/complex, it loses the “just Markdown” advantage
-
-## Example 1:
-```markdown
-- apples
-- pears
-```
-
-## Example 2 (bullet markers):
-
-```markdown
-# To-do
-- [ ] Fix login timeout bug
-"a description", prio: high, due: 2025-01-20, id: abc123d
-- [ ] Add unit tests for auth module
-tags: "testing, backend", id: def456a
-
-# Done
-- [x] Set up CI pipeline
-id: ghi789a
-
-<!--
-embridge:0.1.0
-project:Example Project
-sync:2025-01-15T09:00:00-05:00
-uuid:0188b200-0000-7000-8000-000000000000
-lists:l1st01a:"To-do" l1st02b:"Done"
--->
-```
-
-## Example 3 (ordered markers):
-
-```markdown
-# Setup steps
-1. [ ] Install dependencies
-prio: high, id: abc123d
-2. [ ] Configure environment
-id: def456a
-3. [x] Run tests
-id: ghi789a
-```
 
 ## How It Works
 

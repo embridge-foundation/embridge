@@ -34,6 +34,7 @@
   - Bootstrap (mode selection)
   - Reader (import / parse-only) — marker mode
   - Blank-Lines Mode (optional syntax extension)
+    - Reader (import / parse-only) — blank-lines mode
   - Tooling export/rewrite normalization (optional, recommended for sync-ready output)
   - Regex Patterns
 - Synchronisation
@@ -43,6 +44,11 @@
 - Examples
   - Minimal Basic Embridge File
   - Minimal Blank-Lines Mode File (Syntax Extension)
+  - Blank-Lines Mode with Mixed Markers
+  - Blank-Lines Mode with Section Preamble
+  - Blank-Lines Mode with Comments
+  - Blank-Lines Mode with Checkboxes (No Markers)
+  - Blank-Lines Mode: Non-conformant Patterns (Warning Cases)
   - Minimal Numbered List
   - Numbered List with Metadata
   - Nested Numbered Items
@@ -788,28 +794,76 @@ This bootstrap behavior is critical because syntax mode can change boundary dete
 
 ### Blank-Lines Mode (optional syntax extension)
 
+Blank-lines mode allows items/subitems to be separated by blank lines instead of requiring list markers (`- ` or `{number}. `). It is a **superset** of marker mode: marker syntax is always recognized and takes precedence. The mode is activated by setting `syntax: mode: blank-lines` in document metadata.
+
 Hard rules for `syntax: mode: blank-lines`:
 
-1. List titles still use H1 headings (`# ` at column 0).
-2. Item/subitem boundaries are determined by blank lines (one or more empty lines) when not inside an open quoted description.
-3. Each item/subitem block starts at the first non-empty, non-heading line after a heading or blank-line boundary.
-4. The first line of a block is the item/subitem title.
-5. Nesting depth is determined by leading spaces on the title line (0 = top-level, 2 = subitem, 4 = sub-subitem, ...). Indentation SHOULD be multiples of 2.
-6. Metadata and comments belong to the current block:
+1. **List titles** still use H1 headings (`# ` at column 0).
+2. **Marker precedence:** A line starting with (optional leading spaces +) `- ` or (optional leading spaces +) `{number}. ` is ALWAYS parsed as a marker item, using the same rules as marker mode (reader steps ii/iv). Markers take precedence over blank-line boundary detection. Files in blank-lines mode MAY freely mix marker items and blank-line-separated items.
+3. **Blank-line boundaries:** For non-marker lines, item/subitem boundaries are determined by blank lines (one or more consecutive empty lines) when `inside_quote` is false.
+4. **Section preamble:** Non-empty lines that appear immediately after a section heading (`# `), before the next blank-line boundary or marker line, and that do not themselves match marker syntax, are section preamble. Preamble text is preserved for round-tripping but MUST NOT be parsed as items. Preamble ends at the first blank line or marker line after the heading. If the implicit first section has no heading, there is no preamble — the first non-empty line starts normal item detection.
+5. **Block start:** Each non-marker item/subitem block starts at the first non-empty, non-heading line after a blank-line boundary (outside preamble). The first line of the block is the item/subitem title.
+6. **Nesting depth** is determined by leading spaces on the title line (0 = top-level, 2 = subitem, 4 = sub-subitem, ...). Indentation SHOULD be multiples of 2.
+7. **Checkboxes (optional):** A blank-line-delimited item title MAY begin with a checkbox (`[ ] `, `[x] `, or `[X] `). When present at the start of the title line (after leading spaces), it is parsed as the item's completion state — the same semantics as a checkbox after a marker in marker mode. The checkbox is not part of the title text. Parsers/apps MAY choose whether to support checkbox detection on non-marker items; if unsupported, the checkbox characters are included in the title as-is.
+8. **Metadata and comment attachment:** Metadata and comment lines belong to the current block and MUST NOT be separated from their parent item title by a blank line:
    - Metadata lines follow the same `key: value` and quoted-description rules as marker mode.
-   - Comment lines start with `>` and attach to the current block.
-7. Multiline description ownership is quote-scoped:
+   - Comment lines (`>`) attach to the current block.
+   - A `>` line or metadata-like line that appears after a blank-line boundary with no preceding item in the current block is non-conformant. Parsers SHOULD ignore it and emit a warning.
+9. **Multiline description** ownership is quote-scoped:
    - If a description starts with `"` and has no closing quote on that line, parser enters `inside_quote = true`.
    - While `inside_quote = true`, blank lines are part of the description and MUST NOT terminate the block.
    - Block termination by blank line is only allowed when `inside_quote = false`.
-8. Only the first metadata-like line after a title is parsed as metadata. Additional metadata-like lines MUST be ignored and parsers SHOULD emit a warning.
-9. Free-form non-metadata lines after the title are non-conformant (ignore or warn, implementation-defined).
+10. Only the **first** metadata-like line after a title is parsed as metadata. Additional metadata-like lines MUST be ignored and parsers SHOULD emit a warning.
+11. **Non-conformant lines:** Free-form lines after a title that do not match metadata, comment, or marker patterns are non-conformant (ignore or warn, implementation-defined).
+
+#### Reader (import / parse-only) — blank-lines mode
+
+```
+1. Split file into sections by H1 headings (`# `)
+2. For each section:
+   a. Section name = list title (from heading, if any)
+   b. Collect section preamble (only when section has an explicit heading):
+      starting from the line after the heading, read consecutive non-empty lines
+      that do not match marker syntax (`- ` or `{number}. `). These are preamble
+      text — preserve but do not parse as items. Stop at the first blank line or
+      marker line. If the section has no heading (implicit first section), skip
+      this step (no preamble).
+   c. Process remaining lines sequentially (maintain "inside_quote" state, initially
+      false; maintain "current_block" state, initially null):
+      i.   If inside_quote is true:
+           - Append line to current description buffer
+           - If line contains closing `"` → Extract description up to `"`,
+             parse remaining text after `",` as metadata fields,
+             set inside_quote = false
+      ii.  Line starts with (spaces +) `- ` OR (spaces +) `{number}. ` → New marker item
+           - Parse using the same rules as marker mode (checkbox, title, nesting depth)
+           - Set current_block to this item
+      iii. Line is empty → If inside_quote is false, set current_block = null
+           (block boundary)
+      iv.  current_block is not null AND line starts with optional spaces + `>`
+           → Comment for current block
+           - Parse as comment (same rules as marker mode step v)
+      v.   current_block is null AND line starts with optional spaces + `>`
+           → Orphaned comment (non-conformant: ignore and emit a warning)
+      vi.  current_block is not null AND line does not start with `>` AND line
+           is non-empty → Potential metadata for current block
+           - Only the first metadata-like line after a title is parsed
+           - If current block already has metadata, ignore and emit a warning
+           - Same parsing rules as marker mode (key: value pairs, description
+             shorthand, multiline description detection)
+      vii. current_block is null AND line is non-empty → New blank-line-delimited item
+           - Count leading spaces for nesting depth (0 = top, 2 = sub, 4 = sub-sub)
+           - Optionally detect checkbox at start of title: `[ ] `, `[x] `, `[X] `
+           - Remaining text (after spaces and optional checkbox) is the item title
+           - Set current_block to this item
+3. Parse HTML comment for document metadata (if present)
+```
 
 Notes:
-- In blank-lines mode, `- ` and `{number}. ` markers are not required to detect item/subitem boundaries.
+- Blank-lines mode is a superset of marker mode: `- ` and `{number}. ` markers are always recognized and take precedence over blank-line boundary detection.
 - A parser that does not support blank-lines mode SHOULD fall back to marker mode.
-- The "mode: blank-lines" metadata for the meta field `syntax` is critical for parsers to deal with content that aims to be both Embridge-compliant and separate its list titles/items/subitems with blank lines.
-- Cooperative apps/tools MAY also emit blank-lines mode output when explicitly configured, and SHOULD write `syntax: mode: blank-lines`.
+- The `syntax: mode: blank-lines` metadata is critical for parsers to correctly interpret files that use blank-line boundaries.
+- Cooperative apps/tools MAY emit blank-lines mode output when explicitly configured, and SHOULD write `syntax: mode: blank-lines`.
 
 ### Tooling export/rewrite normalization (optional, recommended for sync-ready output)
 
@@ -841,6 +895,16 @@ When exporting/rewriting, tooling MAY normalize files to improve interoperabilit
 - Capture group 4: item title
 
 Note: If you want to enforce 1–9 digits for ordered markers at parse-time, use `((?:0|[1-9]\d{0,8}))` instead of `((?:0|[1-9]\d*))`.
+
+**Blank-line item title (blank-lines mode only — no marker, optional checkbox):**
+```regex
+^( *)(?:\[([ xX])\] )?(.+)$
+```
+- Capture group 1: leading spaces (length ÷ 2 = nesting depth)
+- Capture group 2: checkbox state (space, x, X, or absent)
+- Capture group 3: item title
+
+Note: This regex is only used in blank-lines mode (reader step vii) for lines that did not match the marker item regex. Apply the marker item regex first; only fall through to this pattern for non-marker lines after a blank-line boundary.
 
 **Metadata pair (comma-separated, optional space after colon):**
 ```regex
@@ -1022,6 +1086,121 @@ pears
 syntax: mode: blank-lines
 -->
 ```
+
+### Blank-Lines Mode with Mixed Markers
+
+Demonstrates marker precedence — marker items and blank-line-delimited items coexist in the same file:
+
+```markdown
+# Tasks
+- [ ] Buy apples
+prio: high, id: abc123d
+
+oranges
+id: ora456b
+
+- [ ] Buy bananas
+id: ban789c
+
+<!--
+syntax: mode: blank-lines
+-->
+```
+
+Parser output:
+- `Buy apples` — marker item (`- [ ]`), metadata: `prio: high, id: abc123d`
+- `oranges` — blank-line-delimited item, metadata: `id: ora456b`
+- `Buy bananas` — marker item (`- [ ]`), metadata: `id: ban789c`
+
+### Blank-Lines Mode with Section Preamble
+
+Lines between a heading and the next blank line (that are not markers) are section preamble — preserved but not parsed as items:
+
+```markdown
+# Weekly Groceries
+Items to pick up this weekend.
+Check the pantry before going.
+
+apples
+
+oranges
+
+<!--
+syntax: mode: blank-lines
+-->
+```
+
+Parser output:
+- Section preamble (preserved, not items): "Items to pick up this weekend.", "Check the pantry before going."
+- `apples` — item
+- `oranges` — item
+
+### Blank-Lines Mode with Comments
+
+Comments and metadata attach to the current block — they must not be separated from their parent item by a blank line:
+
+```markdown
+Buy apples
+"Get the organic ones"
+> @alice [2026-01-20]: Check the farmer's market
+
+Buy oranges
+prio: low
+
+<!--
+syntax: mode: blank-lines
+-->
+```
+
+Parser output:
+- `Buy apples` — item with description `"Get the organic ones"` and comment by alice
+- `Buy oranges` — item with metadata `prio: low`
+
+### Blank-Lines Mode with Checkboxes (No Markers)
+
+Blank-line items may optionally begin with a checkbox:
+
+```markdown
+[ ] apples
+
+[x] oranges
+
+[X] bananas
+
+pears
+
+<!--
+syntax: mode: blank-lines
+-->
+```
+
+Parser output:
+- `apples` — item, checkbox: unchecked
+- `oranges` — item, checkbox: checked
+- `bananas` — item, checkbox: checked
+- `pears` — item, no checkbox
+
+### Blank-Lines Mode: Non-conformant Patterns (Warning Cases)
+
+```markdown
+Buy apples
+
+> orphaned comment
+
+Buy oranges
+prio: high
+status: open
+
+<!--
+syntax: mode: blank-lines
+-->
+```
+
+Parser output:
+- `Buy apples` — item
+- `> orphaned comment` — **warning:** comment after blank-line boundary with no parent item in current block (non-conformant, ignored)
+- `Buy oranges` — item, metadata: `prio: high`
+- `status: open` — **warning:** second metadata line (ignored)
 
 ### Minimal Numbered List
 
