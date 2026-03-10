@@ -707,7 +707,7 @@ An HTML comment at the end of the file can contain document-level metadata.
 title: My Project title
 sync: 2025-01-15T09:00:00-05:00
 uuid: 0188b200-0000-7000-8000-000000000000
-lists: a1b2c3d: "Backlog", d4e5f6a: "In Progress", g7h8i9b: "Done"
+lists: "Backlog" a1b2c3d, "In Progress" d4e5f6a, "Done" g7h8i9b
 fields: note, sprint, client
 format: Embridge v0.1.0, github.com/embridge-foundation/embridge
 -->
@@ -718,7 +718,7 @@ format: Embridge v0.1.0, github.com/embridge-foundation/embridge
 | `title` | Document title (required for sync-ready output). Tooling MUST generate and maintain this field; if missing, generate a default (e.g., derived from filename/repo) and write it back. Humans are not expected to manually edit document metadata; apps/parsers/AI agents SHOULD keep it up to date. |
 | `sync` | ISO 8601 timestamp of last sync |
 | `uuid` | Unique document identifier (UUIDv7 recommended) for sync matching across renames/moves |
-| `lists` | Optional list registry: `lists:{id}: "{List Title}", {id}: "{Title}" ...`. Apps MAY use this to give list headings stable identifiers. |
+| `lists` | Optional list registry: `lists: "{List Title}" {id}, "{Title}" {id} ...`. Apps MAY use this to give list headings stable identifiers. |
 | `syntax` | Optional syntax hints for parsing/export behavior. The key `mode` selects parsing behavior (e.g., `syntax: mode: marker` or `syntax: mode: blank-lines`) |
 | `fields` | Optional comma-separated list of custom metadata key names. Declares additional keys that parsers recognize as valid item metadata (e.g., `fields: note, sprint, client`). See "Standard Fields" for the built-in known keys. |
 | `format` | Format descriptor (required for sync-ready output), e.g. `Embridge v0.1.0, github.com/embridge-foundation/embridge` |
@@ -966,9 +966,10 @@ Note: Split the captured value on `,` and trim whitespace from each entry to get
 
 **List registry pair (within `lists:` value):**
 ```regex
-([^\s:]+):(?:"((?:[^"]|"")*)"|([^\s,]+))
+"((?:[^"]|"")*)" \s*([^\s,]+)
 ```
-Note: For quoted list titles, unescape by replacing `""` with `"` after capture.
+- Group 1: list title (unescape `""` → `"`)
+- Group 2: list ID
 
 **Document metadata:**
 ```regex
@@ -1268,7 +1269,7 @@ id: db01abc
 title: Items/Tasks
 sync: 2025-01-15T09:00:00-05:00
 uuid: 0188b200-0000-7000-8000-000000000000
-lists: a1b2c3d: "To-do"
+lists: "To-do" a1b2c3d
 format: Embridge v0.1.0, github.com/embridge-foundation/embridge
 -->
 ```
@@ -1311,7 +1312,7 @@ id: g7h8i9b
 title: Project Demo
 sync: 2025-01-15T09:00:00-05:00
 uuid: 0188b200-0000-7000-8000-000000000000
-lists: k3m9p2a: "Backlog", q7w2e1b: "To-do", z8x4c3d: "In Progress", r5t6y7e: "Done"
+lists: "Backlog" k3m9p2a, "To-do" q7w2e1b, "In Progress" z8x4c3d, "Done" r5t6y7e
 format: Embridge v0.1.0, github.com/embridge-foundation/embridge
 -->
 ```

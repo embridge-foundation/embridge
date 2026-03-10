@@ -1,6 +1,6 @@
 # Embridge
 
-**Version:** 0.1.0  
+**Version:** 0.1.1  
 **Author:** xpiu
 **Git repo:** https://github.com/embridge-foundation/embridge  
 **Project website:** https://embridge.net  
@@ -95,11 +95,11 @@ tags: "testing, backend", id: def456a
 id: ghi789a
 
 <!--
-embridge:0.1.0
+embridge:0.1.1
 project:Example Project
 sync:2025-01-15T09:00:00-05:00
 uuid:0188b200-0000-7000-8000-000000000000
-lists:l1st01a:"To-do" l1st02b:"Done"
+lists:"To-do" l1st01a, "Done" l1st02b
 -->
 ```
 
@@ -185,8 +185,8 @@ Embridge has its own quirks—the `- [ ]` checkbox syntax comes from GitHub-flav
 
 ## Documentation
 
-- [Full Specification](https://github.com/embridge-foundation/embridge/blob/main/embridge_format_specifications_v0.1.0.md) - Complete format reference
-- [Example File](https://github.com/embridge-foundation/embridge/blob/main/embridge_output_demo_v0.1.0.md) 
+- [Full Specification](https://github.com/embridge-foundation/embridge/blob/main/embridge_format_specifications_v0.1.1.md) - Complete format reference
+- [Example File](https://github.com/embridge-foundation/embridge/blob/main/embridge_output_demo_v0.1.1.md) 
 
 ## License
 
