@@ -22,6 +22,8 @@
   - Quick Reference (Non-normative)
   - Document Model (Non-normative)
   - Lexical Conventions
+    - Encoding and Line Endings
+    - Line Roles
   - Item Lines
   - Nesting (Subitems/Subtasks)
   - Item Metadata (Optional Line)
@@ -185,6 +187,14 @@ Conceptually, an Embridge document is:
       - **attachments** (convention; subitems whose title is exactly one Markdown link or image)
 
 ### Lexical Conventions
+
+#### Encoding and Line Endings
+
+Embridge files MUST be encoded as UTF-8. A byte-order mark (BOM) is optional; parsers MUST ignore a leading BOM if present.
+
+Parsers MUST accept LF (`\n`), CRLF (`\r\n`), and CR (`\r`) line endings and normalize them to LF internally. Writers SHOULD use LF line endings. No maximum line length is imposed.
+
+#### Line Roles
 
 The role of a line is determined by its first non-whitespace characters:
 
