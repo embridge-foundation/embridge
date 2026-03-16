@@ -12,55 +12,55 @@
 
 ## Table of contents
 
-- Overview
-- Project goals
-- Bridge Philosophy
-- Format architecture and design principles
-- On conformance
-- Syntax and File Structure
-  - File Shape (Non-normative)
-  - Quick Reference (Non-normative)
-  - Document Model (Non-normative)
-  - Lexical Conventions
-    - Encoding and Line Endings
-    - Line Roles
-  - Item Lines
-  - Nesting (Subitems/Subtasks)
-  - Item Metadata (Optional Line)
-  - Standard Fields (Non-exhaustive)
-  - Comments (Optional)
-  - Attachments (Convention)
-  - List Sections (H1 Headings)
-  - Document Metadata (HTML Comment)
-- Parsing
-  - Bootstrap (mode selection)
-  - Reader (import / parse-only) — marker mode
-  - Blank-Lines Mode (optional syntax extension)
-    - Reader (import / parse-only) — blank-lines mode
-  - Tooling export/rewrite normalization (optional, recommended for sync-ready output)
-  - Regex Patterns
-- Synchronisation
-  - App → Markdown (export logic from apps)
-  - Markdown → App (import logic into apps)
-  - Conflict Resolution
-- Examples
-  - Minimal Basic Embridge File
-  - Minimal Blank-Lines Mode File (Syntax Extension)
-  - Blank-Lines Mode with Mixed Markers
-  - Blank-Lines Mode with Section Preamble
-  - Blank-Lines Mode with Comments
-  - Blank-Lines Mode with Checkboxes (No Markers)
-  - Blank-Lines Mode: Non-conformant Patterns (Warning Cases)
-  - Minimal Numbered List
-  - Numbered List with Metadata
-  - Nested Numbered Items
-  - Numbered Items with Comments
-  - Minimal Sync-Ready File
-  - Full-Featured File
-- Integration Ideas
-- Rendering Compatibility (Appendix)
-- References
-- License
+- [Overview](#overview)
+- [Project goals](#project-goals)
+- [Bridge Philosophy](#bridge-philosophy)
+- [Format architecture and design principles](#format-architecture-and-design-principles)
+- [On conformance](#on-conformance)
+- [Syntax and File Structure](#syntax-and-file-structure)
+  - [File Shape (Non-normative)](#file-shape-non-normative)
+  - [Quick Reference (Non-normative)](#quick-reference-non-normative)
+  - [Document Model (Non-normative)](#document-model-non-normative)
+  - [Lexical Conventions](#lexical-conventions)
+    - [Encoding and Line Endings](#encoding-and-line-endings)
+    - [Line Roles](#line-roles)
+  - [Item Lines](#item-lines)
+  - [Nesting (Subitems/Subtasks)](#nesting-subitemssubtasks)
+  - [Item Metadata (Optional Line)](#item-metadata-optional-line)
+  - [Standard Fields (Non-exhaustive)](#standard-fields-non-exhaustive)
+  - [Comments (Optional)](#comments-optional)
+  - [Attachments (Convention)](#attachments-convention)
+  - [List Sections (H1 Headings)](#list-sections-h1-headings)
+  - [Document Metadata (HTML Comment)](#document-metadata-html-comment)
+- [Parsing](#parsing)
+  - [Bootstrap (mode selection)](#bootstrap-mode-selection)
+  - [Reader (import / parse-only) — marker mode](#reader-import--parse-only--marker-mode)
+  - [Blank-Lines Mode (optional syntax extension)](#blank-lines-mode-optional-syntax-extension)
+    - [Reader (import / parse-only) — blank-lines mode](#reader-import--parse-only--blank-lines-mode)
+  - [Tooling export/rewrite normalization (optional, recommended for sync-ready output)](#tooling-exportrewrite-normalization-optional-recommended-for-sync-ready-output)
+  - [Regex Patterns](#regex-patterns)
+- [Synchronisation](#synchronisation)
+  - [App → Markdown (export logic from apps)](#app--markdown-export-logic-from-apps)
+  - [Markdown → App (import logic into apps)](#markdown--app-import-logic-into-apps)
+  - [Conflict Resolution](#conflict-resolution)
+- [Examples](#examples)
+  - [Minimal Basic Embridge File](#minimal-basic-embridge-file)
+  - [Minimal Blank-Lines Mode File (Syntax Extension)](#minimal-blank-lines-mode-file-syntax-extension)
+  - [Blank-Lines Mode with Mixed Markers](#blank-lines-mode-with-mixed-markers)
+  - [Blank-Lines Mode with Section Preamble](#blank-lines-mode-with-section-preamble)
+  - [Blank-Lines Mode with Comments](#blank-lines-mode-with-comments)
+  - [Blank-Lines Mode with Checkboxes (No Markers)](#blank-lines-mode-with-checkboxes-no-markers)
+  - [Blank-Lines Mode: Non-conformant Patterns (Warning Cases)](#blank-lines-mode-non-conformant-patterns-warning-cases)
+  - [Minimal Numbered List](#minimal-numbered-list)
+  - [Numbered List with Metadata](#numbered-list-with-metadata)
+  - [Nested Numbered Items](#nested-numbered-items)
+  - [Numbered Items with Comments](#numbered-items-with-comments)
+  - [Minimal Sync-Ready File](#minimal-sync-ready-file)
+  - [Full-Featured File](#full-featured-file)
+- [Integration Ideas](#integration-ideas)
+- [Rendering Compatibility (Appendix)](#rendering-compatibility-appendix)
+- [References](#references)
+- [License](#license)
 
 ---
 
