@@ -732,7 +732,7 @@ format: Embridge v0.1.1, github.com/embridge-foundation/embridge
 | `lists` | Optional list registry: `lists: "{List Title}" {id}, "{Title}" {id} ...`. Apps MAY use this to give list headings stable identifiers. |
 | `syntax` | Optional syntax hints for parsing/export behavior. The key `mode` selects parsing behavior (e.g., `syntax: mode: marker` or `syntax: mode: blank-lines`) |
 | `fields` | Optional comma-separated list of custom metadata key names. Declares additional keys that parsers recognize as valid item metadata (e.g., `fields: note, sprint, client`). See "Standard Fields" for the built-in known keys. |
-| `format` | Format descriptor (required for sync-ready output), e.g. `Embridge v0.1.1, github.com/embridge-foundation/embridge` |
+| `format` | Format descriptor (required for sync-ready output), e.g. `Embridge v0.1.1, github.com/embridge-foundation/embridge`. The version number MUST follow the `v{major}.{minor}.{patch}` format (e.g., `v0.1.1`). How parsers handle version differences is implementation-defined. |
 
 **Reader tolerance (parser/import guidance):**
 - Parsers MUST parse known document metadata fields by key name and MUST NOT rely on field order.
@@ -974,6 +974,14 @@ Note: Split the captured value on `,` and trim whitespace from each entry to get
 ```regex
 ^format:(.*)$
 ```
+
+**Version extraction (from `format:` value):**
+```regex
+v(\d+)\.(\d+)\.(\d+)
+```
+- Group 1: major version
+- Group 2: minor version
+- Group 3: patch version
 
 **List registry pair (within `lists:` value):**
 ```regex
