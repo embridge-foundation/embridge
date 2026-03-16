@@ -253,7 +253,8 @@ An item/task is a Markdown list item: **marker** → **optional checkbox** → *
 
 **Ordered marker constraints:**
 - This specification intentionally excludes `1)` markers to keep the format minimal.
-- Parsers MUST NOT validate or enforce number ordering (numbers do not need to be sequential or start at 1).
+- Ordered marker numbers are **purely decorative** — item order is determined solely by position in the file, not by numeric value. Numbers carry no semantic meaning for ordering purposes.
+- Parsers MUST ignore numeric values for ordering purposes (numbers do not need to be sequential or start at 1).
 - Tooling MUST NOT emit leading zeros in ordered markers (e.g., write `1.` not `01.`).
 
 **Ordered marker digit count (interoperability guidance):**
@@ -396,7 +397,7 @@ Inside a quoted value, a literal double quote is represented as two double quote
 
 **Descriptions (as metadata):**
 
-Descriptions use the `description:` field (or its alias `descr:`) with a quoted value:
+Descriptions use the `description:` field (or its aliases `desc:` / `descr:`) with a quoted value:
 
 ```markdown
 - [ ] Complex item/task
@@ -422,7 +423,7 @@ Both forms are equivalent. The shorthand can also stand alone:
 - The quoted value is parsed as `description:` (same escaping rules: `""` → `"`).
 - Can be followed by other fields after a comma: `"My description", prio: high, id: abc123d`.
 - If both shorthand and explicit `description:` appear, parsers SHOULD treat this as an error (or use last-wins).
-- When exporting, tooling SHOULD prefer the shorthand form for brevity (explicit `description:` / `descr:` are also valid).
+- When exporting, tooling SHOULD prefer the shorthand form for brevity (explicit `description:` / `desc:` / `descr:` are also valid).
 
 **Multiline descriptions:** The shorthand syntax supports descriptions spanning multiple lines. The description starts with `"` on the first metadata line and continues until the closing `"` is found:
 
@@ -485,7 +486,7 @@ The fields listed here (and their aliases) are the **known keys** that parsers u
 
 | Field | Aliases | Description | Example Values |
 |-------|---------|-------------|----------------|
-| `description` | `descr` | Short description | `"Fix the login bug"` |
+| `description` | `desc`, `descr` | Short description | `"Fix the login bug"` |
 | `status` | | Workflow status | `todo`, `doing`, `done`, `backlog`, `ideas` |
 | `prio` | `priority` | Priority level | `high`, `med`, `low`, `1`, `2`, `3` |
 | `tags` | `keywords` | Labels (single or quoted list) | `backend` or `"backend, api, urgent"` |
@@ -781,7 +782,7 @@ This bootstrap behavior is critical because syntax mode can change boundary dete
            - `{number}` is `0` or a base-10 integer without leading zeros; lines like `01. Item` do not match this pattern and are not recognized as items
            - Count leading spaces to determine nesting depth (0=top, 2=sub, 4=sub-sub, ...)
            - Detect marker type: `-` = bullet, `{number}.` = ordered
-           - If ordered: extract `{number}` as a numeric display hint
+           - If ordered: extract `{number}` for round-trip preservation (decorative only — not used for ordering)
            - Parse checkbox state and title
       iii. Line after a `- ` or `{number}. ` line, does NOT start with `- `, `{number}. `, or `>` → Metadata for item above
            - Only the **first** metadata-like line after an item is parsed as metadata. If the item already has a metadata block, ignore the line and emit a warning.
@@ -1027,9 +1028,9 @@ When the application writes to the `.md` file:
 13. When rewriting items, tooling SHOULD preserve the original marker style. If an item was authored with `1.`, export as `1.` (not `-`). Tooling MUST NOT emit leading zeros (e.g., write `1.` not `01.`).
 
 **Renumbering (optional):**
-- When items are reordered in an app, tooling MAY renumber to maintain sequential order.
-- Renumbering is OPTIONAL — apps MAY also preserve original numbers as hints.
-- **Recommendation:** Preserve by default, offer renumber option.
+- Ordered marker numbers are purely decorative (see "Ordered marker constraints"). Item order is always determined by position in the file.
+- Tools MAY renumber ordered markers for display consistency (e.g., sequential `1.`, `2.`, `3.`) but this is cosmetic only and MUST NOT alter item semantics or ordering.
+- **Recommendation:** Preserve original numbers by default; offer renumber as an optional formatting action.
 
 ### Markdown → App (import logic into apps)
 
@@ -1048,7 +1049,7 @@ When the application reads the `.md` file:
 10. Items/tasks with known IDs → update database from markdown (markdown wins for content fields).
 11. Items/tasks in database but missing from markdown → delete from database (or mark archived, implementation-defined).
 12. Apply default values for missing fields.
-13. Preserve marker style (where present) and ordered number for later export.
+13. Preserve marker style (where present) and ordered number (decorative) for later export.
 
 ### Conflict Resolution
 
