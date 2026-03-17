@@ -10,7 +10,7 @@
 ## Contents
 
 - [Project goals](#project-goals)
-- [Value proposition of the Embridge format](#value-proposition-of-the-embridge-format)
+- [Features & value proposition of the Embridge format](#features--value-proposition-of-the-embridge-format)
 - [Examples](#examples)
   - [Example 1: a simple list](#example-1-a-simple-list)
   - [Example 2: dash markers](#example-2-dash-markers)
@@ -51,7 +51,7 @@ Four-way venn-diagram in ASCII:
       \    |                         |    /
        '.  |                         |  .'
          '-+-------------------------+-'
-            \          GIT          /
+            \       GIT REPO         /
              '. (version control) .'
                '-.             .-'
                   '-----------'
@@ -60,7 +60,7 @@ Four-way venn-diagram in ASCII:
 
 ```
 
-## Value proposition of the Embridge format
+## Features & value proposition of the Embridge format
 
 Embridge is a strong fit for teams/people who already live in **git + Markdown** and want tasks to be **portable across editors/apps** without committing to a vendor or a database.
 
@@ -128,6 +128,7 @@ oranges
 
 ### Strengths
 
+- High format flexibility for human users 
 - Familiar Markdown editing; low onboarding friction
 - Git-native history, auditing, and collaboration
 - AI-friendly structure with stable `id` fields
@@ -136,7 +137,7 @@ oranges
 ### Weaknesses
 
 - Metadata can look "noisy" in typical Markdown renderers
-- Dash-indentation hierarchy requires consistent spacing (2 spaces per level)
+- Dash-indentation hierarchy requires consistent spacing
 - Ecosystem risk: without reference tooling, implementations may diverge
 
 ### Opportunities
@@ -148,9 +149,9 @@ oranges
 
 ### Threats
 
-- “Good enough” alternatives: plain Markdown checklists, Org-mode, `todo.txt`, Taskwarrior
+- “Good enough” alternatives
 - Competing conventions inside note apps (Obsidian/Logseq task metadata patterns)
-- If the spec grows too strict/complex, it loses the “just Markdown” advantage
+- If the spec grows too strict/complex
 
 ## How It Works
 

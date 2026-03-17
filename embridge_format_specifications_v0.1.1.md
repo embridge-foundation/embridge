@@ -57,7 +57,6 @@
   - [Numbered Items with Comments](#numbered-items-with-comments)
   - [Minimal Sync-Ready File](#minimal-sync-ready-file)
   - [Full-Featured File](#full-featured-file)
-- [Integration Ideas](#integration-ideas)
 - [Rendering Compatibility (Appendix)](#rendering-compatibility-appendix)
 - [References](#references)
 - [License](#license)
@@ -1339,30 +1338,6 @@ lists: "Backlog" k3m9p2a, "To-do" q7w2e1b, "In Progress" z8x4c3d, "Done" r5t6y7e
 format: Embridge v0.1.1, github.com/embridge-foundation/embridge
 -->
 ```
-
----
-
-## Integration Ideas
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│             .md file (GitHub or other repo provider)        │
-│                   Source of truth for content               │
-└─────────────────────┬───────────────────────┬───────────────┘
-                      │                       │
-                      ▼                       ▼
-              ┌───────────────┐       ┌───────────────┐
-              │  AI Agents    │       │  Human Devs   │
-              │  (read/write) │       │  (hand-edit)  │
-              └───────────────┘       └───────────────┘
-                      │                       │
-                      ▼                       ▼
-              ┌─────────────────────────────────────┐
-              │         Application GUI             │
-              │  (sync, enhance with UI metadata)   │
-              └─────────────────────────────────────┘
-```
----
 
 ## Rendering Compatibility (Appendix)
 
