@@ -493,8 +493,12 @@ The fields listed here (and their aliases) are the **known keys** that parsers u
 | `assignee` | `owner`, `assigned` | Who's responsible | `@alice`, `team-backend` |
 | `created` | `date`, `createddate` | Created/reference date | `2025-01-15` |
 | `updated` | `modified`, `mod` | Last modified date | `2025-01-18` |
-| `due` | `duedate` | Due date | `2025-01-15`, `tomorrow`, `next-week` |
+| `due` | `duedate` | Due date | `2025-01-15` (recommended), `tomorrow`, `end of Q3` |
 | `id` | | Stable identifier (recommended) | `a1b2c3`, `x7y8z9` |
+
+**`due` date value (parser/AI agent guidance):**
+
+The `due` field SHOULD use ISO 8601 date strings (`YYYY-MM-DD`, e.g. `2025-01-15`) for unambiguous, machine-readable dates. However, arbitrary natural-language expressions (e.g. `tomorrow`, `next-week`, `end of Q3`, `third Tuesday of next month`) are permitted — Embridge is designed for human authoring flexibility and does not restrict the value to a closed set. Parsers and AI agents MUST be prepared to encounter free-form date text and SHOULD attempt to resolve it to an absolute date when needed; if resolution is not possible or unambiguous, the raw value SHOULD be preserved as-is.
 
 **tags value shape (special rule):**
 
