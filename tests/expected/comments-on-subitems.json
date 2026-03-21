@@ -1,0 +1,67 @@
+{
+  "documentMetadata": null,
+  "lists": [
+    {
+      "title": null,
+      "preamble": null,
+      "items": [
+        {
+          "title": "Main task",
+          "completed": false,
+          "marker": { "type": "bullet" },
+          "fields": { "prio": "high", "id": "a1b2c3d" },
+          "description": null,
+          "comments": [
+            {
+              "replyDepth": 1,
+              "author": null,
+              "timestamp": null,
+              "text": "starting today"
+            }
+          ],
+          "subitems": [
+            {
+              "title": "Subtask one",
+              "completed": false,
+              "marker": { "type": "bullet" },
+              "fields": { "id": "x1y2z3e" },
+              "description": null,
+              "comments": [
+                {
+                  "replyDepth": 1,
+                  "author": "bob",
+                  "timestamp": null,
+                  "text": "I'll handle this"
+                }
+              ],
+              "subitems": []
+            },
+            {
+              "title": "Subtask two",
+              "completed": false,
+              "marker": { "type": "bullet" },
+              "fields": { "id": "w4v5u6f" },
+              "description": null,
+              "comments": [
+                {
+                  "replyDepth": 1,
+                  "author": "alice",
+                  "timestamp": null,
+                  "text": "almost done"
+                },
+                {
+                  "replyDepth": 2,
+                  "author": "bob",
+                  "timestamp": null,
+                  "text": "great work"
+                }
+              ],
+              "subitems": []
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "diagnostics": []
+}

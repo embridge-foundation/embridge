@@ -1,0 +1,4 @@
+- Buy apples
+- [ ] Buy oranges
+- [x] Buy bananas
+- [X] Buy grapes

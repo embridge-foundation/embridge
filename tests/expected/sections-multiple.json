@@ -1,0 +1,51 @@
+{
+  "documentMetadata": null,
+  "lists": [
+    {
+      "title": "Backlog",
+      "preamble": null,
+      "items": [
+        {
+          "title": "Research caching",
+          "completed": false,
+          "marker": { "type": "bullet" },
+          "fields": { "id": "abc123d" },
+          "description": null,
+          "comments": [],
+          "subitems": []
+        }
+      ]
+    },
+    {
+      "title": "In Progress",
+      "preamble": null,
+      "items": [
+        {
+          "title": "Refactor auth",
+          "completed": false,
+          "marker": { "type": "bullet" },
+          "fields": { "id": "def456a" },
+          "description": null,
+          "comments": [],
+          "subitems": []
+        }
+      ]
+    },
+    {
+      "title": "Done",
+      "preamble": null,
+      "items": [
+        {
+          "title": "Write docs",
+          "completed": true,
+          "marker": { "type": "bullet" },
+          "fields": { "id": "ghi789a" },
+          "description": null,
+          "comments": [],
+          "subitems": []
+        }
+      ]
+    }
+  ],
+  "diagnostics": []
+}

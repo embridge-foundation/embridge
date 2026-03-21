@@ -1,0 +1,39 @@
+{
+  "documentMetadata": null,
+  "lists": [
+    {
+      "title": null,
+      "preamble": null,
+      "items": [
+        {
+          "title": "Item with multiline description",
+          "completed": false,
+          "marker": { "type": "bullet" },
+          "fields": { "prio": "high", "id": "a1b2c3d" },
+          "description": "This is a longer description\nthat spans multiple lines.\nIt can include detailed notes.",
+          "comments": [],
+          "subitems": []
+        },
+        {
+          "title": "Another multiline",
+          "completed": false,
+          "marker": { "type": "bullet" },
+          "fields": { "status": "todo", "prio": "high", "id": "x1y2z3e" },
+          "description": "First line of description.\nSecond line with more detail.\nThird line wrapping up.",
+          "comments": [],
+          "subitems": []
+        },
+        {
+          "title": "Multiline with escaped quotes",
+          "completed": false,
+          "marker": { "type": "bullet" },
+          "fields": { "id": "esc123d" },
+          "description": "She said \"hello\" and\nthen \"goodbye\".",
+          "comments": [],
+          "subitems": []
+        }
+      ]
+    }
+  ],
+  "diagnostics": []
+}

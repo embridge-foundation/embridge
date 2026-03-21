@@ -1,0 +1,45 @@
+{
+  "documentMetadata": null,
+  "lists": [
+    {
+      "title": null,
+      "preamble": null,
+      "items": [
+        {
+          "title": "Item before any heading",
+          "completed": false,
+          "marker": { "type": "bullet" },
+          "fields": { "id": "abc123d" },
+          "description": null,
+          "comments": [],
+          "subitems": []
+        },
+        {
+          "title": "Another item before heading",
+          "completed": false,
+          "marker": { "type": "bullet" },
+          "fields": { "id": "def456a" },
+          "description": null,
+          "comments": [],
+          "subitems": []
+        }
+      ]
+    },
+    {
+      "title": "Named Section",
+      "preamble": null,
+      "items": [
+        {
+          "title": "Item in named section",
+          "completed": false,
+          "marker": { "type": "bullet" },
+          "fields": { "id": "ghi789a" },
+          "description": null,
+          "comments": [],
+          "subitems": []
+        }
+      ]
+    }
+  ],
+  "diagnostics": []
+}

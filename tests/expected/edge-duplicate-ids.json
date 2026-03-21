@@ -1,0 +1,45 @@
+{
+  "documentMetadata": null,
+  "lists": [
+    {
+      "title": null,
+      "preamble": null,
+      "items": [
+        {
+          "title": "First item",
+          "completed": false,
+          "marker": { "type": "bullet" },
+          "fields": { "id": "abc123d" },
+          "description": null,
+          "comments": [],
+          "subitems": []
+        },
+        {
+          "title": "Second item with same id",
+          "completed": false,
+          "marker": { "type": "bullet" },
+          "fields": { "id": "abc123d" },
+          "description": null,
+          "comments": [],
+          "subitems": []
+        },
+        {
+          "title": "Third item unique",
+          "completed": false,
+          "marker": { "type": "bullet" },
+          "fields": { "id": "def456a" },
+          "description": null,
+          "comments": [],
+          "subitems": []
+        }
+      ]
+    }
+  ],
+  "diagnostics": [
+    {
+      "line": 5,
+      "severity": "warning",
+      "message": "duplicate item id 'abc123d'"
+    }
+  ]
+}

@@ -1,0 +1,52 @@
+{
+  "documentMetadata": null,
+  "lists": [
+    {
+      "title": null,
+      "preamble": null,
+      "items": [
+        {
+          "title": "Refactor auth",
+          "completed": false,
+          "marker": { "type": "bullet" },
+          "fields": { "id": "abc123d" },
+          "description": null,
+          "comments": [
+            {
+              "replyDepth": 1,
+              "author": "alice",
+              "timestamp": "2025-01-20",
+              "text": "Starting refactor today"
+            },
+            {
+              "replyDepth": 2,
+              "author": "bob",
+              "timestamp": "2025-01-21",
+              "text": "Use the new OAuth library"
+            },
+            {
+              "replyDepth": 2,
+              "author": "alice",
+              "timestamp": "2025-01-22",
+              "text": "Good idea, will do"
+            },
+            {
+              "replyDepth": 3,
+              "author": "charlie",
+              "timestamp": "2025-01-22",
+              "text": "I can review"
+            },
+            {
+              "replyDepth": 1,
+              "author": "charlie",
+              "timestamp": "2025-01-23",
+              "text": "Ready for review"
+            }
+          ],
+          "subitems": []
+        }
+      ]
+    }
+  ],
+  "diagnostics": []
+}

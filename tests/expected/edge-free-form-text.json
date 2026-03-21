@@ -1,0 +1,59 @@
+{
+  "documentMetadata": null,
+  "lists": [
+    {
+      "title": null,
+      "preamble": null,
+      "items": [
+        {
+          "title": "Call the client",
+          "completed": false,
+          "marker": { "type": "bullet" },
+          "fields": {},
+          "description": null,
+          "comments": [],
+          "subitems": []
+        },
+        {
+          "title": "Send report",
+          "completed": false,
+          "marker": { "type": "bullet" },
+          "fields": {},
+          "description": null,
+          "comments": [],
+          "subitems": []
+        },
+        {
+          "title": "Valid with description",
+          "completed": false,
+          "marker": { "type": "bullet" },
+          "fields": {},
+          "description": "they prefer mornings",
+          "comments": [],
+          "subitems": []
+        },
+        {
+          "title": "Valid with descr field",
+          "completed": false,
+          "marker": { "type": "bullet" },
+          "fields": { "descr": "they prefer mornings" },
+          "description": "they prefer mornings",
+          "comments": [],
+          "subitems": []
+        }
+      ]
+    }
+  ],
+  "diagnostics": [
+    {
+      "line": 2,
+      "severity": "warning",
+      "message": "non-conformant free-form text (not key: value metadata)"
+    },
+    {
+      "line": 5,
+      "severity": "warning",
+      "message": "non-conformant free-form text ('remember' is not a known key)"
+    }
+  ]
+}

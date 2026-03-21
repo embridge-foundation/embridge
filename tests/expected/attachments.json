@@ -1,0 +1,77 @@
+{
+  "documentMetadata": null,
+  "lists": [
+    {
+      "title": null,
+      "preamble": null,
+      "items": [
+        {
+          "title": "Parent task",
+          "completed": false,
+          "marker": { "type": "bullet" },
+          "fields": { "id": "abc123d" },
+          "description": null,
+          "comments": [],
+          "subitems": [
+            {
+              "title": "[Design spec](docs/spec.pdf)",
+              "completed": null,
+              "marker": { "type": "bullet" },
+              "fields": {},
+              "description": null,
+              "comments": [],
+              "subitems": []
+            },
+            {
+              "title": "[Demo video](media/demo.mp4)",
+              "completed": null,
+              "marker": { "type": "bullet" },
+              "fields": {},
+              "description": null,
+              "comments": [],
+              "subitems": []
+            },
+            {
+              "title": "[Installer](dist/app.exe)",
+              "completed": null,
+              "marker": { "type": "bullet" },
+              "fields": {},
+              "description": null,
+              "comments": [],
+              "subitems": []
+            },
+            {
+              "title": "![Screenshot](assets/login.png)",
+              "completed": null,
+              "marker": { "type": "bullet" },
+              "fields": {},
+              "description": null,
+              "comments": [],
+              "subitems": []
+            }
+          ]
+        },
+        {
+          "title": "Task with checkbox on attachment",
+          "completed": false,
+          "marker": { "type": "bullet" },
+          "fields": { "id": "def456a" },
+          "description": null,
+          "comments": [],
+          "subitems": [
+            {
+              "title": "[Report](docs/report.pdf)",
+              "completed": false,
+              "marker": { "type": "bullet" },
+              "fields": {},
+              "description": null,
+              "comments": [],
+              "subitems": []
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "diagnostics": []
+}

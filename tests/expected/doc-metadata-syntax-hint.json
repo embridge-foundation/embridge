@@ -1,0 +1,29 @@
+{
+  "documentMetadata": {
+    "title": "Syntax Hint Test",
+    "sync": null,
+    "uuid": null,
+    "lists": null,
+    "fields": null,
+    "syntax": { "mode": "marker" },
+    "format": "Embridge v0.1.1, github.com/embridge-foundation/embridge"
+  },
+  "lists": [
+    {
+      "title": "Tasks",
+      "preamble": null,
+      "items": [
+        {
+          "title": "Buy apples",
+          "completed": false,
+          "marker": { "type": "bullet" },
+          "fields": { "id": "abc123d" },
+          "description": null,
+          "comments": [],
+          "subitems": []
+        }
+      ]
+    }
+  ],
+  "diagnostics": []
+}

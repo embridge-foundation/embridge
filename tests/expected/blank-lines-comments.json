@@ -1,0 +1,45 @@
+{
+  "documentMetadata": {
+    "title": null,
+    "sync": null,
+    "uuid": null,
+    "lists": null,
+    "fields": null,
+    "syntax": { "mode": "blank-lines" },
+    "format": null
+  },
+  "lists": [
+    {
+      "title": null,
+      "preamble": null,
+      "items": [
+        {
+          "title": "Buy apples",
+          "completed": null,
+          "marker": { "type": "none" },
+          "fields": {},
+          "description": "Get the organic ones",
+          "comments": [
+            {
+              "replyDepth": 1,
+              "author": "alice",
+              "timestamp": "2026-01-20",
+              "text": "Check the farmer's market"
+            }
+          ],
+          "subitems": []
+        },
+        {
+          "title": "Buy oranges",
+          "completed": null,
+          "marker": { "type": "none" },
+          "fields": { "prio": "low" },
+          "description": null,
+          "comments": [],
+          "subitems": []
+        }
+      ]
+    }
+  ],
+  "diagnostics": []
+}

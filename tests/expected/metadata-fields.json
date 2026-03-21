@@ -1,0 +1,48 @@
+{
+  "documentMetadata": null,
+  "lists": [
+    {
+      "title": null,
+      "preamble": null,
+      "items": [
+        {
+          "title": "Fix login bug",
+          "completed": false,
+          "marker": { "type": "bullet" },
+          "fields": { "prio": "high", "id": "abc123d" },
+          "description": null,
+          "comments": [],
+          "subitems": []
+        },
+        {
+          "title": "Update docs",
+          "completed": false,
+          "marker": { "type": "bullet" },
+          "fields": { "status": "todo", "tags": "backend", "due": "2025-01-15", "id": "def456a" },
+          "description": null,
+          "comments": [],
+          "subitems": []
+        },
+        {
+          "title": "All standard fields",
+          "completed": false,
+          "marker": { "type": "bullet" },
+          "fields": {
+            "status": "todo",
+            "prio": "high",
+            "tags": "backend, api",
+            "assignee": "@alice",
+            "created": "2025-01-15",
+            "updated": "2025-01-18",
+            "due": "2025-01-20",
+            "id": "ghi789a"
+          },
+          "description": null,
+          "comments": [],
+          "subitems": []
+        }
+      ]
+    }
+  ],
+  "diagnostics": []
+}

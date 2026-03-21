@@ -1,0 +1,48 @@
+{
+  "documentMetadata": null,
+  "lists": [
+    {
+      "title": null,
+      "preamble": null,
+      "items": [
+        {
+          "title": "Buy apples",
+          "completed": null,
+          "marker": { "type": "ordered", "number": 1 },
+          "fields": {},
+          "description": null,
+          "comments": [],
+          "subitems": []
+        },
+        {
+          "title": "Buy oranges",
+          "completed": false,
+          "marker": { "type": "ordered", "number": 2 },
+          "fields": {},
+          "description": null,
+          "comments": [],
+          "subitems": []
+        },
+        {
+          "title": "Buy bananas",
+          "completed": true,
+          "marker": { "type": "ordered", "number": 3 },
+          "fields": {},
+          "description": null,
+          "comments": [],
+          "subitems": []
+        },
+        {
+          "title": "Buy grapes",
+          "completed": true,
+          "marker": { "type": "ordered", "number": 4 },
+          "fields": {},
+          "description": null,
+          "comments": [],
+          "subitems": []
+        }
+      ]
+    }
+  ],
+  "diagnostics": []
+}

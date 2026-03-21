@@ -1,0 +1,60 @@
+{
+  "documentMetadata": null,
+  "lists": [
+    {
+      "title": null,
+      "preamble": null,
+      "items": [
+        {
+          "title": "Parent item",
+          "completed": false,
+          "marker": { "type": "bullet" },
+          "fields": {},
+          "description": null,
+          "comments": [],
+          "subitems": [
+            {
+              "title": "Subitem one",
+              "completed": false,
+              "marker": { "type": "bullet" },
+              "fields": {},
+              "description": null,
+              "comments": [],
+              "subitems": []
+            },
+            {
+              "title": "Subitem two",
+              "completed": false,
+              "marker": { "type": "bullet" },
+              "fields": {},
+              "description": null,
+              "comments": [],
+              "subitems": [
+                {
+                  "title": "Sub-subitem",
+                  "completed": false,
+                  "marker": { "type": "bullet" },
+                  "fields": {},
+                  "description": null,
+                  "comments": [],
+                  "subitems": [
+                    {
+                      "title": "Level 3 item",
+                      "completed": false,
+                      "marker": { "type": "bullet" },
+                      "fields": {},
+                      "description": null,
+                      "comments": [],
+                      "subitems": []
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "diagnostics": []
+}

@@ -1,0 +1,40 @@
+{
+  "documentMetadata": {
+    "title": "Items/Tasks",
+    "sync": "2025-01-15T09:00:00-05:00",
+    "uuid": "0188b200-0000-7000-8000-000000000000",
+    "lists": [
+      { "title": "To-do", "id": "a1b2c3d" }
+    ],
+    "fields": null,
+    "syntax": null,
+    "format": "Embridge v0.1.1, github.com/embridge-foundation/embridge"
+  },
+  "lists": [
+    {
+      "title": "To-do",
+      "preamble": null,
+      "items": [
+        {
+          "title": "Buy apples",
+          "completed": null,
+          "marker": { "type": "bullet" },
+          "fields": {},
+          "description": null,
+          "comments": [],
+          "subitems": []
+        },
+        {
+          "title": "Charge battery",
+          "completed": null,
+          "marker": { "type": "bullet" },
+          "fields": {},
+          "description": null,
+          "comments": [],
+          "subitems": []
+        }
+      ]
+    }
+  ],
+  "diagnostics": []
+}

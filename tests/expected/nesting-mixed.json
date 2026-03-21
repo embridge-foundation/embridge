@@ -1,0 +1,68 @@
+{
+  "documentMetadata": null,
+  "lists": [
+    {
+      "title": null,
+      "preamble": null,
+      "items": [
+        {
+          "title": "Bullet parent",
+          "completed": false,
+          "marker": { "type": "bullet" },
+          "fields": {},
+          "description": null,
+          "comments": [],
+          "subitems": [
+            {
+              "title": "Ordered subitem one",
+              "completed": false,
+              "marker": { "type": "ordered", "number": 1 },
+              "fields": {},
+              "description": null,
+              "comments": [],
+              "subitems": []
+            },
+            {
+              "title": "Ordered subitem two",
+              "completed": false,
+              "marker": { "type": "ordered", "number": 2 },
+              "fields": {},
+              "description": null,
+              "comments": [],
+              "subitems": []
+            }
+          ]
+        },
+        {
+          "title": "Ordered parent",
+          "completed": false,
+          "marker": { "type": "ordered", "number": 1 },
+          "fields": {},
+          "description": null,
+          "comments": [],
+          "subitems": [
+            {
+              "title": "Bullet subitem one",
+              "completed": false,
+              "marker": { "type": "bullet" },
+              "fields": {},
+              "description": null,
+              "comments": [],
+              "subitems": []
+            },
+            {
+              "title": "Bullet subitem two",
+              "completed": false,
+              "marker": { "type": "bullet" },
+              "fields": {},
+              "description": null,
+              "comments": [],
+              "subitems": []
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "diagnostics": []
+}

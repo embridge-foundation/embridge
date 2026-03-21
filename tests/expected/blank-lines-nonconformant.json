@@ -1,0 +1,49 @@
+{
+  "documentMetadata": {
+    "title": null,
+    "sync": null,
+    "uuid": null,
+    "lists": null,
+    "fields": null,
+    "syntax": { "mode": "blank-lines" },
+    "format": null
+  },
+  "lists": [
+    {
+      "title": null,
+      "preamble": null,
+      "items": [
+        {
+          "title": "Buy apples",
+          "completed": null,
+          "marker": { "type": "none" },
+          "fields": {},
+          "description": null,
+          "comments": [],
+          "subitems": []
+        },
+        {
+          "title": "Buy oranges",
+          "completed": null,
+          "marker": { "type": "none" },
+          "fields": { "prio": "high" },
+          "description": null,
+          "comments": [],
+          "subitems": []
+        }
+      ]
+    }
+  ],
+  "diagnostics": [
+    {
+      "line": 3,
+      "severity": "warning",
+      "message": "orphaned comment after blank-line boundary with no parent item in current block"
+    },
+    {
+      "line": 7,
+      "severity": "warning",
+      "message": "additional metadata line ignored"
+    }
+  ]
+}

@@ -1,0 +1,218 @@
+{
+  "documentMetadata": {
+    "title": "Project title",
+    "sync": "2025-01-15T09:00:00-05:00",
+    "uuid": "0188b200-0000-7000-8000-000000000000",
+    "lists": [
+      { "title": "List with backlog", "id": "p3k9x2a" },
+      { "title": "To-do", "id": "w7q2e1b" },
+      { "title": "In progress", "id": "z8c4r6d" },
+      { "title": "Done", "id": "t5y6u7e" }
+    ],
+    "fields": null,
+    "syntax": null,
+    "format": "Embridge v0.1.1, github.com/embridge-foundation/embridge"
+  },
+  "lists": [
+    {
+      "title": "List with backlog",
+      "preamble": null,
+      "items": [
+        {
+          "title": "Research caching strategies",
+          "completed": null,
+          "marker": { "type": "bullet" },
+          "fields": {
+            "status": "ideas",
+            "prio": "high",
+            "tags": "research, tech",
+            "assignee": "@alice",
+            "created": "2025-01-15",
+            "updated": "2025-01-18",
+            "due": "2025-01-20",
+            "id": "a1b2c3d"
+          },
+          "description": "lorem ipsum",
+          "comments": [
+            {
+              "replyDepth": 1,
+              "author": null,
+              "timestamp": null,
+              "text": "Consider Redis vs Memcached tradeoffs"
+            },
+            {
+              "replyDepth": 1,
+              "author": "alice",
+              "timestamp": "2025-01-17",
+              "text": "Good point, will evaluate both"
+            }
+          ],
+          "subitems": [
+            {
+              "title": "An example of a subitem/subtask, visibly separated by the two spaces prior to its dash symbol",
+              "completed": null,
+              "marker": { "type": "bullet" },
+              "fields": { "id": "3b2k1op" },
+              "description": "subtask description text ....",
+              "comments": [
+                {
+                  "replyDepth": 1,
+                  "author": null,
+                  "timestamp": null,
+                  "text": "quick note on this subtask"
+                }
+              ],
+              "subitems": []
+            },
+            {
+              "title": "Another subitem/subtask",
+              "completed": null,
+              "marker": { "type": "bullet" },
+              "fields": {},
+              "description": "another subitem/subtask, but now without checkbox or id, flexibly possible to drop these",
+              "comments": [],
+              "subitems": []
+            }
+          ]
+        },
+        {
+          "title": "Explore new auth library",
+          "completed": null,
+          "marker": { "type": "bullet" },
+          "fields": {},
+          "description": "example of item without id or checkbox, which an online parser might have to add",
+          "comments": [
+            {
+              "replyDepth": 1,
+              "author": null,
+              "timestamp": null,
+              "text": "check if it supports OAuth 2.1"
+            }
+          ],
+          "subitems": []
+        }
+      ]
+    },
+    {
+      "title": "To-do",
+      "preamble": null,
+      "items": [
+        {
+          "title": "Fix pagination bug",
+          "completed": null,
+          "marker": { "type": "bullet" },
+          "fields": { "created": "2025-01-15", "id": "f8g9h0q" },
+          "description": "Users report that page 2 shows\nduplicate items from page 1.\nCheck offset calculation.",
+          "comments": [
+            {
+              "replyDepth": 1,
+              "author": "alice",
+              "timestamp": "2025-01-16",
+              "text": "Found the issue in paginate.js line 42"
+            },
+            {
+              "replyDepth": 2,
+              "author": "bob",
+              "timestamp": "2025-01-16",
+              "text": "Can you push a fix today?"
+            },
+            {
+              "replyDepth": 2,
+              "author": "alice",
+              "timestamp": "2025-01-17",
+              "text": "Done, see commit abc123"
+            },
+            {
+              "replyDepth": 1,
+              "author": null,
+              "timestamp": null,
+              "text": "verified fix works"
+            }
+          ],
+          "subitems": [
+            {
+              "title": "[Bug screenshot](assets/pagination-page2.png)",
+              "completed": null,
+              "marker": { "type": "bullet" },
+              "fields": {},
+              "description": null,
+              "comments": [],
+              "subitems": []
+            },
+            {
+              "title": "[Repro video](media/pagination-bug.mp4)",
+              "completed": null,
+              "marker": { "type": "bullet" },
+              "fields": {},
+              "description": null,
+              "comments": [],
+              "subitems": []
+            },
+            {
+              "title": "![Offset calculation notes](assets/pagination-offset.png)",
+              "completed": null,
+              "marker": { "type": "bullet" },
+              "fields": {},
+              "description": null,
+              "comments": [],
+              "subitems": []
+            }
+          ]
+        },
+        {
+          "title": "Update dependencies",
+          "completed": null,
+          "marker": { "type": "bullet" },
+          "fields": { "status": "todo", "created": "2025-01-15" },
+          "description": null,
+          "comments": [
+            {
+              "replyDepth": 1,
+              "author": null,
+              "timestamp": null,
+              "text": "waiting for security audit to complete"
+            },
+            {
+              "replyDepth": 1,
+              "author": "charlie",
+              "timestamp": null,
+              "text": "I can help with this next week"
+            }
+          ],
+          "subitems": []
+        }
+      ]
+    },
+    {
+      "title": "In progress",
+      "preamble": null,
+      "items": [
+        {
+          "title": "Refactor user service",
+          "completed": false,
+          "marker": { "type": "bullet" },
+          "fields": { "created": "2025-01-15" },
+          "description": null,
+          "comments": [],
+          "subitems": []
+        }
+      ]
+    },
+    {
+      "title": "Done",
+      "preamble": null,
+      "items": [
+        {
+          "title": "Write API documentation",
+          "completed": true,
+          "marker": { "type": "bullet" },
+          "fields": { "status": "done", "created": "2025-01-15" },
+          "description": null,
+          "comments": [],
+          "subitems": []
+        }
+      ]
+    }
+  ],
+  "diagnostics": []
+}

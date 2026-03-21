@@ -1,0 +1,36 @@
+{
+  "documentMetadata": null,
+  "lists": [
+    {
+      "title": null,
+      "preamble": null,
+      "items": [
+        {
+          "title": "Valid item",
+          "completed": null,
+          "marker": { "type": "ordered", "number": 1 },
+          "fields": {},
+          "description": null,
+          "comments": [],
+          "subitems": []
+        },
+        {
+          "title": "Zero start item",
+          "completed": null,
+          "marker": { "type": "ordered", "number": 0 },
+          "fields": {},
+          "description": null,
+          "comments": [],
+          "subitems": []
+        }
+      ]
+    }
+  ],
+  "diagnostics": [
+    {
+      "line": 1,
+      "severity": "warning",
+      "message": "'01.' has leading zeros and is not recognized as an ordered marker"
+    }
+  ]
+}

@@ -1,0 +1,52 @@
+{
+  "documentMetadata": null,
+  "lists": [
+    {
+      "title": null,
+      "preamble": null,
+      "items": [
+        {
+          "title": "Parent item",
+          "completed": false,
+          "marker": { "type": "bullet" },
+          "fields": {},
+          "description": null,
+          "comments": [],
+          "subitems": [
+            {
+              "title": "Odd indent one space",
+              "completed": false,
+              "marker": { "type": "bullet" },
+              "fields": {},
+              "description": null,
+              "comments": [],
+              "subitems": [
+                {
+                  "title": "Odd indent three spaces",
+                  "completed": false,
+                  "marker": { "type": "bullet" },
+                  "fields": {},
+                  "description": null,
+                  "comments": [],
+                  "subitems": []
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "diagnostics": [
+    {
+      "line": 2,
+      "severity": "warning",
+      "message": "odd indentation (1 space); SHOULD be multiples of 2"
+    },
+    {
+      "line": 3,
+      "severity": "warning",
+      "message": "odd indentation (3 spaces); SHOULD be multiples of 2"
+    }
+  ]
+}

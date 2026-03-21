@@ -1,0 +1,39 @@
+{
+  "documentMetadata": null,
+  "lists": [
+    {
+      "title": null,
+      "preamble": null,
+      "items": [
+        {
+          "title": "Task with quoted tags",
+          "completed": false,
+          "marker": { "type": "bullet" },
+          "fields": { "tags": "backend, api, urgent", "id": "abc123d" },
+          "description": null,
+          "comments": [],
+          "subitems": []
+        },
+        {
+          "title": "Task with escaped quotes",
+          "completed": false,
+          "marker": { "type": "bullet" },
+          "fields": { "description": "She said \"hello\"", "id": "def456a" },
+          "description": "She said \"hello\"",
+          "comments": [],
+          "subitems": []
+        },
+        {
+          "title": "Trailing comma is allowed",
+          "completed": false,
+          "marker": { "type": "bullet" },
+          "fields": { "prio": "high", "due": "2025-01-15", "id": "ghi789a" },
+          "description": null,
+          "comments": [],
+          "subitems": []
+        }
+      ]
+    }
+  ],
+  "diagnostics": []
+}

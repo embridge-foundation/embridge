@@ -1,0 +1,38 @@
+{
+  "documentMetadata": {
+    "title": "Custom Fields Test",
+    "sync": null,
+    "uuid": null,
+    "lists": null,
+    "fields": ["note", "sprint", "client"],
+    "syntax": null,
+    "format": "Embridge v0.1.1, github.com/embridge-foundation/embridge"
+  },
+  "lists": [
+    {
+      "title": null,
+      "preamble": null,
+      "items": [
+        {
+          "title": "Task with custom field",
+          "completed": false,
+          "marker": { "type": "bullet" },
+          "fields": { "note": "remember to check", "id": "abc123d" },
+          "description": null,
+          "comments": [],
+          "subitems": []
+        },
+        {
+          "title": "Task with another custom field",
+          "completed": false,
+          "marker": { "type": "bullet" },
+          "fields": { "sprint": "Q1-2025", "client": "Acme Corp", "id": "def456a" },
+          "description": null,
+          "comments": [],
+          "subitems": []
+        }
+      ]
+    }
+  ],
+  "diagnostics": []
+}

@@ -1,0 +1,50 @@
+{
+  "documentMetadata": null,
+  "lists": [
+    {
+      "title": null,
+      "preamble": null,
+      "items": [
+        {
+          "title": "Item with comment that looks like metadata",
+          "completed": false,
+          "marker": { "type": "bullet" },
+          "fields": { "id": "abc123d" },
+          "description": null,
+          "comments": [
+            {
+              "replyDepth": 1,
+              "author": "alice",
+              "timestamp": null,
+              "text": "this looks like key: value but is a comment"
+            },
+            {
+              "replyDepth": 1,
+              "author": null,
+              "timestamp": null,
+              "text": "note: remember to update"
+            }
+          ],
+          "subitems": []
+        },
+        {
+          "title": "Item where bare name is not author",
+          "completed": false,
+          "marker": { "type": "bullet" },
+          "fields": { "id": "def456a" },
+          "description": null,
+          "comments": [
+            {
+              "replyDepth": 1,
+              "author": null,
+              "timestamp": null,
+              "text": "alice: this is content not an authored comment"
+            }
+          ],
+          "subitems": []
+        }
+      ]
+    }
+  ],
+  "diagnostics": []
+}

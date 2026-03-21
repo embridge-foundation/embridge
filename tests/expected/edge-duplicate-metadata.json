@@ -1,0 +1,27 @@
+{
+  "documentMetadata": null,
+  "lists": [
+    {
+      "title": null,
+      "preamble": null,
+      "items": [
+        {
+          "title": "Item with two metadata lines",
+          "completed": false,
+          "marker": { "type": "bullet" },
+          "fields": { "prio": "high", "id": "abc123d" },
+          "description": null,
+          "comments": [],
+          "subitems": []
+        }
+      ]
+    }
+  ],
+  "diagnostics": [
+    {
+      "line": 3,
+      "severity": "warning",
+      "message": "additional metadata line ignored"
+    }
+  ]
+}

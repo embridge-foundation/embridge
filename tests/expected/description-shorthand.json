@@ -1,0 +1,48 @@
+{
+  "documentMetadata": null,
+  "lists": [
+    {
+      "title": null,
+      "preamble": null,
+      "items": [
+        {
+          "title": "Simple item with just a description",
+          "completed": false,
+          "marker": { "type": "bullet" },
+          "fields": {},
+          "description": "More details about this item",
+          "comments": [],
+          "subitems": []
+        },
+        {
+          "title": "Item with shorthand and fields",
+          "completed": false,
+          "marker": { "type": "bullet" },
+          "fields": { "prio": "high", "due": "2025-01-15", "id": "a1b2c3d" },
+          "description": "This explains the item in detail",
+          "comments": [],
+          "subitems": []
+        },
+        {
+          "title": "Item with explicit description field",
+          "completed": false,
+          "marker": { "type": "bullet" },
+          "fields": { "description": "Explicit description value", "id": "def456a" },
+          "description": "Explicit description value",
+          "comments": [],
+          "subitems": []
+        },
+        {
+          "title": "Item with desc alias",
+          "completed": false,
+          "marker": { "type": "bullet" },
+          "fields": { "desc": "Using the desc alias", "id": "ghi789a" },
+          "description": "Using the desc alias",
+          "comments": [],
+          "subitems": []
+        }
+      ]
+    }
+  ],
+  "diagnostics": []
+}

@@ -1,0 +1,45 @@
+{
+  "documentMetadata": null,
+  "lists": [
+    {
+      "title": null,
+      "preamble": null,
+      "items": [
+        {
+          "title": "Task with all aliases",
+          "completed": false,
+          "marker": { "type": "bullet" },
+          "fields": {
+            "priority": "high",
+            "owner": "@alice",
+            "desc": "Fix the bug",
+            "date": "2025-01-15",
+            "modified": "2025-01-18",
+            "duedate": "2025-01-20",
+            "keywords": "backend",
+            "id": "abc123d"
+          },
+          "description": "Fix the bug",
+          "comments": [],
+          "subitems": []
+        },
+        {
+          "title": "Another with aliases",
+          "completed": false,
+          "marker": { "type": "bullet" },
+          "fields": {
+            "descr": "Longer description",
+            "assigned": "@bob",
+            "createddate": "2025-01-10",
+            "mod": "2025-01-12",
+            "id": "def456a"
+          },
+          "description": "Longer description",
+          "comments": [],
+          "subitems": []
+        }
+      ]
+    }
+  ],
+  "diagnostics": []
+}

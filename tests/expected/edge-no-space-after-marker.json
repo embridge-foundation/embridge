@@ -1,0 +1,32 @@
+{
+  "documentMetadata": null,
+  "lists": [
+    {
+      "title": null,
+      "preamble": null,
+      "items": [
+        {
+          "title": "Valid item after invalid ones",
+          "completed": false,
+          "marker": { "type": "bullet" },
+          "fields": {},
+          "description": null,
+          "comments": [],
+          "subitems": []
+        }
+      ]
+    }
+  ],
+  "diagnostics": [
+    {
+      "line": 1,
+      "severity": "warning",
+      "message": "'-Item' is not a valid item (space required after marker)"
+    },
+    {
+      "line": 2,
+      "severity": "warning",
+      "message": "'1.Item' is not a valid item (space required after marker)"
+    }
+  ]
+}

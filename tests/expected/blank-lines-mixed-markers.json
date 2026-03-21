@@ -1,0 +1,47 @@
+{
+  "documentMetadata": {
+    "title": null,
+    "sync": null,
+    "uuid": null,
+    "lists": null,
+    "fields": null,
+    "syntax": { "mode": "blank-lines" },
+    "format": null
+  },
+  "lists": [
+    {
+      "title": "Tasks",
+      "preamble": null,
+      "items": [
+        {
+          "title": "Buy apples",
+          "completed": false,
+          "marker": { "type": "bullet" },
+          "fields": { "prio": "high", "id": "abc123d" },
+          "description": null,
+          "comments": [],
+          "subitems": []
+        },
+        {
+          "title": "oranges",
+          "completed": null,
+          "marker": { "type": "none" },
+          "fields": { "id": "ora456b" },
+          "description": null,
+          "comments": [],
+          "subitems": []
+        },
+        {
+          "title": "Buy bananas",
+          "completed": false,
+          "marker": { "type": "bullet" },
+          "fields": { "id": "ban789c" },
+          "description": null,
+          "comments": [],
+          "subitems": []
+        }
+      ]
+    }
+  ],
+  "diagnostics": []
+}

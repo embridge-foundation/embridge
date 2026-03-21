@@ -1,0 +1,48 @@
+{
+  "documentMetadata": null,
+  "lists": [
+    {
+      "title": null,
+      "preamble": null,
+      "items": [
+        {
+          "title": "First item by position",
+          "completed": null,
+          "marker": { "type": "ordered", "number": 5 },
+          "fields": {},
+          "description": null,
+          "comments": [],
+          "subitems": []
+        },
+        {
+          "title": "Second item by position",
+          "completed": null,
+          "marker": { "type": "ordered", "number": 1 },
+          "fields": {},
+          "description": null,
+          "comments": [],
+          "subitems": []
+        },
+        {
+          "title": "Third item by position",
+          "completed": null,
+          "marker": { "type": "ordered", "number": 0 },
+          "fields": {},
+          "description": null,
+          "comments": [],
+          "subitems": []
+        },
+        {
+          "title": "Fourth item by position",
+          "completed": null,
+          "marker": { "type": "ordered", "number": 999 },
+          "fields": {},
+          "description": null,
+          "comments": [],
+          "subitems": []
+        }
+      ]
+    }
+  ],
+  "diagnostics": []
+}

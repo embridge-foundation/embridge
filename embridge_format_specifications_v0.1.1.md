@@ -126,6 +126,8 @@ When this spec says something is "required", it is either:
 - required for **Basic Embridge validity**, or
 - required for **sync-ready output** (round-trip syncing between tools), even if a human-authored file without it is still valid Basic Embridge.
 
+**Parser conformance testing:** The `tests/` directory contains a conformance test suite of input files and expected parse trees. Each `.md` fixture in `tests/fixtures/` has a corresponding `.json` file in `tests/expected/` with the expected parsed output. The suite covers basic items, ordered markers, nesting, metadata, descriptions, comments, attachments, list sections, document metadata, blank-lines mode, and edge cases. See `tests/README.md` for the expected JSON schema and instructions.
+
 ---
 
 ## Syntax and File Structure
@@ -437,7 +439,7 @@ It can include detailed notes.", prio: high, id: a1b2c3d
 - The opening `"` MUST be the first non-whitespace character on the metadata line (same as single-line shorthand).
 - All lines until the closing `"` are part of the description value.
 - Newlines are preserved literally in the parsed description.
-- Escaped quotes (`""`) work the same: `""` → `"`.
+- Escaped quotes (`""`) work the same: `""` → `"`. Parsers MUST consume `""` pairs left-to-right before matching a closing `"`, so a trailing `"""` is unambiguously an escaped quote followed by the closing delimiter.
 - Other metadata fields follow after the closing `"` and a comma (on the same line as the closing quote).
 - Parsers track "inside open quote" state across lines until the closing `"` is found.
 

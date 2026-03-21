@@ -1,0 +1,30 @@
+{
+  "documentMetadata": null,
+  "lists": [
+    {
+      "title": null,
+      "preamble": null,
+      "items": [
+        {
+          "title": "Task with capitalized keys",
+          "completed": false,
+          "marker": { "type": "bullet" },
+          "fields": { "Prio": "high", "Status": "todo", "Id": "abc123d" },
+          "description": null,
+          "comments": [],
+          "subitems": []
+        },
+        {
+          "title": "Task with uppercase keys",
+          "completed": false,
+          "marker": { "type": "bullet" },
+          "fields": { "PRIO": "low", "ID": "def456a" },
+          "description": null,
+          "comments": [],
+          "subitems": []
+        }
+      ]
+    }
+  ],
+  "diagnostics": []
+}
