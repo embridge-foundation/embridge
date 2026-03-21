@@ -567,7 +567,7 @@ prio: high, id: abc123d
 **Validity (Basic Embridge):**
 - Comment lines MUST contain one or more `>` characters as the first non-whitespace content. Leading spaces determine ownership: a `>` line indented to the same depth as an item/subitem belongs to that item/subitem (e.g., 0 spaces = top-level item, 2 spaces = level-1 subitem).
 - Author and timestamp are OPTIONAL
-- If present, author format: `@username` or `username`
+- If present, author MUST be prefixed with `@`: `@username`. A bare `username` without `@` is not recognized as an author — the entire text (including the word before the colon) is treated as comment content. This prevents natural-language colons (e.g., `> note: remember to update`) from being misinterpreted as authored comments.
 - If present, timestamp format: ISO 8601 date, optionally with time (`2025-01-20` or `2025-01-20 14:30`)
 - Comment block belongs to the item/subitem directly above it
 - Comment block ends at next item line (marker), heading (`#`), or non-`>` line
@@ -622,6 +622,7 @@ prio: high, id: a1b2c3d
 
 **Notes (parsing):**
 - **Precedence:** Comment lines (`>`) MUST be detected before checking for metadata patterns. Lines like `> @alice: text` contain substrings matching `key: value` syntax, but the leading `>` takes precedence.
+- **Author prefix:** The `@` prefix is REQUIRED for author detection. `> @alice: comment` → author="alice", but `> alice: comment` → content="alice: comment" (no author parsed, entire text is content). This avoids ambiguity with natural-language colons.
 - **Colon requirement:** The colon (`:`) before content is required when author or timestamp is present. Without it, the entire text is treated as content: `> @alice: comment` → author="alice", but `> @alice comment` → content="@alice comment" (no author parsed).
 
 ### Attachments (Convention)
@@ -924,7 +925,7 @@ Note: This regex is only used in blank-lines mode (reader step vii) for lines th
 ```regex
 ([a-zA-Z]+):\s*(?:"((?:[^"]|"")*)"|([^,]+))
 ```
-Note: Apply globally, then trim whitespace from unquoted values. For quoted values, unescape by replacing `""` with `"` after capture.
+Note: Apply this regex to each metadata line individually (not to the raw multi-line input). The unquoted branch `([^,]+)` will match to end-of-line for the last value on a line — this is expected; trim whitespace from all unquoted captures. For quoted values, unescape by replacing `""` with `"` after capture.
 
 **Description shorthand — single-line (quoted string at line start):**
 ```regex
@@ -1000,11 +1001,11 @@ v(\d+)\.(\d+)\.(\d+)
 
 **Comment line (flexible — author and timestamp optional):**
 ```regex
-^( *)(>+)\s*(?:(?:@?([^\[\s:]+)\s*)?(?:\[([^\]]+)\]\s*)?:\s*)?(.*)$
+^( *)(>+)\s*(?:(?:@([^\[\s:]+)\s*)?(?:\[([^\]]+)\]\s*)?:\s*)?(.*)$
 ```
 - Capture group 1: leading spaces (length ÷ 2 = parent item nesting depth; 0 = top-level item, 2 = subitem, etc.)
 - Capture group 2: `>` characters (length = reply depth)
-- Capture group 3: author (optional, without `@` prefix)
+- Capture group 3: author (optional; `@` prefix required for detection, captured without it)
 - Capture group 4: timestamp (optional, without brackets)
 - Capture group 5: comment text
 
