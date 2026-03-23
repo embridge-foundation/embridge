@@ -360,7 +360,7 @@ status: todo, prio: high, tags: "backend, api", due: 2025-01-15, id: a1b2c3d
 **Validity (Basic Embridge):**
 - Item metadata is OPTIONAL. Items/tasks MAY appear without any metadata block.
 - A metadata line (when present) is a comma-separated list of field pairs: `key: value, key: value`.
-- Keys SHOULD be written in lowercase (`[a-z]+`), but capitalization MAY be used (e.g., `Prio: high` and `prio: high` are both valid).
+- Keys SHOULD be written in lowercase and MAY contain lowercase letters, digits, and hyphens (`[a-z][a-z0-9-]*`). Capitalization MAY be used (e.g., `Prio: high` and `prio: high` are both valid). Hyphens enable natural multi-word keys like `due-date` or `start-time`.
 - A line is recognized as item metadata when it contains at least one **known key** — a standard field (or alias) from the table below, or a custom key declared via `fields:` in the document metadata block. All `key: value` pairs on that line are parsed and preserved, including any undeclared keys alongside a known key.
 - A line containing only undeclared keys (e.g., `remember: call the client`) is not recognized as metadata and is treated as non-conformant free-form text. This prevents English prose containing colons from being misinterpreted as metadata.
 - Space after colon is optional: `key: value` and `key:value` are both valid.
@@ -737,7 +737,7 @@ format: Embridge v0.1.1, github.com/embridge-foundation/embridge
 | `uuid` | Unique document identifier (UUIDv7 recommended) for sync matching across renames/moves |
 | `lists` | Optional list registry: `lists: "{List Title}" {id}, "{Title}" {id} ...`. Apps MAY use this to give list headings stable identifiers. |
 | `syntax` | Optional syntax hints for parsing/export behavior. The key `mode` selects parsing behavior (e.g., `syntax: mode: marker` or `syntax: mode: blank-lines`) |
-| `fields` | Optional comma-separated list of custom metadata key names. Declares additional keys that parsers recognize as valid item metadata (e.g., `fields: note, sprint, client`). See "Standard Fields" for the built-in known keys. |
+| `fields` | Optional comma-separated list of custom metadata key names. Declares additional keys that parsers recognize as valid item metadata (e.g., `fields: note, sprint, client` or `fields: due-date, start-time`). See "Standard Fields" for the built-in known keys. |
 | `format` | Format descriptor (required for sync-ready output), e.g. `Embridge v0.1.1, github.com/embridge-foundation/embridge`. The version number MUST follow the `v{major}.{minor}.{patch}` format (e.g., `v0.1.1`). How parsers handle version differences is implementation-defined. |
 
 **Reader tolerance (parser/import guidance):**
@@ -925,7 +925,7 @@ Note: This regex is only used in blank-lines mode (reader step vii) for lines th
 
 **Metadata pair (comma-separated, optional space after colon):**
 ```regex
-([a-zA-Z]+):\s*(?:"((?:[^"]|"")*)"|([^,]+))
+([a-zA-Z][a-zA-Z0-9-]*):\s*(?:"((?:[^"]|"")*)"|([^,]+))
 ```
 Note: Apply this regex to each metadata line individually (not to the raw multi-line input). The unquoted branch `([^,]+)` will match to end-of-line for the last value on a line — this is expected; trim whitespace from all unquoted captures. For quoted values, unescape by replacing `""` with `"` after capture.
 
