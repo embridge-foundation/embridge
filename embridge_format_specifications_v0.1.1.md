@@ -18,9 +18,9 @@
 - [Format architecture and design principles](#format-architecture-and-design-principles)
 - [On conformance](#on-conformance)
 - [Syntax and File Structure](#syntax-and-file-structure)
-  - [File Shape (Non-normative)](#file-shape-non-normative)
-  - [Quick Reference (Non-normative)](#quick-reference-non-normative)
-  - [Document Model (Non-normative)](#document-model-non-normative)
+  - [File Shape (Informative)](#file-shape-informative)
+  - [Quick Reference (Informative)](#quick-reference-informative)
+  - [Document Model (Informative)](#document-model-informative)
   - [Lexical Conventions](#lexical-conventions)
     - [Encoding and Line Endings](#encoding-and-line-endings)
     - [Line Roles](#line-roles)
@@ -45,6 +45,7 @@
   - [Conflict Resolution](#conflict-resolution)
 - [Examples](#examples)
   - [Minimal Basic Embridge File](#minimal-basic-embridge-file)
+  - [Minimal Format Tag (Inline Metadata)](#minimal-format-tag-inline-metadata)
   - [Minimal Blank-Lines Mode File (Syntax Extension)](#minimal-blank-lines-mode-file-syntax-extension)
   - [Blank-Lines Mode with Mixed Markers](#blank-lines-mode-with-mixed-markers)
   - [Blank-Lines Mode with Section Preamble](#blank-lines-mode-with-section-preamble)
@@ -132,7 +133,7 @@ When this spec says something is "required", it is either:
 
 ## Syntax and File Structure
 
-### File Shape (Non-normative)
+### File Shape (Informative)
 
 This example shows the typical layout of an Embridge document:
 
@@ -156,13 +157,27 @@ format: Embridge v0.1.1, github.com/embridge-foundation/embridge
 -->
 ```
 
+For minimal format identification, a single-line **inline format tag** may be used instead of (or alongside) the full metadata block:
+
+```markdown
+- {Item/Task}
+
+<!-- format: Embridge v0.1.1 -->
+```
+
+A shorter form without the `format:` key is also valid (case-insensitive):
+
+```markdown
+<!-- embridge v0.1.1 -->
+```
+
 Notes:
 - Item metadata does not require indentation; parsers associate it with the item/task directly above.
 - Descriptions use the `description:` field or the shorthand `"..."` when the first non-whitespace character on the metadata line is `"`.
 
 The subsections below define the full validity, canonical output guidance, and reader tolerance rules for each element.
 
-### Quick Reference (Non-normative)
+### Quick Reference (Informative)
 
 - **Lists:** H1 headings (`# `) define list sections (optional).
 - **Items:** Markdown list items using either `- ` or `{number}. ` markers (a space after the marker is required).
@@ -172,8 +187,10 @@ The subsections below define the full validity, canonical output guidance, and r
   - a quoted description shorthand (`"..."`), which MAY span multiple lines until the closing `"`.
 - **Comments (optional):** Lines starting with `>` attach to the item/subitem above and MAY be threaded via `>>`, `>>>`, etc.
 - **Document metadata (optional):** An HTML comment at the end of the file stores document-level fields for sync-ready output.
+  - A single-line **inline format tag** (`<!-- format: Embridge v0.1.1 -->` or shorter `<!-- embridge v0.1.1 -->`) may be used instead for minimal format identification.
+  - Document metadata keys and the format identifier are parsed case-insensitively.
 
-### Document Model (Non-normative)
+### Document Model (Informative)
 
 Conceptually, an Embridge document is:
 
@@ -741,7 +758,8 @@ format: Embridge v0.1.1, github.com/embridge-foundation/embridge
 | `format` | Format descriptor (required for sync-ready output), e.g. `Embridge v0.1.1, github.com/embridge-foundation/embridge`. The version number MUST follow the `v{major}.{minor}.{patch}` format (e.g., `v0.1.1`). How parsers handle version differences is implementation-defined. |
 
 **Reader tolerance (parser/import guidance):**
-- Parsers MUST parse known document metadata fields by key name and MUST NOT rely on field order.
+- Parsers MUST parse known document metadata fields by key name (case-insensitively) and MUST NOT rely on field order.
+- Parsers MUST match the format identifier value case-insensitively (e.g. `Embridge` and `embridge` are equivalent in the `format:` field and in inline format tags).
 - Parsers SHOULD ignore unknown document metadata fields.
 
 **Syntax hints (`syntax:`)**
@@ -756,6 +774,39 @@ format: Embridge v0.1.1, github.com/embridge-foundation/embridge
 - Exporters/tooling SHOULD NOT emit `syntax: mode: marker` by default; omit `syntax:` unless non-default behavior (for example `mode: blank-lines`) needs to be signaled.
 - Basic Embridge validity remains marker-based; `mode: blank-lines` is an optional parsing extension for cooperative tooling/parsers.
 
+**Inline Format Tag (compact alternative)**
+
+A single-line HTML comment containing only `format:` may be used as a lightweight format identifier:
+
+```markdown
+<!-- format: Embridge v0.1.1 -->
+```
+
+Parsers MUST also tolerate a shorter form that omits the `format:` key, using just the format value:
+
+```markdown
+<!-- Embridge v0.1.1 -->
+```
+
+The shorter form (`<!-- Embridge v0.1.1 -->`) is only valid as a standalone single-line inline tag. It MUST NOT be used inside a multi-line metadata block.
+
+**Validity (Basic Embridge):**
+- The inline format tag is OPTIONAL.
+- It contains only the `format:` field. Other document metadata fields (e.g. `title:`, `sync:`) are not supported in the inline form — use the full multi-line metadata block for those.
+
+**Format value:**
+- The `format:` value follows the same rules as in the full metadata block (see the `format` field in the table above).
+- The repository URL portion is optional: both `Embridge v0.1.1` and `Embridge v0.1.1, github.com/embridge-foundation/embridge` are valid.
+
+**Coexistence with the full metadata block:**
+- A file MAY contain both an inline format tag and a full multi-line metadata block.
+- When both are present, the `format:` field in the full metadata block takes precedence.
+- The inline format tag SHOULD appear at the end of the file, after all items/content.
+
+**When to use:**
+- The inline format tag is intended for human-authored files that need minimal format identification without sync metadata.
+- Tooling producing sync-ready output SHOULD use the full multi-line metadata block instead.
+
 ---
 
 ## Parsing
@@ -766,7 +817,9 @@ This section separates **reading/importing** (parsing) from **writing/exporting*
 
 Before running the main body parser:
 
-1. Parse the trailing HTML metadata comment (lightweight pre-pass) to read document metadata keys.
+1. Parse trailing HTML comment(s) (lightweight pre-pass) to read document metadata keys.
+   - Recognize multi-line metadata blocks, inline format tags (`<!-- format: ... -->` or shorter `<!-- embridge v... -->`), or both.
+   - Parse keys and the format identifier case-insensitively. If both forms are present, the full block's `format:` takes precedence.
 2. Read `fields:` (if present) and add declared keys to the set of known item metadata keys.
 3. Read `syntax:` (if present) and parse `mode`.
 4. If `mode: blank-lines` is recognized and supported by the parser, use the blank-lines reader.
@@ -806,7 +859,7 @@ This bootstrap behavior is critical because syntax mode can change boundary dete
            - Remaining text is comment content
            - Continue collecting `>` lines until non-`>` line encountered
            - Continuation lines (no author/timestamp) are part of the previous comment's text
-3. Parse HTML comment for document metadata (if present)
+3. Parse HTML comment(s) for document metadata (if present) — recognize both multi-line metadata blocks and inline format tags
 ```
 
 ### Blank-Lines Mode (optional syntax extension)
@@ -873,7 +926,7 @@ Hard rules for `syntax: mode: blank-lines`:
            - Optionally detect checkbox at start of title: `[ ] `, `[x] `, `[X] `
            - Remaining text (after spaces and optional checkbox) is the item title
            - Set current_block to this item
-3. Parse HTML comment for document metadata (if present)
+3. Parse HTML comment(s) for document metadata (if present) — recognize both multi-line metadata blocks and inline format tags
 ```
 
 Notes:
@@ -897,6 +950,11 @@ When exporting/rewriting, tooling MAY normalize files to improve interoperabilit
    - If `id` is missing → generate an ID and write it back (recommended for syncing)
    - If checkbox is missing → add `[ ]` (or `[x]` if completed), if the tooling chooses to normalize checkboxes
    - Preserve the original marker style (bullet or ordered) and the ordered number when round-tripping
+
+**Inline format tag handling:**
+- Tooling producing sync-ready output SHOULD use the full multi-line metadata block (not the inline format tag alone).
+- The inline format tag is suitable for human-authored files or minimal Embridge format identification.
+- If tooling encounters only an inline format tag and needs to add more metadata fields (e.g. `title:`, `sync:`), it SHOULD add a full multi-line metadata block and MAY keep or remove the existing inline tag.
 
 **Key insight:** The marker indentation determines hierarchy. Metadata lines belong to the most recent item above. Multiline descriptions require stateful parsing to track open quotes.
 
@@ -950,6 +1008,8 @@ Note: Apply this regex to each metadata line individually (not to the raw multi-
 ^# (.+)$
 ```
 
+Note: All document metadata key regexes below SHOULD be applied case-insensitively (e.g. `format:` and `Format:` are equivalent).
+
 **List registry line (document metadata):**
 ```regex
 ^lists:(.*)$
@@ -996,10 +1056,25 @@ v(\d+)\.(\d+)\.(\d+)
 - Group 1: list title (unescape `""` → `"`)
 - Group 2: list ID
 
-**Document metadata:**
+**Document metadata (multi-line block):**
 ```regex
 <!--\s*([\s\S]*?)\s*-->
 ```
+Note: This regex matches both the full multi-line metadata block and the inline format tag.
+
+**Inline format tag (with `format:` key):**
+```regex
+^<!--\s*format:\s*(.+?)\s*-->$
+```
+- Capture group 1: format value (e.g. `Embridge v0.1.1`)
+
+**Inline format tag (shorter form, no key):**
+```regex
+^<!--\s*(embridge\s+v\d+\.\d+\.\d+(?:,\s*.+?)?)\s*-->$
+```
+- Capture group 1: format value (e.g. `embridge v0.1.1`)
+
+Use these regexes for fast-matching inline format tags specifically. The general document metadata regex above also matches inline tags.
 
 **Comment line (flexible — author and timestamp optional):**
 ```regex
@@ -1030,7 +1105,7 @@ When the application writes to the `.md` file:
 1. Tooling SHOULD preserve existing structure and formatting where possible, including marker style (bullet vs ordered).
 2. Tooling SHOULD write metadata fields in canonical order: `description` → `status` → `prio` → `tags` → `assignee` → `created` → `updated` → `due` → `id` (see "Standard Fields (Non-exhaustive)"); tooling SHOULD prefer description shorthand (`"..."`) over explicit `description:` when rewriting.
 3. For sync-ready output, tooling MUST ensure `title:` exists in document metadata (generate if missing).
-4. For sync-ready output, tooling MUST ensure `format:` exists in document metadata (generate if missing).
+4. For sync-ready output, tooling MUST ensure `format:` exists in document metadata (generate if missing). Note: an inline format tag (`<!-- format: ... -->`) satisfies the `format:` requirement for non-sync-ready output, but sync-ready output SHOULD use the full multi-line metadata block.
 5. If `syntax:` is present, tooling MAY apply supported syntax hints during rewrite/export. Tooling SHOULD treat `mode` as parse-critical.
 6. Tooling MAY emit blank-lines mode output when explicitly configured (`syntax: mode: blank-lines`), but SHOULD default to marker mode for maximum interoperability.
 7. In default marker mode, tooling SHOULD omit `syntax:` from metadata unless non-default syntax behavior must be signaled.
@@ -1051,7 +1126,7 @@ When the application writes to the `.md` file:
 When the application reads the `.md` file:
 
 **Parser/import guidance:**
-1. Parse known document metadata fields by key name (`title`, `sync`, `uuid`, `syntax`, `fields`, `format`) and do not depend on field order. If `fields:` is present, add its entries to the set of known item metadata keys.
+1. Parse known document metadata fields by key name (case-insensitively) (`title`, `sync`, `uuid`, `syntax`, `fields`, `format`) and do not depend on field order. If `fields:` is present, add its entries to the set of known item metadata keys.
 2. Determine syntax mode from `syntax.mode`; if missing/invalid/unknown, default to `mode: marker`.
 3. Use bootstrap behavior: parse metadata first, then parse body using the selected mode (`marker` or `blank-lines`).
 4. If present, use the `title:` field as the document title; otherwise derive a fallback title (e.g., filename) without requiring a write.
@@ -1092,6 +1167,24 @@ List headings are recommended but not required:
 # To-do
 - Buy apples
 - Charge battery
+```
+
+### Minimal Format Tag (Inline Metadata)
+
+```markdown
+- Buy apples
+- Charge battery
+
+<!-- format: Embridge v0.1.1 -->
+```
+
+The shorter form (without the `format:` key) is also valid:
+
+```markdown
+- Buy apples
+- Charge battery
+
+<!-- embridge v0.1.1 -->
 ```
 
 ### Minimal Blank-Lines Mode File (Syntax Extension)
