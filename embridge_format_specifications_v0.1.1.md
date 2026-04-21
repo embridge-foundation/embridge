@@ -736,6 +736,8 @@ An HTML comment at the end of the file can contain document-level metadata.
 
 **If the document metadata block is present, each property MUST be on its own line.** This allows values to contain spaces without quoting (e.g., `title: My Project title`).
 
+**Block terminator:** Parsers MUST recognize the block terminator as a line whose trimmed contents are exactly `-->`. A `-->` occurring mid-line inside a value (e.g., `title: Migration --> Phase 2`) does not terminate the block. Tools writing metadata SHOULD avoid emitting a value whose own trimmed line contents would be exactly `-->`.
+
 ```markdown
 <!--
 title: My Project title
