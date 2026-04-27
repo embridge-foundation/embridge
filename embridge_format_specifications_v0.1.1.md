@@ -1498,9 +1498,8 @@ id: abc123d
 
 ## References
 
+- [CommonMark Spec](https://spec.commonmark.org/)
 - [GitHub Flavored Markdown Spec](https://github.github.com/gfm/)
-- [CommonMark Spec](https://commonmark.org/)
-- [CommonMark Spec - List Items](https://spec.commonmark.org/0.31.2/#list-items)
 - [Minimal to-do](https://github.com/xpiu/minimal-to-do)
 
 ---

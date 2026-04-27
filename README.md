@@ -22,6 +22,7 @@
 - [About the core contributor](#about-the-core-contributor)
 - [How to contribute](#how-to-contribute)
 - [Documentation](#documentation)
+- [References](#references)
 - [License](#license)
 
 ## Project goals
@@ -32,7 +33,6 @@
 4. Stay merge- and diff-friendly for git workflows
 5. Remain tool- and vendor-agnostic (portable across editors/apps/forges)
 6. Preserve forward compatibility (ignore/preserve unknown fields)
-7. Use Markdown-inspired syntax (designed to degrade gracefully in Markdown renderers; see [Rendering Compatibility](#rendering-compatibility-appendix))
 
 ```
 
@@ -188,6 +188,12 @@ Embridge has its own quirks—the `- [ ]` checkbox syntax comes from GitHub-flav
 
 - [Full Specification](https://github.com/embridge-foundation/embridge/blob/main/embridge_format_specifications_v0.1.1.md) - Complete format reference
 - [Example File](https://github.com/embridge-foundation/embridge/blob/main/embridge_output_demo_v0.1.1.md) 
+
+## References
+
+- [CommonMark Spec](https://spec.commonmark.org/)
+- [GitHub Flavored Markdown Spec](https://github.github.com/gfm/)
+- [Minimal to-do](https://github.com/xpiu/minimal-to-do)
 
 ## License
 
