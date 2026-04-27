@@ -64,15 +64,15 @@
 
 ---
 
-## Overview
+## What is Embridge?
 
-This specification defines a markdown-based format for storing item/task lists that serves as a **bridge** between human editors, AI agents, and application GUIs. The format prioritizes legibility and flexibility while remaining parseable by machines. Embridge is an edited abbreviation of the words 'item' and 'bridge'.
+Embridge is a markdown-based format for storing items, tasks and lists, designed to act as a **bridge** between human editors, AI agents, and application GUIs. It keeps lists readable and editable by hand while remaining consistently parseable by machines. The name is a blend of the words 'item' and 'bridge'.
 
 ---
 
 ## Project goals
 
-- **Primary goal:** Offer an item and list format that humans like to use (human-friendly first). Easy to learn, read and edit. With some editing flexibility.
+- **Primary goal:** Offer an item and list text format that humans like to use (human-friendly first). Easy to learn, read and edit, with some editing flexibility.
 - Be AI-friendly. Easy for AI to read, understand and edit.
 - Provide guidance on usage in apps
 - Stay merge- and diff-friendly for git workflows

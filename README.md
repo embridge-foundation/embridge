@@ -9,6 +9,7 @@
 
 ## Contents
 
+- [What is Embridge?](#what-is-embridge)
 - [Project goals](#project-goals)
 - [Features & value proposition of the Embridge format](#features--value-proposition-of-the-embridge-format)
 - [Examples](#examples)
@@ -25,40 +26,18 @@
 - [References](#references)
 - [License](#license)
 
+## What is Embridge?
+
+Embridge is a markdown-based format for storing items, tasks and lists, designed to act as a **bridge** between human editors, AI agents, and application GUIs. It keeps lists readable and editable by hand while remaining consistently parseable by machines. The name is a blend of the words 'item' and 'bridge'.
+
 ## Project goals
 
-1. **Primary goal:** Offer an item and list format that humans like to use (human-friendly first). Easy to learn, read and edit. With some editing flexibility.
+1. **Primary goal:** Offer an item and list text format that humans like to use (human-friendly first). Easy to learn, read and edit, with some editing flexibility.
 2. Be AI-friendly. Easy for AI to read, understand and edit.
 3. Provide guidance on usage in apps
 4. Stay merge- and diff-friendly for git workflows
 5. Remain tool- and vendor-agnostic (portable across editors/apps/forges)
 6. Preserve forward compatibility (ignore/preserve unknown fields)
-
-```
-
-Four-way venn-diagram in ASCII:
-
-                  .-----------.
-               .-'             '-.
-             .'      HUMANS       '.
-            /  (Flexible editing)   \
-         .-+-------------------------+-.
-       .'  |                         |  '.
-      /    |                         |    \
-     :  AI |                         | APPS :
-     |AGENTS        EMBRIDGE         |(GUI) |
-     :     |                         |      :
-      \    |                         |    /
-       '.  |                         |  .'
-         '-+-------------------------+-'
-            \       GIT REPO         /
-             '. (version control) .'
-               '-.             .-'
-                  '-----------'
-
- *Embridge is where all four overlap
-
-```
 
 ## Features & value proposition of the Embridge format
 
