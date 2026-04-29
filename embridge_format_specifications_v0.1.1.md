@@ -221,7 +221,9 @@ The role of a line is determined by its first non-whitespace characters:
 - `>` (optionally preceded by spaces) → comment line (belongs to the item/subitem above; detected before metadata parsing)
 - Otherwise, a non-empty line immediately following an item line is interpreted as that item's metadata (if it matches metadata/description rules); free-form text is non-conformant (see "Item metadata").
 
-**Indentation (marker only):** hierarchy is determined solely by the indentation spaces before the marker. Metadata indentation does not affect ownership.
+**Indentation (marker only):** hierarchy is determined solely by the indentation spaces before the marker — a child has more leading spaces than its parent, and its parent is the nearest earlier item with fewer leading spaces. Metadata indentation does not affect ownership.
+
+Typical indentation under a `- ` parent (marker width 2):
 
 | Spaces before marker | Meaning |
 |----------------------|---------|
@@ -231,13 +233,13 @@ The role of a line is determined by its first non-whitespace characters:
 | 6 | Level 3, etc. |
 
 **Validity (Basic Embridge):**
-- Indentation before the marker SHOULD be in multiples of 2 spaces; odd indentation (1, 3, 5, … spaces) is non-conformant.
+- A child item's leading spaces MUST be strictly greater than its parent's leading spaces.
 
 **Tooling export/rewrite guidance:**
-- Tooling MUST NOT generate odd indentation because it makes hierarchy ambiguous across implementations.
+- Writers MUST indent each child to its parent's content column — i.e., parent's leading spaces plus the parent's marker width. So `- ` parents → child indented +2 spaces, `1. ` → +3, `10. ` → +4. This matches CommonMark and keeps Embridge output renderable in standard Markdown viewers.
 
 **Parser/import guidance:**
-- Parsers SHOULD treat odd indentation as non-conformant and MAY either reject the line, warn, or round down to the nearest even depth.
+- Parsers MUST accept any indent strictly greater than the parent's as a valid child indent, regardless of the exact width. This preserves backwards compatibility with files written under earlier rules (which used a flat 2-space increment under every parent).
 
 ### Item Lines
 
@@ -315,17 +317,17 @@ prio: high, id: a1b2c3d
     id: nested12
 ```
 
-Ordered subitems follow the same indentation rules:
+Ordered subitems follow the same rule, but children indent to the parent's content column (3 spaces under a single-digit `1. ` parent, 4 under a `10. ` parent):
 
 ```markdown
 1. [ ] Parent item
 prio: high, id: a1b2c3d
-  1. [ ] Subitem one
-  id: d4e5f6a
-  2. [ ] Subitem two
-  id: g7h8i9b
-    1. [ ] Sub-subitem
-    id: j0k1l2c
+   1. [ ] Subitem one
+   id: d4e5f6a
+   2. [ ] Subitem two
+   id: g7h8i9b
+      1. [ ] Sub-subitem
+      id: j0k1l2c
 ```
 
 **Mixed styles (guidance, not enforced):**
@@ -333,8 +335,8 @@ prio: high, id: a1b2c3d
 - Parent and children MAY use different styles (valid but not recommended).
 
 **Parsing rules (nesting):**
-- Count leading spaces before the marker to determine nesting depth (0=top, 2=sub, 4=sub-sub, ...).
-- A new marker line starts a new item at the depth indicated by its indentation.
+- A new marker line is a child of the nearest earlier item whose leading-space count is strictly less than its own.
+- Writers MUST indent each child by the parent's marker width (`- ` → +2, `1. ` → +3, `10. ` → +4); parsers MUST accept any deeper indent for backwards compatibility with legacy 2-space-everywhere files.
 - Subitems/Subtasks follow the same syntax as items/tasks (optional checkbox, optional metadata).
 - Nesting depth is unlimited, but 2 levels is typical.
 
@@ -875,7 +877,7 @@ Hard rules for `syntax: mode: blank-lines`:
 3. **Blank-line boundaries:** For non-marker lines, item/subitem boundaries are determined by blank lines (one or more consecutive empty lines) when `inside_quote` is false.
 4. **Section preamble:** Non-empty lines that appear immediately after a section heading (`# `), before the next blank-line boundary or marker line, and that do not themselves match marker syntax, are section preamble. Preamble text is preserved for round-tripping but MUST NOT be parsed as items. Preamble ends at the first blank line or marker line after the heading. If the implicit first section has no heading, there is no preamble — the first non-empty line starts normal item detection.
 5. **Block start:** Each non-marker item/subitem block starts at the first non-empty, non-heading line after a blank-line boundary (outside preamble). The first line of the block is the item/subitem title.
-6. **Nesting depth** is determined by leading spaces on the title line (0 = top-level, 2 = subitem, 4 = sub-subitem, ...). Indentation SHOULD be multiples of 2.
+6. **Nesting depth** is determined by leading spaces on the title line: a title is a child of the nearest earlier title with strictly fewer leading spaces. Blank-lines mode has no marker, so writers SHOULD indent children by 2 spaces per level (the marker-width rule does not apply when no marker is present).
 7. **Checkboxes (optional):** A blank-line-delimited item title MAY begin with a checkbox (`[ ] `, `[x] `, or `[X] `). When present at the start of the title line (after leading spaces), it is parsed as the item's completion state — the same semantics as a checkbox after a marker in marker mode. The checkbox is not part of the title text. Parsers/apps MAY choose whether to support checkbox detection on non-marker items; if unsupported, the checkbox characters are included in the title as-is.
 8. **Metadata and comment attachment:** Metadata and comment lines belong to the current block and MUST NOT be separated from their parent item title by a blank line:
    - Metadata lines follow the same `key: value` and quoted-description rules as marker mode.
@@ -1441,23 +1443,21 @@ format: Embridge v0.1.1, github.com/embridge-foundation/embridge
 
 Embridge uses Markdown-inspired syntax but deviates from [CommonMark](https://commonmark.org/) in several deliberate ways to prioritize human ergonomics. These deviations mean that Embridge files rendered in a standard Markdown viewer (GitHub, VS Code preview, etc.) will not display with perfect fidelity. This appendix documents the known differences.
 
-### 1. Fixed 2-space nesting vs. CommonMark marker-width indentation
+### 1. Marker-width nesting indentation (legacy 2-space files)
 
-Embridge determines hierarchy by counting leading spaces before the marker in fixed 2-space increments (0 = top, 2 = sub, 4 = sub-sub). CommonMark determines child-list indentation based on the marker width (`- ` = 2 chars, `10. ` = 4 chars).
-
-For unordered lists (`- `), the two systems agree. For ordered lists with multi-digit numbers, they diverge:
+Conforming Embridge writers indent each child to its parent's content column (`- ` → +2, `1. ` → +3, `10. ` → +4), which matches CommonMark — so newly-written Embridge files render nesting correctly in standard Markdown viewers. Parsers also accept any deeper indent, so legacy files written under the older flat 2-space rule remain valid input. Those legacy files may, however, render nesting incorrectly in CommonMark viewers when an ordered parent has a multi-digit marker:
 
 ```markdown
 10. [ ] Parent task
-  1. [ ] Subtask
+  1. [ ] Subtask  ← legacy 2-space child; CommonMark needs 4 spaces here
 ```
 
 | Viewer | Interpretation |
 |---|---|
-| **Embridge** | `Subtask` is a child of `Parent task` (2 spaces = depth 1) |
+| **Embridge** | `Subtask` is a child of `Parent task` (deeper indent → child) |
 | **CommonMark** | `Subtask` starts a new separate list (needs 4 spaces to be a child of a `10. ` marker) |
 
-**Impact:** Ordered lists with multi-digit markers (10+) will render nesting incorrectly in CommonMark viewers. Single-digit ordered markers and all unordered markers render correctly.
+**Impact:** Files produced by conforming tooling are CommonMark-compatible for nesting. Only legacy files with multi-digit ordered parents at insufficient indent may render nesting incorrectly.
 
 ### 2. Non-indented metadata breaks list continuation
 
