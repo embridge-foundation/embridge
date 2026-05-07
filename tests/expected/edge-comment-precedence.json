@@ -16,13 +16,7 @@
               "replyDepth": 1,
               "author": "alice",
               "timestamp": null,
-              "text": "this looks like key: value but is a comment"
-            },
-            {
-              "replyDepth": 1,
-              "author": null,
-              "timestamp": null,
-              "text": "note: remember to update"
+              "text": "this looks like key: value but is a comment\nnote: remember to update"
             }
           ],
           "subitems": []

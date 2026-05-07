@@ -26,15 +26,23 @@ const STANDARD_KEYS = new Set([
 const DESCRIPTION_KEYS = new Set(['description', 'desc', 'descr']);
 
 function parseMetadataFields(raw) {
+  return parseMetadataLine(raw).fields;
+}
+
+function parseMetadataLine(raw) {
   const fields = {};
   let i = 0;
+  let unparsedTail = null;
 
   while (i < raw.length) {
     while (i < raw.length && /[\s,]/.test(raw[i])) i += 1;
     if (i >= raw.length) break;
 
     const keyMatch = raw.slice(i).match(/^([A-Za-z][A-Za-z0-9-]*)\s*:\s*/);
-    if (!keyMatch) break;
+    if (!keyMatch) {
+      unparsedTail = raw.slice(i).trim();
+      break;
+    }
 
     const key = keyMatch[1];
     i += keyMatch[0].length;
@@ -65,7 +73,7 @@ function parseMetadataFields(raw) {
     if (raw[i] === ',') i += 1;
   }
 
-  return fields;
+  return { fields, unparsedTail };
 }
 
 function firstMetadataKey(raw) {
@@ -102,6 +110,7 @@ function itemHasMetadata(item) {
 
 module.exports = {
   STANDARD_KEYS,
+  parseMetadataLine,
   parseMetadataFields,
   firstMetadataKey,
   hasAnyKeyValue,

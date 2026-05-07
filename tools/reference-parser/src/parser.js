@@ -5,7 +5,7 @@ const { warning } = require('./diagnostics');
 const { extractDocumentMetadata } = require('./document-metadata');
 const { parseCommentLine, appendOrAddComment } = require('./comments');
 const {
-  parseMetadataFields,
+  parseMetadataLine,
   firstMetadataKey,
   hasAnyKeyValue,
   buildKnownKeys,
@@ -232,12 +232,12 @@ function invalidMarkerDiagnostic(line, lineNo) {
     return warning(lineNo, `'${leadingZero[1]}.' has leading zeros and is not recognized as an ordered marker`);
   }
 
-  const dashNoSpace = line.match(/^\s*(-\S+)/);
+  const dashNoSpace = line.match(/^\s*(-(?:\S|[^\S ]).*)/);
   if (dashNoSpace) {
     return warning(lineNo, `'${dashNoSpace[1]}' is not a valid item (space required after marker)`);
   }
 
-  const orderedNoSpace = line.match(/^\s*(\d+\.\S+)/);
+  const orderedNoSpace = line.match(/^\s*(\d+\.(?:\S|[^\S ]).*)/);
   if (orderedNoSpace) {
     return warning(lineNo, `'${orderedNoSpace[1]}' is not a valid item (space required after marker)`);
   }
@@ -276,7 +276,8 @@ function attachMetadata(state, raw, lineNo) {
     return;
   }
 
-  const fields = parseMetadataFields(raw);
+  const result = parseMetadataLine(raw);
+  const fields = result.fields;
   if (!hasKnownKey(fields, state.knownKeys)) {
     const key = firstMetadataKey(raw);
     if (key) {
@@ -291,6 +292,7 @@ function attachMetadata(state, raw, lineNo) {
   const description = descriptionFromFields(fields);
   if (description !== null) item.description = description;
   recordDuplicateId(state, fields, lineNo);
+  recordUnparsedMetadataTail(state, result, lineNo);
 }
 
 function attachDescription(state, result, lineNo) {
@@ -304,9 +306,11 @@ function attachDescription(state, result, lineNo) {
 
   item.description = result.value;
   if (result.trailingMeta) {
-    const fields = parseMetadataFields(result.trailingMeta);
+    const metadata = parseMetadataLine(result.trailingMeta);
+    const fields = metadata.fields;
     item.fields = fields;
     recordDuplicateId(state, fields, lineNo);
+    recordUnparsedMetadataTail(state, metadata, lineNo);
   }
 }
 
@@ -356,13 +360,21 @@ function recordDuplicateId(state, fields, lineNo) {
   for (const key of Object.keys(fields)) {
     if (key.toLowerCase() !== 'id') continue;
     const id = fields[key];
-    if (!id) return;
+    if (!id) continue;
     if (state.seenIds.has(id)) {
       state.document.diagnostics.push(warning(lineNo, `duplicate item id '${id}'`));
     } else {
       state.seenIds.set(id, lineNo);
     }
   }
+}
+
+function recordUnparsedMetadataTail(state, result, lineNo) {
+  if (!result.unparsedTail) return;
+  state.document.diagnostics.push(warning(
+    lineNo,
+    `metadata text after comma ignored; quote values containing commas ('${result.unparsedTail}')`,
+  ));
 }
 
 function ensureList(state) {

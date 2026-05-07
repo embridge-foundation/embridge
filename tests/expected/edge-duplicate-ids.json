@@ -24,7 +24,16 @@
           "subitems": []
         },
         {
-          "title": "Third item unique",
+          "title": "Empty lowercase id with uppercase id",
+          "completed": false,
+          "marker": { "type": "bullet" },
+          "fields": { "id": "", "ID": "def456a" },
+          "description": null,
+          "comments": [],
+          "subitems": []
+        },
+        {
+          "title": "Third item duplicates mixed-case id",
           "completed": false,
           "marker": { "type": "bullet" },
           "fields": { "id": "def456a" },
@@ -40,6 +49,11 @@
       "line": 5,
       "severity": "warning",
       "message": "duplicate item id 'abc123d'"
+    },
+    {
+      "line": 11,
+      "severity": "warning",
+      "message": "duplicate item id 'def456a'"
     }
   ]
 }

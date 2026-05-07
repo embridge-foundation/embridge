@@ -27,6 +27,11 @@
       "line": 2,
       "severity": "warning",
       "message": "'1.Item' is not a valid item (space required after marker)"
+    },
+    {
+      "line": 3,
+      "severity": "warning",
+      "message": "'-\tTabbed marker whitespace' is not a valid item (space required after marker)"
     }
   ]
 }

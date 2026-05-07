@@ -31,9 +31,24 @@
           "description": null,
           "comments": [],
           "subitems": []
+        },
+        {
+          "title": "Unquoted comma value warns",
+          "completed": false,
+          "marker": { "type": "bullet" },
+          "fields": { "tags": "alpha" },
+          "description": null,
+          "comments": [],
+          "subitems": []
         }
       ]
     }
   ],
-  "diagnostics": []
+  "diagnostics": [
+    {
+      "line": 11,
+      "severity": "warning",
+      "message": "metadata text after comma ignored; quote values containing commas ('beta, gamma')"
+    }
+  ]
 }

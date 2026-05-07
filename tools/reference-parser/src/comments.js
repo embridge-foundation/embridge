@@ -46,9 +46,8 @@ function parseCommentLine(line) {
 
 function appendOrAddComment(item, parsed) {
   const previous = item.comments[item.comments.length - 1];
-  const textLooksStandalone = parsed.comment.text.includes(':');
 
-  if (!parsed.hasPrefix && previous && previous.replyDepth === parsed.comment.replyDepth && !textLooksStandalone) {
+  if (!parsed.hasPrefix && previous && previous.replyDepth === parsed.comment.replyDepth) {
     previous.text += `\n${parsed.comment.text}`;
     return;
   }

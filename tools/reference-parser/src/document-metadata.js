@@ -48,8 +48,9 @@ function emptyDocumentMetadata() {
 function parseDocumentMetadata(content) {
   const trimmed = content.trim();
   const result = emptyDocumentMetadata();
+  let recognized = false;
 
-  if (!trimmed) return result;
+  if (!trimmed) return null;
   if (/^embridge\s+v\d+\.\d+\.\d+$/i.test(trimmed)) {
     result.format = trimmed;
     return result;
@@ -65,17 +66,34 @@ function parseDocumentMetadata(content) {
     const key = match[1].toLowerCase();
     const value = match[2].trim();
 
-    if (key === 'title') result.title = value;
-    else if (key === 'sync') result.sync = value;
-    else if (key === 'uuid') result.uuid = value;
-    else if (key === 'lists') result.lists = parseLists(value);
-    else if (key === 'fields') result.fields = parseFields(value);
-    else if (key === 'syntax') result.syntax = parseSyntax(value);
-    else if (key === 'format') result.format = value;
-    else if (key === 'embridge') result.format = `embridge:${value}`;
+    if (key === 'title') {
+      result.title = value;
+      recognized = true;
+    } else if (key === 'sync') {
+      result.sync = value;
+      recognized = true;
+    } else if (key === 'uuid') {
+      result.uuid = value;
+      recognized = true;
+    } else if (key === 'lists') {
+      result.lists = parseLists(value);
+      recognized = true;
+    } else if (key === 'fields') {
+      result.fields = parseFields(value);
+      recognized = true;
+    } else if (key === 'syntax') {
+      result.syntax = parseSyntax(value);
+      recognized = true;
+    } else if (key === 'format') {
+      result.format = value;
+      recognized = true;
+    } else if (key === 'embridge') {
+      result.format = `embridge:${value}`;
+      recognized = true;
+    }
   }
 
-  return result;
+  return recognized ? result : null;
 }
 
 function parseFields(value) {

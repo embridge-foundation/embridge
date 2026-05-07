@@ -16,7 +16,7 @@
               "replyDepth": 1,
               "author": "alice",
               "timestamp": "2025-01-20",
-              "text": "This needs careful review.\nThe API changed since v2.0 and we need to\nhandle backwards compatibility."
+              "text": "This needs careful review.\nThe API changed since v2.0 and we need to\nhandle backwards compatibility.\nSee https://example.com/migration for details."
             },
             {
               "replyDepth": 2,
