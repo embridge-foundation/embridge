@@ -1,0 +1,16 @@
+{
+  "name": "embridge-reference-parser",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Repo-local JavaScript reference parser for the Embridge format",
+  "type": "commonjs",
+  "main": "src/index.js",
+  "bin": {
+    "embridge-parse": "bin/embridge-parse.js"
+  },
+  "scripts": {
+    "test": "node test/conformance.test.js",
+    "check": "node bin/embridge-parse.js --check ../../tests/fixtures ../../tests/expected"
+  },
+  "license": "MIT"
+}
