@@ -17,6 +17,7 @@
 - [Bridge Philosophy](#bridge-philosophy)
 - [Format architecture and design principles](#format-architecture-and-design-principles)
 - [On conformance](#on-conformance)
+- [Versioning](#versioning)
 - [Syntax and File Structure](#syntax-and-file-structure)
   - [File Shape (Informative)](#file-shape-informative)
   - [Quick Reference (Informative)](#quick-reference-informative)
@@ -128,6 +129,20 @@ When this spec says something is "required", it is either:
 - required for **sync-ready output** (round-trip syncing between tools), even if a human-authored file without it is still valid Basic Embridge.
 
 **Parser conformance testing:** The `tests/` directory contains a conformance test suite of input files and expected parse trees. Each `.md` fixture in `tests/fixtures/` has a corresponding `.json` file in `tests/expected/` with the expected parsed output. The suite covers basic items, ordered markers, nesting, metadata, descriptions, comments, attachments, list sections, document metadata, blank-lines mode, and edge cases. See `tests/README.md` for the expected JSON schema and instructions.
+
+---
+
+## Versioning
+
+Embridge files MAY declare a format version using the `format:` field in document metadata or an inline format tag. Files without a declared version are still valid Basic Embridge.
+
+When present, the version number MUST use semantic versioning in the form `v{major}.{minor}.{patch}` (for example, `v0.1.1`):
+
+- Patch versions, such as `v0.1.2`, contain editorial clarifications, typo fixes, examples, and non-breaking corrections.
+- Minor versions, such as `v0.2.0`, may add backward-compatible features.
+- Major versions, such as `v1.0.0`, may introduce breaking changes.
+
+Parsers MAY parse files without a declared version using their current supported Embridge version. For versioned files, parsers SHOULD attempt best-effort parsing and warn on newer minor versions, and SHOULD reject newer major versions with a clear diagnostic unless explicitly configured for best-effort import.
 
 ---
 
@@ -669,8 +684,40 @@ id: abc123d
 
 **Recommended interpretation (UI):**
 - Checkboxes are optional in valid Embridge, so apps/tools SHOULD NOT rely on presence/absence of a checkbox to classify attachments.
-- An item/subitem MAY be interpreted as an attachment if its entire title is **exactly one** Markdown link (`[...](...)`) or image (`![...](...)`).
+- An item/subitem MAY be interpreted as an attachment if its title, after trimming leading and trailing whitespace, is **exactly one** Markdown link (`[...](...)`) or image (`![...](...)`) matching the attachment-title regex below.
 - If an attachment item includes a checkbox, parsers/apps SHOULD still treat it as an attachment (not a subtask) and SHOULD ignore checkbox state for task completion; tooling SHOULD emit attachment items without checkboxes and SHOULD NOT add checkboxes to attachment items during normalization.
+
+**Attachment-title detection heuristic:**
+
+Tooling that implements the link-only / image-only attachment heuristic SHOULD apply this rule to the parsed item title, after removing the list marker and optional checkbox:
+
+1. Trim leading and trailing whitespace from the parsed title.
+2. Interpret the item as an attachment if and only if the trimmed title matches this regex:
+
+```regex
+^!?\[(?:\\.|[^\]\\\n])*\]\((?:\\.|[^\)\\\n])+\)$
+```
+
+- `!?` permits either a Markdown image (`![alt](path)`) or regular link (`[title](path)`).
+- The link/image label may be empty and may contain escaped characters such as `\]`.
+- The destination MUST contain at least one character and may contain escaped characters such as `\)`.
+- The regex is anchored, so surrounding text makes the title a normal item title, not an attachment signal.
+- This regex is a deterministic heuristic, not a full CommonMark inline parser. Authors SHOULD escape literal `]` in labels and literal `)` in destinations when they need those characters inside attachment titles.
+
+Attachment detection test cases:
+
+| Parsed item title | Attachment? | Notes |
+| --- | --- | --- |
+| `[Design spec](docs/spec.pdf)` | Yes | Plain link-only title |
+| `![Screenshot](assets/login.png)` | Yes | Image-only title |
+| `  [Design spec](docs/spec.pdf)  ` | Yes | Leading/trailing title whitespace is trimmed before matching |
+| `[Spec \] draft](docs/spec.pdf)` | Yes | Escaped `]` in label |
+| `[Spec](docs/spec\).pdf)` | Yes | Escaped `)` in destination |
+| `See [Design spec](docs/spec.pdf)` | No | Extra text before link |
+| `[Design spec](docs/spec.pdf) notes` | No | Extra text after link |
+| `assets/login.png` | No | Bare path is a normal title |
+| `[Design spec](docs/spec.pdf` | No | Missing closing `)` |
+| `[Spec](docs/spec).pdf)` | No | Literal `)` in destination is not escaped |
 
 **Important: bare paths are just titles**
 
@@ -759,7 +806,7 @@ format: Embridge v0.1.1, github.com/embridge-foundation/embridge
 | `lists` | Optional list registry: `lists: "{List Title}" {id}, "{Title}" {id} ...`. Apps MAY use this to give list headings stable identifiers. |
 | `syntax` | Optional syntax hints for parsing/export behavior. The key `mode` selects parsing behavior (e.g., `syntax: mode: marker` or `syntax: mode: blank-lines`) |
 | `fields` | Optional comma-separated list of custom metadata key names. Declares additional keys that parsers recognize as valid item metadata (e.g., `fields: note, sprint, client` or `fields: due-date, start-time`). See "Standard Fields" for the built-in known keys. |
-| `format` | Format descriptor (required for sync-ready output), e.g. `Embridge v0.1.1, github.com/embridge-foundation/embridge`. The version number MUST follow the `v{major}.{minor}.{patch}` format (e.g., `v0.1.1`). How parsers handle version differences is implementation-defined. |
+| `format` | Format descriptor (required for sync-ready output), e.g. `Embridge v0.1.1, github.com/embridge-foundation/embridge`. The version number MUST follow the `v{major}.{minor}.{patch}` format (e.g., `v0.1.1`). See [Versioning](#versioning) for parser behavior when version differences are encountered. |
 
 **Reader tolerance (parser/import guidance):**
 - Parsers MUST parse known document metadata fields by key name (case-insensitively) and MUST NOT rely on field order.
