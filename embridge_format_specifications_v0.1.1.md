@@ -1,7 +1,7 @@
 # Specifications for Embridge: an open source item/task list format
 
 - **Version:** 0.1.1  
-- **Last Updated:** 2026-05-08  
+- **Last Updated:** 2026-05-10  
 - **Example output:** `embridge_output_demo_v0.1.1.md`   
 - **Github:** https://github.com/embridge-foundation/embridge  
 - **Project website:** https://embridge.net  
@@ -528,12 +528,15 @@ The fields listed here (and their aliases) are the **known keys** that parsers u
 | `assignee` | `owner`, `assigned` | Who's responsible | `@alice`, `team-backend` |
 | `created` | `date`, `createddate` | Created/reference date | `2025-01-15` |
 | `updated` | `modified`, `mod` | Last modified date | `2025-01-18` |
+| `on` | `ondate`, `on-date`, `scheduled` | Date the item happens or is scheduled for | `2025-01-15` (recommended), `tomorrow`, `third Tuesday of next month` |
 | `due` | `duedate` | Due date | `2025-01-15` (recommended), `tomorrow`, `end of Q3` |
 | `id` | | Stable identifier (recommended) | `a1b2c3`, `x7y8z9` |
 
-**`due` date value (parser/AI agent guidance):**
+**Date-valued fields (parser/AI agent guidance):**
 
-The `due` field SHOULD use ISO 8601 date strings (`YYYY-MM-DD`, e.g. `2025-01-15`) for unambiguous, machine-readable dates. However, arbitrary natural-language expressions (e.g. `tomorrow`, `next-week`, `end of Q3`, `third Tuesday of next month`) are permitted — Embridge is designed for human authoring flexibility and does not restrict the value to a closed set. Parsers and AI agents MUST be prepared to encounter free-form date text and SHOULD attempt to resolve it to an absolute date when needed; if resolution is not possible or unambiguous, the raw value SHOULD be preserved as-is.
+The `on` field means the date an item happens or is scheduled for. It is distinct from `due`, which means a deadline, and from `created`/`date`, which means when the item was created or recorded.
+
+Date-valued fields SHOULD use ISO 8601 date strings (`YYYY-MM-DD`, e.g. `2025-01-15`) for unambiguous, machine-readable dates. However, arbitrary natural-language expressions (e.g. `tomorrow`, `next-week`, `end of Q3`, `third Tuesday of next month`) are permitted — Embridge is designed for human authoring flexibility and does not restrict the value to a closed set. Parsers and AI agents MUST be prepared to encounter free-form date text and SHOULD attempt to resolve it to an absolute date when needed; if resolution is not possible or unambiguous, the raw value SHOULD be preserved as-is.
 
 **tags value shape (special rule):**
 
@@ -554,7 +557,7 @@ The space after the comma inside quotes is recommended for readability but optio
 
 **Canonical output (tooling export/rewrite guidance):**
 - Tooling SHOULD output fields in this canonical order for diff-friendly output:
-  `description` → `status` → `prio` → `tags` → `assignee` → `created` → `updated` → `due` → `id`.
+  `description` → `status` → `prio` → `tags` → `assignee` → `created` → `updated` → `on` → `due` → `id`.
 - Tooling SHOULD write canonical field names (not aliases).
 
 **Reader tolerance (parser/import guidance):**
@@ -1154,7 +1157,7 @@ When the application writes to the `.md` file:
 
 **Tooling export/rewrite guidance:**
 1. Tooling SHOULD preserve existing structure and formatting where possible, including marker style (bullet vs ordered).
-2. Tooling SHOULD write metadata fields in canonical order: `description` → `status` → `prio` → `tags` → `assignee` → `created` → `updated` → `due` → `id` (see "Standard Fields (Non-exhaustive)"); tooling SHOULD prefer description shorthand (`"..."`) over explicit `description:` when rewriting.
+2. Tooling SHOULD write metadata fields in canonical order: `description` → `status` → `prio` → `tags` → `assignee` → `created` → `updated` → `on` → `due` → `id` (see "Standard Fields (Non-exhaustive)"); tooling SHOULD prefer description shorthand (`"..."`) over explicit `description:` when rewriting.
 3. For sync-ready output, tooling MUST ensure `title:` exists in document metadata (generate if missing).
 4. For sync-ready output, tooling MUST ensure `format:` exists in document metadata (generate if missing). Note: an inline format tag (`<!-- format: ... -->`) satisfies the `format:` requirement for non-sync-ready output, but sync-ready output SHOULD use the full multi-line metadata block.
 5. If `syntax:` is present, tooling MAY apply supported syntax hints during rewrite/export. Tooling SHOULD treat `mode` as parse-critical.
@@ -1198,7 +1201,7 @@ The `.md` file wins for content fields. The application database wins for UI-onl
 | Field Type | Source of Truth |
 |------------|-----------------|
 | Document title (`title:` field) | `.md` file |
-| Item fields (`title`, `status`, `prio`, `due`, `tags`, `descr`) | `.md` file |
+| Item fields (`title`, `status`, `prio`, `on`, `due`, `tags`, `descr`) | `.md` file |
 | List colors, sort order, UI preferences | App database |
 
 ---
