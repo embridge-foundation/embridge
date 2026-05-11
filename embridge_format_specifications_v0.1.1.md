@@ -403,12 +403,15 @@ status: todo, prio: high, tags: "backend, api", due: 2025-01-15, id: a1b2c3d
 - Trailing comma is allowed but not required: `prio: high, due: 2025-01-15,` (valid).
 - Metadata indentation is optional — parsers accept both indented and non-indented.
 - Each item/task gets at most **one** metadata block. If a second metadata-like line appears after an item's metadata block, parsers MUST ignore it and SHOULD emit a diagnostic warning (e.g., "line 5: additional metadata line ignored").
+- The `id` field, when present, identifies one item/task. Duplicate `id` values do not make Basic Embridge unparseable, but parsers SHOULD diagnose them and sync-ready tooling MUST resolve them before using IDs for matching.
 
 **Canonical output (tooling export/rewrite guidance):**
 - Tooling SHOULD emit keys in lowercase (e.g., `prio: high`, not `Prio: high`).
 - Tooling SHOULD use `key: value` (with a single space after `:`) for readability.
 - Tooling SHOULD NOT output a space before the colon (`key : value`).
 - Tooling SHOULD quote values that contain commas, leading/trailing spaces, or `"` characters.
+- Tooling MUST NOT emit duplicate item `id` values in sync-ready output. If multiple imported items share an `id`, tooling SHOULD keep the first occurrence and assign fresh IDs to later duplicates, with a warning or import log entry.
+- Tooling SHOULD NOT use shared `id` values to express groups, batches, projects, or AI-generated bundles. Use a parent item/subitems, list sections, or a separate metadata field such as `group`, `batch`, or `project` instead.
 
 **Reader tolerance (parser/import guidance):**
 - Parsers SHOULD be tolerant about whitespace and MAY accept `key : value` (treat as non-canonical and warn if possible).
@@ -565,10 +568,11 @@ The space after the comma inside quotes is recommended for readability but optio
 - Parsers SHOULD accept both the canonical field name and its aliases.
 
 **`id` conformance (recommended for sync-ready output):**
-- If an `id` field is present, it MUST be unique within the file (across all items and subitems).
+- For sync-ready output, if an `id` field is present, it MUST be unique within the file (across all items and subitems).
 - The Embridge format does not impose requirements on the shape, casing, or character set of `id` values — the format of IDs is chosen by the user, app, or AI agent generating them.
 - When generating IDs, tooling SHOULD use at least 7 characters for collision resistance. Lowercase alphanumeric IDs (e.g. `[a-z0-9]`) are a sensible default, but other schemes (UUIDs, hashes, sequential IDs, etc.) are equally valid.
 - Parsers MUST accept any non-empty `id` value and MUST NOT reject items based on ID length, casing, or character set.
+- A shared grouping concept SHOULD NOT be represented by reusing the same `id` on multiple items. Prefer a parent item/subitems, list section, or a separate field such as `group`, `batch`, or `project` (declared via `fields:` if needed).
 
 **Parsing notes — duplicate item `id` values:**
 - Parsers SHOULD NOT assume humans or AI agents always keep item IDs unique; duplicate `id` values are an expected input-quality error.
@@ -1167,8 +1171,9 @@ When the application writes to the `.md` file:
 9. Tooling SHOULD write document metadata fields in this recommended order for stable diffs: `title` → `sync` → `uuid` → `lists` → `fields` → `syntax` → `format`.
 10. Tooling MUST NOT write app-only data (colors, UI state) to markdown.
 11. Tooling SHOULD add an `id` field to any item/task missing one when stable syncing is a goal (attachment subitems MAY be excluded; see "Attachments (Convention)").
-12. Tooling MAY add checkboxes (`[ ]` or `[x]`) to items/subitems that don't have one as a normalization step (recommended for consistent rendering), but SHOULD NOT add checkboxes to attachment items (see "Attachments (Convention)").
-13. When rewriting items, tooling SHOULD preserve the original marker style. If an item was authored with `1.`, export as `1.` (not `-`). Tooling MUST NOT emit leading zeros (e.g., write `1.` not `01.`).
+12. For sync-ready output, tooling MUST ensure item `id` values are unique within the document before export. Duplicate imported IDs SHOULD be repaired by assigning new IDs to later duplicates rather than dropping items.
+13. Tooling MAY add checkboxes (`[ ]` or `[x]`) to items/subitems that don't have one as a normalization step (recommended for consistent rendering), but SHOULD NOT add checkboxes to attachment items (see "Attachments (Convention)").
+14. When rewriting items, tooling SHOULD preserve the original marker style. If an item was authored with `1.`, export as `1.` (not `-`). Tooling MUST NOT emit leading zeros (e.g., write `1.` not `01.`).
 
 **Renumbering (optional):**
 - Ordered marker numbers are purely decorative (see "Ordered marker constraints"). Item order is always determined by position in the file.
@@ -1190,9 +1195,10 @@ When the application reads the `.md` file:
 8. Match items/tasks by `id` when present (after duplicate-resolution policy is applied).
 9. Items/tasks with new or missing IDs → create in database (and optionally generate IDs later on export).
 10. Items/tasks with known IDs → update database from markdown (markdown wins for content fields).
-11. Items/tasks in database but missing from markdown → delete from database (or mark archived, implementation-defined).
-12. Apply default values for missing fields.
-13. Preserve marker style (where present) and ordered number (decorative) for later export.
+11. If several items appear to share a group-level identifier, parsers SHOULD treat the shared value as duplicate item IDs unless it is stored in a separate grouping field. Apps MAY preserve or interpret custom grouping fields, but `id` remains item identity.
+12. Items/tasks in database but missing from markdown → delete from database (or mark archived, implementation-defined).
+13. Apply default values for missing fields.
+14. Preserve marker style (where present) and ordered number (decorative) for later export.
 
 ### Conflict Resolution
 
