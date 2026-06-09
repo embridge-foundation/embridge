@@ -158,9 +158,13 @@ Embridge has some similarities to [todo.txt](https://github.com/todotxt/todo.txt
 
 Embridge has its own quirks—the `- [ ]` checkbox syntax comes from GitHub-flavored Markdown, and metadata on a separate line takes getting used to. But if you already write Markdown, the learning curve is minimal.
 
+## Try it out
+
+You can play around with an interactive [Embridge editor and validator](https://embridge.net/#try-it) at embridge.net. It has +10 demos/examples.
+
 ## About the core contributor
 
-- Flo (xpiu) is happy to work on Embridge in his spare time. He works on the to-do app `Todoi` to make a living. You can support him by visiting https://todoi.com and considering the app for your to-do lists.
+- Flo (xpiu) works on Embridge in his spare time. He is also working on a to-do app called `Todoi`. You can support him by having a look at [todoi.com](https://todoi.com).
 
 ## How to contribute
 
