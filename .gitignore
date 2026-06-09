@@ -10,6 +10,7 @@ embridge.net/
 
 # === AI agents / IDEs ===
 CLAUDE.md
+AGENTS.md
 .claude/
 .cursor/
 .windsurf/
@@ -18,7 +19,6 @@ CLAUDE.md
 .codeium/
 .continue/
 .tabnine/
-AGENTS.md
 .copilot/
 
 # === IDEs / Editors ===

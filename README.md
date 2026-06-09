@@ -49,7 +49,7 @@ Embridge is a strong fit for teams/people who already live in **git + Markdown**
 - **Extensible** - Unknown fields preserved; apps can add custom metadata without breaking others
 - **Offline-first** - Edit anywhere, sync later; no SaaS required
 - **Source-of-truth clarity** - The `.md` file owns content; apps keep UI-only state elsewhere
-- **Interoperability is the differentiator** - A reference parser/formatter and clear “sync-ready” rules are what make this more than “just another Markdown task convention”
+- **Interoperability is the differentiator** - A reference parser/formatter and clear “round-trip-safe” rules are what make this more than “just another Markdown task convention”
 
 ## Examples
 
