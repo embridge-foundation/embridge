@@ -1,0 +1,56 @@
+{
+  "documentMetadata": {
+    "title": "Section ID Precedence",
+    "sync": null,
+    "uuid": null,
+    "lists": [
+      { "title": "Backlog", "id": "backlog-doc" }
+    ],
+    "fields": null,
+    "syntax": null,
+    "format": "Embridge v0.2.0"
+  },
+  "lists": [
+    {
+      "title": "Backlog",
+      "preamble": null,
+      "items": [
+        {
+          "title": "Shares value with inline list id",
+          "completed": false,
+          "marker": { "type": "bullet" },
+          "fields": { "id": "backlog-inline" },
+          "description": null,
+          "comments": [],
+          "subitems": []
+        },
+        {
+          "title": "First duplicate item",
+          "completed": false,
+          "marker": { "type": "bullet" },
+          "fields": { "id": "item-dup1" },
+          "description": null,
+          "comments": [],
+          "subitems": []
+        },
+        {
+          "title": "Second duplicate item",
+          "completed": false,
+          "marker": { "type": "bullet" },
+          "fields": { "id": "item-dup1" },
+          "description": null,
+          "comments": [],
+          "subitems": []
+        }
+      ],
+      "fields": { "id": "backlog-inline" }
+    }
+  ],
+  "diagnostics": [
+    {
+      "line": 8,
+      "severity": "warning",
+      "message": "duplicate item id 'item-dup1'"
+    }
+  ]
+}

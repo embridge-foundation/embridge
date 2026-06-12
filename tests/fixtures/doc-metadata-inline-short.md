@@ -1,4 +1,4 @@
 - [ ] Buy apples
 - [ ] Buy oranges
 
-<!-- embridge v0.1.1 -->
+<!-- embridge v0.2.0 -->

@@ -1,6 +1,6 @@
 # Embridge Conformance Test Suite
 
-Test fixtures and expected parse trees for the Embridge format specification v0.1.1.
+Test fixtures and expected parse trees for the Embridge format specification v0.2.0.
 
 ## Structure
 
@@ -24,6 +24,8 @@ Every expected file follows this structure:
     {
       "title": "string | null (null = implicit/no-heading list)",
       "preamble": ["string"] | null,
+      "fields": {},          // present only when section metadata is supplied inline
+      "description": "...",  // present only when a section description is supplied inline
       "items": [
         {
           "title": "string",
@@ -48,6 +50,7 @@ Every expected file follows this structure:
 | `documentMetadata` | `null` if no HTML comment metadata block; otherwise an object with document-level fields |
 | `lists[].title` | List heading text, or `null` for the implicit default list |
 | `lists[].preamble` | Blank-lines mode only: non-item text after a heading; `null` otherwise |
+| `lists[].fields` / `lists[].description` | Section metadata (tolerated, not recommended): a metadata line or description shorthand directly after a heading, before the first item. Key present only when supplied inline |
 | `items[].title` | Item title text (after marker and optional checkbox) |
 | `items[].completed` | `true` (checked), `false` (unchecked), or `null` (no checkbox) |
 | `items[].marker` | `{"type":"bullet"}`, `{"type":"ordered","number":N}`, or `{"type":"none"}` (blank-lines mode) |

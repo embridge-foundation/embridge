@@ -3,26 +3,53 @@
 function extractDocumentMetadata(markdown) {
   const source = markdown.replace(/^\uFEFF/, '');
   const matches = Array.from(source.matchAll(/<!--([\s\S]*?)-->/g));
+  const skippedLines = new Set();
+
   if (matches.length === 0) {
     return {
       documentMetadata: null,
-      skippedLines: new Set(),
+      skippedLines,
     };
   }
 
-  const match = matches[matches.length - 1];
-  const content = match[1];
-  const startLine = lineNumberAt(source, match.index);
-  const endLine = lineNumberAt(source, match.index + match[0].length - 1);
-  const skippedLines = new Set();
-  for (let line = startLine; line <= endLine; line += 1) {
-    skippedLines.add(line);
+  const metadataCandidates = [];
+  for (const match of matches) {
+    const startLine = lineNumberAt(source, match.index);
+    const endLine = lineNumberAt(source, match.index + match[0].length - 1);
+    for (let line = startLine; line <= endLine; line += 1) {
+      skippedLines.add(line);
+    }
+
+    const documentMetadata = parseDocumentMetadata(match[1]);
+    if (documentMetadata) {
+      metadataCandidates.push({
+        documentMetadata,
+        kind: isInlineFormatTag(match[1]) ? 'inline' : 'block',
+      });
+    }
   }
 
+  const blockCandidate = lastCandidateOfKind(metadataCandidates, 'block');
+  const inlineCandidate = lastCandidateOfKind(metadataCandidates, 'inline');
+  const selected = blockCandidate || inlineCandidate;
+
   return {
-    documentMetadata: parseDocumentMetadata(content),
+    documentMetadata: selected ? selected.documentMetadata : null,
     skippedLines,
   };
+}
+
+function lastCandidateOfKind(candidates, kind) {
+  for (let index = candidates.length - 1; index >= 0; index -= 1) {
+    if (candidates[index].kind === kind) return candidates[index];
+  }
+  return null;
+}
+
+function isInlineFormatTag(content) {
+  const trimmed = content.trim();
+  return /^embridge\s+v\d+\.\d+\.\d+$/i.test(trimmed) ||
+    /^format\s*:\s*.+$/i.test(trimmed);
 }
 
 function lineNumberAt(source, offset) {

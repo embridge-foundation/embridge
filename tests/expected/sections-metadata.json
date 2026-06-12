@@ -1,0 +1,59 @@
+{
+  "documentMetadata": null,
+  "lists": [
+    {
+      "title": "Features",
+      "preamble": null,
+      "items": [
+        {
+          "title": "Improve the hero image",
+          "completed": false,
+          "marker": { "type": "bullet" },
+          "fields": { "id": "t-abc1234" },
+          "description": null,
+          "comments": [],
+          "subitems": []
+        }
+      ],
+      "fields": {
+        "status": "backlog",
+        "id": "list-feat1",
+        "prio": "high",
+        "future-field": "alpha"
+      }
+    },
+    {
+      "title": "Notes",
+      "preamble": null,
+      "items": [
+        {
+          "title": "Review copy",
+          "completed": false,
+          "marker": { "type": "bullet" },
+          "fields": { "id": "t-def5678" },
+          "description": null,
+          "comments": [],
+          "subitems": []
+        }
+      ],
+      "description": "General notes about this section"
+    },
+    {
+      "title": "Misc",
+      "preamble": null,
+      "items": [
+        {
+          "title": "Tidy up",
+          "completed": false,
+          "marker": { "type": "bullet" },
+          "fields": { "id": "t-ghi9012" },
+          "description": null,
+          "comments": [],
+          "subitems": []
+        }
+      ],
+      "fields": { "remember": "buy milk" }
+    }
+  ],
+  "diagnostics": []
+}

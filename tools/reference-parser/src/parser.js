@@ -40,7 +40,8 @@ function createState(document, knownKeys, skippedLines) {
     skippedLines,
     currentList: null,
     itemStack: [],
-    seenIds: new Map(),
+    seenItemIds: new Map(),
+    sectionMetaEligible: false,
   };
 }
 
@@ -50,30 +51,39 @@ function parseMarkerMode(lines, state) {
     if (state.skippedLines.has(lineNo)) continue;
 
     const line = lines[index];
-    if (/^\s*$/.test(line)) continue;
+    if (/^\s*$/.test(line)) {
+      if (sectionMetadataTarget(state)) state.sectionMetaEligible = false;
+      continue;
+    }
 
     const heading = line.match(/^# (.+)$/);
     if (heading) {
       state.currentList = createList(heading[1].trim());
       state.document.lists.push(state.currentList);
       state.itemStack = [];
+      state.sectionMetaEligible = true;
       continue;
     }
 
+    const sectionTarget = sectionMetadataTarget(state);
+
     const invalid = invalidMarkerDiagnostic(line, lineNo);
     if (invalid) {
+      state.sectionMetaEligible = false;
       state.document.diagnostics.push(invalid);
       continue;
     }
 
     const itemToken = parseMarkerItem(line);
     if (itemToken) {
+      state.sectionMetaEligible = false;
       addItem(state, itemToken, lineNo);
       continue;
     }
 
     const parsedComment = parseCommentLine(line);
     if (parsedComment) {
+      state.sectionMetaEligible = false;
       const target = findItemForIndent(state, parsedComment.indent) || mostRecentItem(state);
       if (target) appendOrAddComment(target, parsedComment);
       continue;
@@ -82,12 +92,27 @@ function parseMarkerMode(lines, state) {
     if (/^\s*"/.test(line)) {
       const result = readDescription(lines, index, state.skippedLines);
       index = result.endIndex;
-      attachDescription(state, result, lineNo);
+      if (sectionTarget) applyDescription(state, sectionTarget, result, lineNo, {
+        mergeFields: true,
+        trackItemIds: false,
+      });
+      else attachDescription(state, result, lineNo);
       continue;
     }
 
     if (hasAnyKeyValue(line)) {
-      attachMetadata(state, line.trim(), lineNo);
+      if (sectionTarget) applyMetadata(state, sectionTarget, line.trim(), lineNo, {
+        allowUnknownKeys: true,
+        mergeFields: true,
+        trackItemIds: false,
+      });
+      else attachMetadata(state, line.trim(), lineNo);
+      continue;
+    }
+
+    if (sectionTarget) {
+      state.sectionMetaEligible = false;
+      state.document.diagnostics.push(warning(lineNo, 'non-conformant section metadata (not key: value metadata)'));
       continue;
     }
 
@@ -108,6 +133,7 @@ function parseBlankLinesMode(lines, state) {
     const line = lines[index];
     if (/^\s*$/.test(line)) {
       blockOpen = false;
+      state.sectionMetaEligible = false;
       if (inPreamble) {
         if (state.currentList && state.currentList.preamble && state.currentList.preamble.length === 0) {
           state.currentList.preamble = null;
@@ -124,18 +150,21 @@ function parseBlankLinesMode(lines, state) {
       state.document.lists.push(state.currentList);
       state.itemStack = [];
       inPreamble = true;
+      state.sectionMetaEligible = true;
       blockOpen = false;
       continue;
     }
 
     const invalid = invalidMarkerDiagnostic(line, lineNo);
     if (invalid) {
+      state.sectionMetaEligible = false;
       state.document.diagnostics.push(invalid);
       continue;
     }
 
     const itemToken = parseMarkerItem(line);
     if (itemToken) {
+      state.sectionMetaEligible = false;
       if (inPreamble) {
         if (state.currentList && state.currentList.preamble && state.currentList.preamble.length === 0) {
           state.currentList.preamble = null;
@@ -148,6 +177,26 @@ function parseBlankLinesMode(lines, state) {
     }
 
     if (inPreamble && state.currentList && state.currentList.items.length === 0) {
+      if (state.sectionMetaEligible && /^\s*"/.test(line)) {
+        const result = readDescription(lines, index, state.skippedLines);
+        index = result.endIndex;
+        applyDescription(state, state.currentList, result, lineNo, {
+          mergeFields: true,
+          trackItemIds: false,
+        });
+        continue;
+      }
+
+      if (state.sectionMetaEligible && hasAnyKeyValue(line)) {
+        applyMetadata(state, state.currentList, line.trim(), lineNo, {
+          allowUnknownKeys: true,
+          mergeFields: true,
+          trackItemIds: false,
+        });
+        continue;
+      }
+
+      state.sectionMetaEligible = false;
       state.currentList.preamble.push(line.trim());
       continue;
     }
@@ -276,23 +325,7 @@ function attachMetadata(state, raw, lineNo) {
     return;
   }
 
-  const result = parseMetadataLine(raw);
-  const fields = result.fields;
-  if (!hasKnownKey(fields, state.knownKeys)) {
-    const key = firstMetadataKey(raw);
-    if (key) {
-      state.document.diagnostics.push(warning(lineNo, `non-conformant free-form text ('${key.toLowerCase()}' is not a known key)`));
-    } else {
-      state.document.diagnostics.push(warning(lineNo, 'non-conformant free-form text (not key: value metadata)'));
-    }
-    return;
-  }
-
-  item.fields = fields;
-  const description = descriptionFromFields(fields);
-  if (description !== null) item.description = description;
-  recordDuplicateId(state, fields, lineNo);
-  recordUnparsedMetadataTail(state, result, lineNo);
+  applyMetadata(state, item, raw, lineNo, { trackItemIds: true });
 }
 
 function attachDescription(state, result, lineNo) {
@@ -304,13 +337,52 @@ function attachDescription(state, result, lineNo) {
     return;
   }
 
-  item.description = result.value;
+  applyDescription(state, item, result, lineNo, { trackItemIds: true });
+}
+
+// Shared by item and section (list) targets. Section metadata may preserve
+// unknown fields; tooling SHOULD normalize canonical fields into document metadata.
+function applyMetadata(state, target, raw, lineNo, options) {
+  const result = parseMetadataLine(raw);
+  const fields = result.fields;
+  if (Object.keys(fields).length === 0) {
+    state.document.diagnostics.push(warning(lineNo, 'non-conformant free-form text (not key: value metadata)'));
+    return;
+  }
+
+  if (!(options && options.allowUnknownKeys) && !hasKnownKey(fields, state.knownKeys)) {
+    const key = firstMetadataKey(raw);
+    if (key) {
+      state.document.diagnostics.push(warning(lineNo, `non-conformant free-form text ('${key.toLowerCase()}' is not a known key)`));
+    } else {
+      state.document.diagnostics.push(warning(lineNo, 'non-conformant free-form text (not key: value metadata)'));
+    }
+    return;
+  }
+
+  assignFields(target, fields, options);
+  const description = descriptionFromFields(fields);
+  if (description !== null) target.description = description;
+  if (options && options.trackItemIds) recordDuplicateItemId(state, fields, lineNo);
+  recordUnparsedMetadataTail(state, result, lineNo);
+}
+
+function applyDescription(state, target, result, lineNo, options) {
+  target.description = result.value;
   if (result.trailingMeta) {
     const metadata = parseMetadataLine(result.trailingMeta);
     const fields = metadata.fields;
-    item.fields = fields;
-    recordDuplicateId(state, fields, lineNo);
+    if (Object.keys(fields).length > 0) assignFields(target, fields, options);
+    if (options && options.trackItemIds) recordDuplicateItemId(state, fields, lineNo);
     recordUnparsedMetadataTail(state, metadata, lineNo);
+  }
+}
+
+function assignFields(target, fields, options) {
+  if (options && options.mergeFields) {
+    target.fields = Object.assign({}, target.fields || {}, fields);
+  } else {
+    target.fields = fields;
   }
 }
 
@@ -356,15 +428,15 @@ function readDescription(lines, startIndex, skippedLines) {
   };
 }
 
-function recordDuplicateId(state, fields, lineNo) {
+function recordDuplicateItemId(state, fields, lineNo) {
   for (const key of Object.keys(fields)) {
     if (key.toLowerCase() !== 'id') continue;
     const id = fields[key];
     if (!id) continue;
-    if (state.seenIds.has(id)) {
+    if (state.seenItemIds.has(id)) {
       state.document.diagnostics.push(warning(lineNo, `duplicate item id '${id}'`));
     } else {
-      state.seenIds.set(id, lineNo);
+      state.seenItemIds.set(id, lineNo);
     }
   }
 }
@@ -386,6 +458,12 @@ function ensureList(state) {
 
 function mostRecentItem(state) {
   return state.itemStack.length > 0 ? state.itemStack[state.itemStack.length - 1].item : null;
+}
+
+function sectionMetadataTarget(state) {
+  return (state.sectionMetaEligible && state.currentList && !mostRecentItem(state))
+    ? state.currentList
+    : null;
 }
 
 function findItemForIndent(state, indent) {

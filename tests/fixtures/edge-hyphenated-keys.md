@@ -7,5 +7,5 @@ sprint2: Q1-2026, prio: high, id: def456a
 <!--
 title: Hyphenated Keys Test
 fields: due-date, start-time, sprint2
-format: Embridge v0.1.1, github.com/embridge-foundation/embridge
+format: Embridge v0.2.0, github.com/embridge-foundation/embridge
 -->

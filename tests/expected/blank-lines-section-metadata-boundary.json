@@ -1,0 +1,53 @@
+{
+  "documentMetadata": {
+    "title": null,
+    "sync": null,
+    "uuid": null,
+    "lists": null,
+    "fields": null,
+    "syntax": { "mode": "blank-lines" },
+    "format": null
+  },
+  "lists": [
+    {
+      "title": "Direct Metadata",
+      "preamble": [
+        "Preamble after metadata"
+      ],
+      "items": [
+        {
+          "title": "Task one",
+          "completed": null,
+          "marker": { "type": "none" },
+          "fields": {},
+          "description": null,
+          "comments": [],
+          "subitems": []
+        }
+      ],
+      "fields": {
+        "status": "backlog",
+        "future-field": "alpha"
+      }
+    },
+    {
+      "title": "Preamble First",
+      "preamble": [
+        "Human preamble",
+        "status: todo"
+      ],
+      "items": [
+        {
+          "title": "Task two",
+          "completed": null,
+          "marker": { "type": "none" },
+          "fields": {},
+          "description": null,
+          "comments": [],
+          "subitems": []
+        }
+      ]
+    }
+  ],
+  "diagnostics": []
+}

@@ -7,5 +7,5 @@ sprint: Q1-2025, client: Acme Corp, id: def456a
 <!--
 title: Custom Fields Test
 fields: note, sprint, client
-format: Embridge v0.1.1, github.com/embridge-foundation/embridge
+format: Embridge v0.2.0, github.com/embridge-foundation/embridge
 -->

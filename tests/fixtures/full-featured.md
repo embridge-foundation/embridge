@@ -34,5 +34,5 @@ title: Project Demo
 sync: 2025-01-15T09:00:00-05:00
 uuid: 0188b200-0000-7000-8000-000000000000
 lists: "Backlog" k3m9p2a, "To-do" q7w2e1b, "In Progress" z8x4c3d, "Done" r5t6y7e
-format: Embridge v0.1.1, github.com/embridge-foundation/embridge
+format: Embridge v0.2.0, github.com/embridge-foundation/embridge
 -->
