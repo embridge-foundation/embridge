@@ -18,7 +18,7 @@
           "title": "Send report",
           "completed": false,
           "marker": { "type": "bullet" },
-          "fields": {},
+          "fields": { "Remember": "call the client" },
           "description": null,
           "comments": [],
           "subitems": []
@@ -49,11 +49,6 @@
       "line": 2,
       "severity": "warning",
       "message": "non-conformant free-form text (not key: value metadata)"
-    },
-    {
-      "line": 5,
-      "severity": "warning",
-      "message": "non-conformant free-form text ('remember' is not a known key)"
     }
   ]
 }

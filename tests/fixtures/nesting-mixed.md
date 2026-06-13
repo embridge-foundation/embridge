@@ -3,5 +3,5 @@
   2. [ ] Ordered subitem two
 
 1. [ ] Ordered parent
-  - [ ] Bullet subitem one
-  - [ ] Bullet subitem two
+   - [ ] Bullet subitem one
+   - [ ] Bullet subitem two

@@ -1,0 +1,37 @@
+{
+  "documentMetadata": null,
+  "lists": [
+    {
+      "title": null,
+      "preamble": null,
+      "items": [
+        {
+          "title": "Ordered parent",
+          "completed": false,
+          "marker": { "type": "ordered", "number": 1 },
+          "fields": {},
+          "description": null,
+          "comments": [],
+          "subitems": [
+            {
+              "title": "Legacy ordered child",
+              "completed": false,
+              "marker": { "type": "ordered", "number": 1 },
+              "fields": {},
+              "description": null,
+              "comments": [],
+              "subitems": []
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "diagnostics": [
+    {
+      "line": 2,
+      "severity": "warning",
+      "message": "non-canonical indentation (2 spaces); child SHOULD align to parent content column (3 spaces)"
+    }
+  ]
+}

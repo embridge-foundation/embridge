@@ -6,10 +6,7 @@ const { extractDocumentMetadata } = require('./document-metadata');
 const { parseCommentLine, appendOrAddComment } = require('./comments');
 const {
   parseMetadataLine,
-  firstMetadataKey,
   hasAnyKeyValue,
-  buildKnownKeys,
-  hasKnownKey,
   descriptionFromFields,
   itemHasMetadata,
 } = require('./metadata');
@@ -18,10 +15,7 @@ function parseEmbridge(markdown, options) {
   const source = String(markdown || '').replace(/^\uFEFF/, '').replace(/\r\n?/g, '\n');
   const metadataInfo = extractDocumentMetadata(source);
   const document = createDocument(metadataInfo.documentMetadata);
-  const customFields = metadataInfo.documentMetadata && metadataInfo.documentMetadata.fields
-    ? metadataInfo.documentMetadata.fields
-    : [];
-  const state = createState(document, buildKnownKeys(customFields), metadataInfo.skippedLines);
+  const state = createState(document, metadataInfo.skippedLines);
   const lines = source.split('\n');
   const mode = (options && options.mode) ||
     (metadataInfo.documentMetadata && metadataInfo.documentMetadata.syntax && metadataInfo.documentMetadata.syntax.mode) ||
@@ -81,10 +75,9 @@ function applyInlineListId(list) {
   }
 }
 
-function createState(document, knownKeys, skippedLines) {
+function createState(document, skippedLines) {
   return {
     document,
-    knownKeys,
     skippedLines,
     currentList: null,
     itemStack: [],
@@ -150,7 +143,6 @@ function parseMarkerMode(lines, state) {
 
     if (hasAnyKeyValue(line)) {
       if (sectionTarget) applyMetadata(state, sectionTarget, line.trim(), lineNo, {
-        allowUnknownKeys: true,
         mergeFields: true,
         trackItemIds: false,
       });
@@ -237,7 +229,6 @@ function parseBlankLinesMode(lines, state) {
 
       if (state.sectionMetaEligible && hasAnyKeyValue(line)) {
         applyMetadata(state, state.currentList, line.trim(), lineNo, {
-          allowUnknownKeys: true,
           mergeFields: true,
           trackItemIds: false,
         });
@@ -289,13 +280,14 @@ function parseMarkerItem(line) {
 
   const indent = match[1].length;
   const numberText = match[2] ? match[2].slice(0, -1) : null;
+  const markerWidth = match[2] ? match[2].length + 1 : 2;
   const marker = numberText === null
     ? { type: 'bullet' }
     : { type: 'ordered', number: Number(numberText) };
   const completed = parseCheckbox(match[3]);
   const title = match[4].trim();
 
-  return { indent, marker, completed, title };
+  return { indent, marker, markerWidth, completed, title };
 }
 
 function parseBlankLineItem(line) {
@@ -312,6 +304,7 @@ function parseBlankLineItem(line) {
   return {
     indent,
     marker: { type: 'none' },
+    markerWidth: null,
     completed,
     title,
   };
@@ -345,10 +338,6 @@ function invalidMarkerDiagnostic(line, lineNo) {
 function addItem(state, token, lineNo) {
   ensureList(state);
 
-  if (token.indent % 2 === 1) {
-    state.document.diagnostics.push(warning(lineNo, `odd indentation (${token.indent} space${token.indent === 1 ? '' : 's'}); SHOULD be multiples of 2`));
-  }
-
   const item = createItem(token.title, token.completed, token.marker);
 
   while (state.itemStack.length > 0 && state.itemStack[state.itemStack.length - 1].indent >= token.indent) {
@@ -358,10 +347,24 @@ function addItem(state, token, lineNo) {
   if (state.itemStack.length === 0) {
     state.currentList.items.push(item);
   } else {
-    state.itemStack[state.itemStack.length - 1].item.subitems.push(item);
+    const parent = state.itemStack[state.itemStack.length - 1];
+    warnForNonCanonicalIndent(state, token, parent, lineNo);
+    parent.item.subitems.push(item);
   }
 
-  state.itemStack.push({ item, indent: token.indent });
+  state.itemStack.push({ item, indent: token.indent, markerWidth: token.markerWidth });
+}
+
+function warnForNonCanonicalIndent(state, token, parent, lineNo) {
+  if (parent.markerWidth === null) return;
+
+  const canonicalIndent = parent.indent + parent.markerWidth;
+  if (token.indent === canonicalIndent) return;
+
+  state.document.diagnostics.push(warning(
+    lineNo,
+    `non-canonical indentation (${token.indent} space${token.indent === 1 ? '' : 's'}); child SHOULD align to parent content column (${canonicalIndent} spaces)`,
+  ));
 }
 
 function attachMetadata(state, raw, lineNo) {
@@ -388,23 +391,14 @@ function attachDescription(state, result, lineNo) {
   applyDescription(state, item, result, lineNo, { trackItemIds: true });
 }
 
-// Shared by item and section (list) targets. Section metadata may preserve
-// unknown fields; tooling SHOULD normalize canonical fields into document metadata.
+// Shared by item and section (list) targets. Unknown fields are preserved for
+// forward compatibility; tooling SHOULD normalize canonical list fields into
+// document metadata.
 function applyMetadata(state, target, raw, lineNo, options) {
   const result = parseMetadataLine(raw);
   const fields = result.fields;
   if (Object.keys(fields).length === 0) {
     state.document.diagnostics.push(warning(lineNo, 'non-conformant free-form text (not key: value metadata)'));
-    return;
-  }
-
-  if (!(options && options.allowUnknownKeys) && !hasKnownKey(fields, state.knownKeys)) {
-    const key = firstMetadataKey(raw);
-    if (key) {
-      state.document.diagnostics.push(warning(lineNo, `non-conformant free-form text ('${key.toLowerCase()}' is not a known key)`));
-    } else {
-      state.document.diagnostics.push(warning(lineNo, 'non-conformant free-form text (not key: value metadata)'));
-    }
     return;
   }
 

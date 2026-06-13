@@ -1,0 +1,30 @@
+{
+  "documentMetadata": null,
+  "lists": [
+    {
+      "title": null,
+      "preamble": null,
+      "items": [
+        {
+          "title": "Call client",
+          "completed": false,
+          "marker": { "type": "bullet" },
+          "fields": { "note": "they prefer mornings" },
+          "description": null,
+          "comments": [],
+          "subitems": []
+        },
+        {
+          "title": "Review launch checklist",
+          "completed": false,
+          "marker": { "type": "bullet" },
+          "fields": { "risk": "medium", "reviewer": "Sam" },
+          "description": null,
+          "comments": [],
+          "subitems": []
+        }
+      ]
+    }
+  ],
+  "diagnostics": []
+}

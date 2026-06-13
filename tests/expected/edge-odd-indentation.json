@@ -41,12 +41,7 @@
     {
       "line": 2,
       "severity": "warning",
-      "message": "odd indentation (1 space); SHOULD be multiples of 2"
-    },
-    {
-      "line": 3,
-      "severity": "warning",
-      "message": "odd indentation (3 spaces); SHOULD be multiples of 2"
+      "message": "non-canonical indentation (1 space); child SHOULD align to parent content column (2 spaces)"
     }
   ]
 }

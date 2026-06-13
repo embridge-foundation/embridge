@@ -1,32 +1,5 @@
 'use strict';
 
-const STANDARD_KEYS = new Set([
-  'description',
-  'desc',
-  'descr',
-  'status',
-  'prio',
-  'priority',
-  'tags',
-  'keywords',
-  'assignee',
-  'owner',
-  'assigned',
-  'created',
-  'date',
-  'createddate',
-  'updated',
-  'modified',
-  'mod',
-  'on',
-  'ondate',
-  'on-date',
-  'scheduled',
-  'due',
-  'duedate',
-  'id',
-]);
-
 const DESCRIPTION_KEYS = new Set(['description', 'desc', 'descr']);
 
 function parseMetadataFields(raw) {
@@ -80,25 +53,8 @@ function parseMetadataLine(raw) {
   return { fields, unparsedTail };
 }
 
-function firstMetadataKey(raw) {
-  const match = raw.match(/^\s*([A-Za-z][A-Za-z0-9-]*)\s*:/);
-  return match ? match[1] : null;
-}
-
 function hasAnyKeyValue(raw) {
   return /[A-Za-z][A-Za-z0-9-]*\s*:/.test(raw);
-}
-
-function buildKnownKeys(customFields) {
-  const keys = new Set(STANDARD_KEYS);
-  for (const field of customFields || []) {
-    keys.add(String(field).toLowerCase());
-  }
-  return keys;
-}
-
-function hasKnownKey(fields, knownKeys) {
-  return Object.keys(fields).some((key) => knownKeys.has(key.toLowerCase()));
 }
 
 function descriptionFromFields(fields) {
@@ -113,13 +69,9 @@ function itemHasMetadata(item) {
 }
 
 module.exports = {
-  STANDARD_KEYS,
   parseMetadataLine,
   parseMetadataFields,
-  firstMetadataKey,
   hasAnyKeyValue,
-  buildKnownKeys,
-  hasKnownKey,
   descriptionFromFields,
   itemHasMetadata,
 };

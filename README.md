@@ -145,7 +145,7 @@ syntax: mode: blank-lines
 
 1. **Lists** are optional H1 headings (`# To-do`, `# In Progress`, `# Done`)
 2. **Items/tasks** are markdown list items using either bullet (`- [ ]`, `- [x]`, or just `-`) or ordered (`1. [ ]`, `2. [x]`, or just `1.`) markers
-3. **Item metadata** sits on the line below an item, comma-separated, and includes at least one known or declared key: `prio: high, due: 2025-01-20, id: abc123d`
+3. **Item metadata** sits on the line below an item as comma-separated `key: value` pairs; keys may be standard, declared, or custom: `prio: high, due: 2025-01-20, id: abc123d`
 4. **Subitems/subtasks** use deeper-indented markers; writers indent children to the parent marker width
 5. **Attachments** are represented as subitems whose title is a Markdown link/image (`  - [Spec](docs/spec.pdf)`, `  - ![Screenshot](assets/login.png)`)
 6. **Document metadata** lives in an HTML comment at the end; parsers tolerate it at the top, but tooling SHOULD NOT emit it there

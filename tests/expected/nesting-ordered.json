@@ -42,6 +42,25 @@
               ]
             }
           ]
+        },
+        {
+          "title": "Multi-digit parent",
+          "completed": false,
+          "marker": { "type": "ordered", "number": 10 },
+          "fields": {},
+          "description": null,
+          "comments": [],
+          "subitems": [
+            {
+              "title": "Multi-digit subitem",
+              "completed": false,
+              "marker": { "type": "ordered", "number": 1 },
+              "fields": {},
+              "description": null,
+              "comments": [],
+              "subitems": []
+            }
+          ]
         }
       ]
     }

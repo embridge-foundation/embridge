@@ -41,6 +41,6 @@ status: done, created: 2025-01-15
 title: Project title
 sync: 2025-01-15T09:00:00-05:00
 uuid: 0188b200-0000-7000-8000-000000000000
-lists: "List with backlog" p3k9x2a, "To-do" w7q2e1b, "In progress" z8c4r6d, "Done" t5y6u7e
+lists: "In progress" z8c4r6d, "To-do" w7q2e1b, "Backlog" p3k9x2a, "Done" t5y6u7e
 format: Embridge v0.2.0, github.com/embridge-foundation/embridge
 -->
