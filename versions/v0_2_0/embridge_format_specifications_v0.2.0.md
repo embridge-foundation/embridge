@@ -60,6 +60,9 @@
   - [Minimal Round-Trip-Safe File](#minimal-round-trip-safe-file)
   - [Full-Featured File](#full-featured-file)
 - [Rendering Compatibility (Appendix)](#rendering-compatibility-appendix)
+  - [1. Marker-width nesting indentation (legacy 2-space files)](#1-marker-width-nesting-indentation-legacy-2-space-files)
+  - [2. Non-indented metadata breaks list continuation](#2-non-indented-metadata-breaks-list-continuation)
+  - [3. `>` repurposed from blockquotes to comments](#3--repurposed-from-blockquotes-to-comments)
 - [References](#references)
 - [License](#license)
 
