@@ -2,7 +2,7 @@
 
 function extractDocumentMetadata(markdown) {
   const source = markdown.replace(/^\uFEFF/, '');
-  const comments = findHtmlComments(source);
+  const comments = findBoundaryHtmlComments(source);
   const skippedLines = new Set();
 
   if (comments.length === 0) {
@@ -37,43 +37,77 @@ function extractDocumentMetadata(markdown) {
   };
 }
 
-function findHtmlComments(source) {
+function findBoundaryHtmlComments(source) {
   const lines = source.split(/\r?\n/);
   const comments = [];
+  const seen = new Set();
 
   for (let index = 0; index < lines.length; index += 1) {
-    const line = lines[index];
-    const singleLine = line.match(/<!--([\s\S]*?)-->/);
-    if (singleLine) {
-      comments.push({
-        content: singleLine[1],
-        startLine: index + 1,
-        endLine: index + 1,
-      });
-      continue;
-    }
+    if (/^\s*$/.test(lines[index])) continue;
 
-    if (!/^\s*<!--\s*$/.test(line)) continue;
-
-    const startLine = index + 1;
-    const content = [];
-    index += 1;
-
-    while (index < lines.length && lines[index].trim() !== '-->') {
-      content.push(lines[index]);
-      index += 1;
-    }
-
-    if (index < lines.length) {
-      comments.push({
-        content: content.join('\n'),
-        startLine,
-        endLine: index + 1,
-      });
-    }
+    const comment = readStandaloneHtmlCommentAt(lines, index);
+    if (!comment) break;
+    addComment(comments, seen, comment);
+    index = comment.endIndex;
   }
 
+  for (let index = lines.length - 1; index >= 0; index -= 1) {
+    if (/^\s*$/.test(lines[index])) continue;
+
+    const comment = readStandaloneHtmlCommentEndingAt(lines, index);
+    if (!comment) break;
+    addComment(comments, seen, comment);
+    index = comment.startIndex;
+  }
+
+  comments.sort((a, b) => a.startLine - b.startLine);
   return comments;
+}
+
+function readStandaloneHtmlCommentAt(lines, startIndex) {
+  const singleLine = lines[startIndex].match(/^\s*<!--([\s\S]*?)-->\s*$/);
+  if (singleLine) return toComment(singleLine[1], startIndex, startIndex);
+
+  if (!/^\s*<!--\s*$/.test(lines[startIndex])) return null;
+
+  const content = [];
+  let index = startIndex + 1;
+  while (index < lines.length && lines[index].trim() !== '-->') {
+    content.push(lines[index]);
+    index += 1;
+  }
+
+  return index < lines.length ? toComment(content.join('\n'), startIndex, index) : null;
+}
+
+function readStandaloneHtmlCommentEndingAt(lines, endIndex) {
+  const singleLine = lines[endIndex].match(/^\s*<!--([\s\S]*?)-->\s*$/);
+  if (singleLine) return toComment(singleLine[1], endIndex, endIndex);
+  if (lines[endIndex].trim() !== '-->') return null;
+
+  for (let index = endIndex - 1; index >= 0; index -= 1) {
+    if (/^\s*<!--\s*$/.test(lines[index])) {
+      return toComment(lines.slice(index + 1, endIndex).join('\n'), index, endIndex);
+    }
+  }
+  return null;
+}
+
+function toComment(content, startIndex, endIndex) {
+  return {
+    content,
+    startIndex,
+    endIndex,
+    startLine: startIndex + 1,
+    endLine: endIndex + 1,
+  };
+}
+
+function addComment(comments, seen, comment) {
+  const key = `${comment.startLine}:${comment.endLine}`;
+  if (seen.has(key)) return;
+  seen.add(key);
+  comments.push(comment);
 }
 
 function lastCandidateOfKind(candidates, kind) {

@@ -913,6 +913,7 @@ Before running the main body parser:
 
 1. Parse leading and trailing HTML comment(s) (lightweight pre-pass) to read document metadata keys.
    - Recognize multi-line metadata blocks, inline format tags (`<!-- format: ... -->` or shorter `<!-- embridge v... -->`), or both.
+   - Only standalone HTML comments at the leading/trailing document boundaries are document metadata candidates. HTML comment syntax inside item/list metadata values or quoted descriptions remains normal body text.
    - Parse keys and the format identifier case-insensitively. If both forms are present, the full block's `format:` takes precedence.
 2. Read `fields:` (if present) as declared custom metadata keys for tooling, validation, and UI hints.
 3. Read `syntax:` (if present) and parse `mode`.
@@ -1170,6 +1171,7 @@ Full document metadata blocks are parsed by line scanning, not by matching the f
 3. Stop at the first line whose trimmed contents are exactly `-->`.
 
 A `-->` occurring mid-line inside a metadata value does not terminate the block.
+This line-scanning rule applies only to standalone leading/trailing HTML comments; HTML comment syntax inside item/list metadata values or quoted descriptions is not a document metadata delimiter.
 
 **Inline format tag (with `format:` key):**
 ```regex
@@ -1183,7 +1185,7 @@ A `-->` occurring mid-line inside a metadata value does not terminate the block.
 ```
 - Capture group 1: format value (e.g. `embridge v0.2.0`)
 
-Use these regexes for fast-matching inline format tags specifically. The general document metadata regex above also matches inline tags.
+Use these regexes for fast-matching inline format tags specifically. Full document metadata blocks use the boundary line-scanning rule above.
 
 **Comment line (flexible — author and timestamp optional):**
 ```regex

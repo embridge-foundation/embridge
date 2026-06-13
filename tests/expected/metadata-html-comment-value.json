@@ -1,0 +1,32 @@
+{
+  "documentMetadata": {
+    "title": "HTML Comment Storage",
+    "sync": null,
+    "uuid": null,
+    "lists": null,
+    "fields": null,
+    "syntax": null,
+    "format": "Embridge v0.2.0"
+  },
+  "lists": [
+    {
+      "title": "Tasks",
+      "preamble": null,
+      "items": [
+        {
+          "title": "Explain HTML comments",
+          "completed": false,
+          "marker": { "type": "bullet" },
+          "fields": {
+            "description": "An HTML comment looks like <!-- hidden note --> in source.",
+            "id": "html001"
+          },
+          "description": "An HTML comment looks like <!-- hidden note --> in source.",
+          "comments": [],
+          "subitems": []
+        }
+      ]
+    }
+  ],
+  "diagnostics": []
+}
