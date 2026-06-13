@@ -12,7 +12,7 @@
 
 ## Table of contents
 
-- [Overview](#overview)
+- [What is Embridge?](#what-is-embridge)
 - [Project goals](#project-goals)
 - [Bridge Philosophy](#bridge-philosophy)
 - [Format architecture and design principles](#format-architecture-and-design-principles)
