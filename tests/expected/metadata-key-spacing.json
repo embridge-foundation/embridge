@@ -1,0 +1,36 @@
+{
+  "documentMetadata": null,
+  "lists": [
+    {
+      "title": null,
+      "preamble": null,
+      "items": [
+        {
+          "title": "Buy apples",
+          "completed": false,
+          "marker": { "type": "bullet" },
+          "fields": {
+            "prio": "high",
+            "id": "spaced01"
+          },
+          "description": null,
+          "comments": [],
+          "subitems": []
+        },
+        {
+          "title": "Buy oranges",
+          "completed": false,
+          "marker": { "type": "bullet" },
+          "fields": {
+            "tags": "fruit, citrus",
+            "due": "2026-06-15"
+          },
+          "description": null,
+          "comments": [],
+          "subitems": []
+        }
+      ]
+    }
+  ],
+  "diagnostics": []
+}

@@ -1,8 +1,8 @@
 # Specifications for Embridge: an open source item/task list format
 
-- **Version:** 0.2.0  
-- **Last Updated:** 2026-06-12  
-- **Example output:** `embridge_output_demo_v0.2.0.md`   
+- **Version:** 0.2.1  
+- **Last Updated:** 2026-06-13  
+- **Example output:** `embridge_output_demo_v0.2.1.md`   
 - **Github:** https://github.com/embridge-foundation/embridge  
 - **Project website:** https://embridge.net  
 - **Author:** xpiu 
@@ -151,10 +151,10 @@ Within round-trip-safe output, this spec still uses MUST / SHOULD / MAY (and REC
 
 Embridge files MAY declare a format version using the `format:` field in document metadata or an inline format tag. Files without a declared version are still valid Basic Embridge.
 
-When present, the version number MUST use semantic versioning in the form `v{major}.{minor}.{patch}` (for example, `v0.2.0`):
+When present, the version number MUST use semantic versioning in the form `v{major}.{minor}.{patch}` (for example, `v0.2.1`):
 
 - Patch versions, such as `v0.2.1`, contain editorial clarifications, typo fixes, examples, and non-breaking corrections.
-- Minor versions, such as `v0.2.0`, may add backward-compatible features.
+- Minor versions, such as `v0.3.0`, may add backward-compatible features.
 - Major versions, such as `v1.0.0`, may introduce breaking changes.
 
 Parsers MAY parse files without a declared version using their current supported Embridge version. For versioned files, parsers SHOULD attempt best-effort parsing and warn on newer minor versions, and SHOULD reject newer major versions with a clear diagnostic unless explicitly configured for best-effort import.
@@ -183,7 +183,7 @@ This example shows the typical layout of an Embridge document:
 title: {Title of document content}
 sync: {ISO 8601 timestamp}
 uuid: {document identifier, UUIDv7 recommended}
-format: Embridge v0.2.0, github.com/embridge-foundation/embridge
+format: Embridge v0.2.1, github.com/embridge-foundation/embridge
 -->
 ```
 
@@ -192,13 +192,13 @@ For minimal format identification, a single-line **inline format tag** may be us
 ```markdown
 - {Item/Task}
 
-<!-- format: Embridge v0.2.0 -->
+<!-- format: Embridge v0.2.1 -->
 ```
 
 A shorter form without the `format:` key is also valid (case-insensitive):
 
 ```markdown
-<!-- embridge v0.2.0 -->
+<!-- embridge v0.2.1 -->
 ```
 
 Notes:
@@ -218,7 +218,7 @@ The subsections below define the full validity, canonical output guidance, and r
 - **Comments (optional):** Lines starting with `>` attach to the item/subitem above and MAY be threaded via `>>`, `>>>`, etc.
 - **Section metadata (optional, discouraged):** A section metadata block of field lines and/or quoted description shorthand MAY follow a list heading, before the first item; tooling SHOULD instead store canonical list-level data in document metadata.
 - **Document metadata (optional):** An HTML comment stores document-level fields for round-trip-safe output. Tooling SHOULD write it at the end of the file; parsers SHOULD also accept it at the top for reader tolerance.
-  - A single-line **inline format tag** (`<!-- format: Embridge v0.2.0 -->` or shorter `<!-- embridge v0.2.0 -->`) may be used instead for minimal format identification.
+  - A single-line **inline format tag** (`<!-- format: Embridge v0.2.1 -->` or shorter `<!-- embridge v0.2.1 -->`) may be used instead for minimal format identification.
   - Document metadata keys and the format identifier are parsed case-insensitively.
 
 ### Document Model (Informative)
@@ -245,9 +245,9 @@ Parsers MUST accept LF (`\n`), CRLF (`\r\n`), and CR (`\r`) line endings and nor
 
 #### Line Roles
 
-The role of a line is determined by its first non-whitespace characters:
+The role of a line is determined by its first non-whitespace characters, except that H1 list headings are recognized only at column 0:
 
-- `# ` → list heading (section)
+- `# ` at column 0 → list heading (section)
 - `- ` or `{number}. ` (optionally preceded by indentation spaces) → item/subitem line
 - `>` (optionally preceded by spaces) → comment line (belongs to the item/subitem above; detected before metadata parsing)
 - Otherwise, a non-empty line immediately following a list heading is interpreted as section metadata (if it matches section metadata/description rules and appears before the first item/comment, with no intervening blank line); it belongs to the list/section above (see "List Sections").
@@ -255,7 +255,7 @@ The role of a line is determined by its first non-whitespace characters:
 
 **Indentation (marker only):** hierarchy is determined solely by the indentation spaces before the marker — a child has more leading spaces than its parent, and its parent is the nearest earlier item with fewer leading spaces. Metadata indentation does not affect ownership.
 
-Typical indentation under a `- ` parent (marker width 2):
+Canonical indentation under nested `- ` parents (marker width 2):
 
 | Spaces before marker | Meaning |
 |----------------------|---------|
@@ -272,6 +272,7 @@ Typical indentation under a `- ` parent (marker width 2):
 
 **Parser/import guidance:**
 - Parsers MUST accept any indent strictly greater than the parent's as a valid child indent, regardless of the exact width. This preserves backwards compatibility with files written under earlier rules (which used a flat 2-space increment under every parent).
+- Because ordered markers have variable width, parsers MUST NOT derive semantic nesting depth by dividing spaces by 2. They should compare leading-space columns directly and attach each item to the nearest earlier item with fewer leading spaces.
 
 ### Item Lines
 
@@ -627,7 +628,7 @@ prio: high, id: abc123d
 ```
 
 **Validity (Basic Embridge):**
-- Comment lines MUST contain one or more `>` characters as the first non-whitespace content. Leading spaces determine ownership: a `>` line indented to the same depth as an item/subitem belongs to that item/subitem (e.g., 0 spaces = top-level item, 2 spaces = level-1 subitem).
+- Comment lines MUST contain one or more `>` characters as the first non-whitespace content. Leading spaces determine ownership by matching item marker indentation columns: a `>` line indented to the same marker column as an item/subitem belongs to that item/subitem.
 - Author and timestamp are OPTIONAL
 - If present, author MUST be prefixed with `@`: `@username`. A bare `username` without `@` is not recognized as an author — the entire text (including the word before the colon) is treated as comment content. This prevents natural-language colons (e.g., `> note: remember to update`) from being misinterpreted as authored comments.
 - If present, timestamp format: ISO 8601 date, optionally with time (`2025-01-20` or `2025-01-20 14:30`)
@@ -680,7 +681,7 @@ prio: high, id: a1b2c3d
 - Parsers SHOULD accept comments with or without author/timestamp
 - Parsers SHOULD preserve the threading depth (count of `>` characters)
 - Parsers SHOULD treat continuation lines (no author/timestamp) as part of the previous comment
-- Comment ownership is determined by indentation: a `>` line at column 0 belongs to the most recent top-level item; a `>` line at column 2 belongs to the most recent level-1 subitem, and so on. If indentation is absent or ambiguous, parsers SHOULD fall back to the most recent item/subitem above.
+- Comment ownership is determined by matching the comment's leading-space column to the most recent item at the same marker indentation. If there is no exact match, parsers SHOULD fall back to the nearest recent item with a compatible shallower indentation, and then to the most recent item/subitem above.
 
 **Notes (parsing):**
 - **Precedence:** Comment lines (`>`) MUST be detected before checking for metadata patterns. Lines like `> @alice: text` contain substrings matching `key: value` syntax, but the leading `>` takes precedence.
@@ -836,7 +837,7 @@ sync: 2025-01-15T09:00:00-05:00
 uuid: 0188b200-0000-7000-8000-000000000000
 lists: "Backlog" a1b2c3d, "In Progress" d4e5f6a, "Done" g7h8i9b
 fields: note, sprint, client
-format: Embridge v0.2.0, github.com/embridge-foundation/embridge
+format: Embridge v0.2.1, github.com/embridge-foundation/embridge
 -->
 ```
 
@@ -848,7 +849,7 @@ format: Embridge v0.2.0, github.com/embridge-foundation/embridge
 | `lists` | Optional list registry: `lists: "{List Title}" {id}, "{Title}" {id} ...`. Apps MAY use this to give list headings stable identifiers. If the same list also has an inline section `id:`, this registry ID is canonical and wins on conflict. Registry entries are matched to headings by list title, so the registry is unambiguous only when titles are unique; if multiple lists share a title, parsers SHOULD pair registry entries with same-titled headings in document order, and where that remains ambiguous SHOULD fall back to each list's inline section `id:` rather than forcing a registry ID. |
 | `syntax` | Optional syntax hints for parsing/export behavior. The key `mode` selects parsing behavior (e.g., `syntax: mode: marker` or `syntax: mode: blank-lines`) |
 | `fields` | Optional comma-separated list of custom metadata key names. Advertises additional item metadata keys for tooling, validation, and UI hints (e.g., `fields: note, sprint, client` or `fields: due-date, start-time`). Unknown item fields are still valid metadata and SHOULD be preserved even when not listed here. See "Standard Fields" for built-in standard keys. |
-| `format` | Format descriptor (required for round-trip-safe output), e.g. `Embridge v0.2.0, github.com/embridge-foundation/embridge`. The version number MUST follow the `v{major}.{minor}.{patch}` format (e.g., `v0.2.0`). See [Versioning](#versioning) for parser behavior when version differences are encountered. |
+| `format` | Format descriptor (required for round-trip-safe output), e.g. `Embridge v0.2.1, github.com/embridge-foundation/embridge`. The version number MUST follow the `v{major}.{minor}.{patch}` format (e.g., `v0.2.1`). See [Versioning](#versioning) for parser behavior when version differences are encountered. |
 
 **Reader tolerance (parser/import guidance):**
 - Parsers MUST parse known document metadata fields by key name (case-insensitively) and MUST NOT rely on field order.
@@ -873,16 +874,16 @@ format: Embridge v0.2.0, github.com/embridge-foundation/embridge
 A single-line HTML comment containing only `format:` may be used as a lightweight format identifier:
 
 ```markdown
-<!-- format: Embridge v0.2.0 -->
+<!-- format: Embridge v0.2.1 -->
 ```
 
 Parsers MUST also tolerate a shorter form that omits the `format:` key, using just the format value:
 
 ```markdown
-<!-- Embridge v0.2.0 -->
+<!-- Embridge v0.2.1 -->
 ```
 
-The shorter form (`<!-- Embridge v0.2.0 -->`) is only valid as a standalone single-line inline tag. It MUST NOT be used inside a multi-line metadata block.
+The shorter form (`<!-- Embridge v0.2.1 -->`) is only valid as a standalone single-line inline tag. It MUST NOT be used inside a multi-line metadata block.
 
 **Validity (Basic Embridge):**
 - The inline format tag is OPTIONAL.
@@ -890,7 +891,7 @@ The shorter form (`<!-- Embridge v0.2.0 -->`) is only valid as a standalone sing
 
 **Format value:**
 - The `format:` value follows the same rules as in the full metadata block (see the `format` field in the table above).
-- The repository URL portion is optional: both `Embridge v0.2.0` and `Embridge v0.2.0, github.com/embridge-foundation/embridge` are valid.
+- The repository URL portion is optional: both `Embridge v0.2.1` and `Embridge v0.2.1, github.com/embridge-foundation/embridge` are valid.
 
 **Coexistence with the full metadata block:**
 - A file MAY contain both an inline format tag and a full multi-line metadata block.
@@ -940,7 +941,7 @@ This bootstrap behavior is critical because syntax mode can change boundary dete
            first item, comment, blank line, or non-metadata line.
       iii. Line starts with (spaces +) `- ` OR (spaces +) `{number}. ` → New item/task
            - `{number}` is `0` or a base-10 integer without leading zeros; lines like `01. Item` do not match this pattern and are not recognized as items
-           - Count leading spaces to determine nesting depth (0=top, 2=sub, 4=sub-sub, ...)
+           - Count leading spaces as the marker indentation column; hierarchy is based on comparing columns, not on fixed 2-space levels
            - Detect marker type: `-` = bullet, `{number}.` = ordered
            - If ordered: extract `{number}` for round-trip preservation (decorative only — not used for ordering)
            - Parse checkbox state and title
@@ -951,16 +952,16 @@ This bootstrap behavior is critical because syntax mode can change boundary dete
            - Otherwise → Parse comma-separated `key: value` pairs
            - Lines not matching `key: value` pattern or description shorthand are non-conformant (ignore or warn)
       v.   Line starts with (more spaces +) `- ` OR (more spaces +) `{number}. ` → New nested item (child of nearest shallower item)
-           - Same parsing as step ii
-           - Nesting depth determined by leading space count
+           - Same parsing as step iii
+           - Hierarchy is determined by comparing leading-space columns
       vi.  Line starts with optional spaces + `>` → Comment for item above
-           - Count leading spaces to determine parent item depth (0=top-level, 2=subitem, 4=sub-subitem)
+           - Count leading spaces as a marker indentation column and attach to the most recent item at that column, falling back as described in comment reader tolerance
            - Count `>` characters to determine reply depth (1=top, 2=reply, 3=reply-to-reply)
            - Parse optional `@author` and `[timestamp]` prefix
            - Remaining text is comment content
            - Continue collecting `>` lines until non-`>` line encountered
            - Continuation lines (no author/timestamp) are part of the previous comment's text
-3. Parse HTML comment(s) for document metadata (if present) — recognize both multi-line metadata blocks and inline format tags at the top or end of the file
+3. Use the document metadata already consumed by the bootstrap pre-pass; leading/trailing metadata comments are not parsed again as body content
 ```
 
 Note: A metadata field line or quoted description shorthand appearing immediately after a list heading (before the first item/comment, and clearly not itself a list item) is **section metadata** and attaches to the list/section, not an item (see "List Sections (H1 Headings)"). Consecutive section metadata field lines are preserved, including unknown fields. It is tolerated reader input; tooling SHOULD NOT emit new inline section metadata.
@@ -977,7 +978,7 @@ Hard rules for `syntax: mode: blank-lines`:
 4. **Section preamble:** Section/list metadata, when present in blank-lines mode, MUST begin on the line directly below the section heading (`# `), with no intervening blank line or preamble text, and may continue only through consecutive section metadata field lines and/or quoted description shorthand. Once a non-empty non-metadata line appears after the heading, section metadata eligibility for that section is closed; later `key: value` lines in the same preamble are preamble text, not section metadata. Preamble text is preserved for round-tripping but MUST NOT be parsed as items. Preamble ends at the first blank line or marker line after the heading. If the implicit first section has no heading, there is no preamble — the first non-empty line starts normal item detection.
 5. **Block start:** Each non-marker item/subitem block starts at the first non-empty, non-heading line after a blank-line boundary (outside preamble). The first line of the block is the item/subitem title.
 6. **Nesting depth** is determined by leading spaces on the title line: a title is a child of the nearest earlier title with strictly fewer leading spaces. Blank-lines mode has no marker, so writers SHOULD indent children by 2 spaces per level (the marker-width rule does not apply when no marker is present).
-7. **Checkboxes (optional):** A blank-line-delimited item title MAY begin with a checkbox (`[ ] `, `[x] `, or `[X] `). When present at the start of the title line (after leading spaces), it is parsed as the item's completion state — the same semantics as a checkbox after a marker in marker mode. The checkbox is not part of the title text. Parsers/apps MAY choose whether to support checkbox detection on non-marker items; if unsupported, the checkbox characters are included in the title as-is.
+7. **Checkboxes (optional):** A blank-line-delimited item title MAY begin with a checkbox (`[ ] `, `[x] `, or `[X] `). Parsers that support blank-lines mode MUST recognize this leading checkbox when present at the start of the title line (after leading spaces), parse it as the item's completion state, and exclude it from the title text. This has the same semantics as a checkbox after a marker in marker mode.
 8. **Metadata and comment attachment:** Metadata and comment lines belong to the current block and MUST NOT be separated from their parent item title by a blank line:
    - Metadata lines follow the same `key: value` and quoted-description rules as marker mode.
    - Comment lines (`>`) attach to the current block.
@@ -1013,13 +1014,13 @@ Hard rules for `syntax: mode: blank-lines`:
              parse remaining text after `",` as metadata fields,
              set inside_quote = false
       ii.  Line starts with (spaces +) `- ` OR (spaces +) `{number}. ` → New marker item
-           - Parse using the same rules as marker mode (checkbox, title, nesting depth)
+           - Parse using the same rules as marker mode (checkbox, title, indentation-column hierarchy)
            - Set current_block to this item
       iii. Line is empty → If inside_quote is false, set current_block = null
            (block boundary)
       iv.  current_block is not null AND line starts with optional spaces + `>`
            → Comment for current block
-           - Parse as comment (same rules as marker mode step v)
+           - Parse as comment (same rules as marker mode step vi)
       v.   current_block is null AND line starts with optional spaces + `>`
            → Orphaned comment (non-conformant: ignore and emit a warning)
       vi.  current_block is not null AND line does not start with `>` AND line
@@ -1029,11 +1030,11 @@ Hard rules for `syntax: mode: blank-lines`:
            - Same parsing rules as marker mode (key: value pairs, description
              shorthand, multiline description detection)
       vii. current_block is null AND line is non-empty → New blank-line-delimited item
-           - Count leading spaces for nesting depth (0 = top, 2 = sub, 4 = sub-sub)
-           - Optionally detect checkbox at start of title: `[ ] `, `[x] `, `[X] `
+           - Count leading spaces as the title indentation column; hierarchy is based on comparing columns
+           - Detect checkbox at start of title when present: `[ ] `, `[x] `, `[X] `
            - Remaining text (after spaces and optional checkbox) is the item title
            - Set current_block to this item
-3. Parse HTML comment(s) for document metadata (if present) — recognize both multi-line metadata blocks and inline format tags at the top or end of the file
+3. Use the document metadata already consumed by the bootstrap pre-pass; leading/trailing metadata comments are not parsed again as body content
 ```
 
 Notes:
@@ -1067,11 +1068,11 @@ When exporting/rewriting, tooling MAY normalize files to improve interoperabilit
 
 ### Regex Patterns
 
-**Item/Task line (with nesting depth) — supports bullet and ordered markers:**
+**Item/Task line (with indentation column) — supports bullet and ordered markers:**
 ```regex
 ^( *)(?:- |((?:0|[1-9]\d*))\. )(?:\[([ xX])\] )?(.+)$
 ```
-- Capture group 1: leading spaces (length ÷ 2 = nesting depth)
+- Capture group 1: leading spaces (the marker indentation column; compare columns to determine hierarchy)
 - Capture group 2: number (if ordered list), or absent/empty (if bullet)
 - Capture group 3: checkbox state (space, x, X, or absent)
 - Capture group 4: item title
@@ -1082,7 +1083,7 @@ Note: If you want to enforce 1–9 digits for ordered markers at parse-time, use
 ```regex
 ^( *)(?:\[([ xX])\] )?(.+)$
 ```
-- Capture group 1: leading spaces (length ÷ 2 = nesting depth)
+- Capture group 1: leading spaces (the title indentation column; compare columns to determine hierarchy)
 - Capture group 2: checkbox state (space, x, X, or absent)
 - Capture group 3: item title
 
@@ -1090,9 +1091,9 @@ Note: This regex is only used in blank-lines mode (reader step vii) for lines th
 
 **Metadata pair (comma-separated, optional space after colon):**
 ```regex
-([a-zA-Z][a-zA-Z0-9-]*):\s*(?:"((?:[^"]|"")*)"|([^,]+))
+([a-zA-Z][a-zA-Z0-9-]*)\s*:\s*(?:"((?:[^"]|"")*)"|([^,]+))
 ```
-Note: Apply this regex to each metadata line individually (not to the raw multi-line input). The unquoted branch `([^,]+)` will match to end-of-line for the last value on a line — this is expected; trim whitespace from all unquoted captures. For quoted values, unescape by replacing `""` with `"` after capture.
+Note: Apply this regex to each metadata line individually (not to the raw multi-line input). The optional whitespace before `:` is reader tolerance for non-canonical `key : value`; tooling SHOULD still emit `key: value`. The unquoted branch `([^,]+)` will match to end-of-line for the last value on a line — this is expected; trim whitespace from all unquoted captures. For quoted values, unescape by replacing `""` with `"` after capture.
 
 **Description shorthand — single-line (quoted string at line start):**
 ```regex
@@ -1177,13 +1178,13 @@ This line-scanning rule applies only to standalone leading/trailing HTML comment
 ```regex
 ^<!--\s*format:\s*(.+?)\s*-->$
 ```
-- Capture group 1: format value (e.g. `Embridge v0.2.0`)
+- Capture group 1: format value (e.g. `Embridge v0.2.1`)
 
 **Inline format tag (shorter form, no key):**
 ```regex
 ^<!--\s*(embridge\s+v\d+\.\d+\.\d+(?:,\s*.+?)?)\s*-->$
 ```
-- Capture group 1: format value (e.g. `embridge v0.2.0`)
+- Capture group 1: format value (e.g. `embridge v0.2.1`)
 
 Use these regexes for fast-matching inline format tags specifically. Full document metadata blocks use the boundary line-scanning rule above.
 
@@ -1191,7 +1192,7 @@ Use these regexes for fast-matching inline format tags specifically. Full docume
 ```regex
 ^( *)(>+)\s*(?:(?:@([^\[\s:]+)\s*)?(?:\[([^\]]+)\]\s*)?:\s*)?(.*)$
 ```
-- Capture group 1: leading spaces (length ÷ 2 = parent item nesting depth; 0 = top-level item, 2 = subitem, etc.)
+- Capture group 1: leading spaces (the comment indentation column; match against item marker indentation columns)
 - Capture group 2: `>` characters (length = reply depth)
 - Capture group 3: author (optional; `@` prefix required for detection, captured without it)
 - Capture group 4: timestamp (optional, without brackets)
@@ -1290,7 +1291,7 @@ List headings are recommended but not required:
 - Buy apples
 - Charge battery
 
-<!-- format: Embridge v0.2.0 -->
+<!-- format: Embridge v0.2.1 -->
 ```
 
 The shorter form (without the `format:` key) is also valid:
@@ -1299,7 +1300,7 @@ The shorter form (without the `format:` key) is also valid:
 - Buy apples
 - Charge battery
 
-<!-- embridge v0.2.0 -->
+<!-- embridge v0.2.1 -->
 ```
 
 ### Minimal Blank-Lines Mode File (Syntax Extension)
@@ -1461,21 +1462,21 @@ status: done, id: ghi789a
 ```markdown
 1. [ ] Set up development environment
 "Install all required tools and dependencies", id: setup01a
-  1. [ ] Install Node.js
-  id: node01b
-  2. [ ] Install Docker
-  id: dockr01
-  3. [ ] Clone repository
-  id: clone01c
+   1. [ ] Install Node.js
+   id: node01b
+   2. [ ] Install Docker
+   id: dockr01
+   3. [ ] Clone repository
+   id: clone01c
 
 2. [ ] Implement feature
 id: impl01d
-  1. [ ] Write unit tests
-  id: test01e
-  2. [ ] Write implementation
-  id: code01f
-  3. [ ] Update documentation
-  id: docs01g
+   1. [ ] Write unit tests
+   id: test01e
+   2. [ ] Write implementation
+   id: code01f
+   3. [ ] Update documentation
+   id: docs01g
 ```
 
 ### Numbered Items with Comments
@@ -1503,7 +1504,7 @@ title: Items/Tasks
 sync: 2025-01-15T09:00:00-05:00
 uuid: 0188b200-0000-7000-8000-000000000000
 lists: "To-do" a1b2c3d
-format: Embridge v0.2.0, github.com/embridge-foundation/embridge
+format: Embridge v0.2.1, github.com/embridge-foundation/embridge
 -->
 ```
 
@@ -1546,7 +1547,7 @@ title: Project Demo
 sync: 2025-01-15T09:00:00-05:00
 uuid: 0188b200-0000-7000-8000-000000000000
 lists: "Backlog" k3m9p2a, "To-do" q7w2e1b, "In Progress" z8x4c3d, "Done" r5t6y7e
-format: Embridge v0.2.0, github.com/embridge-foundation/embridge
+format: Embridge v0.2.1, github.com/embridge-foundation/embridge
 -->
 ```
 

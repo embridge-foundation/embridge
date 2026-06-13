@@ -3,6 +3,17 @@
 All notable changes to the Embridge format are documented here. This project
 adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.2.1] - 2026-06-13
+
+- Clarified parser bootstrap ordering for document metadata and syntax-mode
+  selection.
+- Clarified indentation-column handling for marker nesting and comment
+  ownership, especially under ordered markers.
+- Clarified that blank-lines mode parsers must recognize leading checkboxes.
+- Clarified that H1 list headings are recognized only at column 0.
+- Updated metadata regex guidance to tolerate non-canonical `key : value`
+  spacing.
+
 ## [0.2.0] - 2026-06-13
 
 - Custom metadata keys are now valid without declaring them in `fields:`, and
