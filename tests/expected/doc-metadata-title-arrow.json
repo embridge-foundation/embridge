@@ -1,0 +1,29 @@
+{
+  "documentMetadata": {
+    "title": "Migration --> Phase 2",
+    "sync": null,
+    "uuid": null,
+    "lists": null,
+    "fields": null,
+    "syntax": null,
+    "format": "Embridge v0.2.0"
+  },
+  "lists": [
+    {
+      "title": "Backlog",
+      "preamble": null,
+      "items": [
+        {
+          "title": "Review migration plan",
+          "completed": false,
+          "marker": { "type": "bullet" },
+          "fields": {},
+          "description": null,
+          "comments": [],
+          "subitems": []
+        }
+      ]
+    }
+  ],
+  "diagnostics": []
+}

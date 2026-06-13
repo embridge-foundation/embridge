@@ -1163,10 +1163,13 @@ v(\d+)\.(\d+)\.(\d+)
 - Group 2: list ID
 
 **Document metadata (multi-line block):**
-```regex
-<!--\s*([\s\S]*?)\s*-->
-```
-Note: This regex matches both the full multi-line metadata block and the inline format tag.
+Full document metadata blocks are parsed by line scanning, not by matching the first `-->`.
+
+1. Match an opening line whose trimmed contents are exactly `<!--`.
+2. Capture following lines as metadata content.
+3. Stop at the first line whose trimmed contents are exactly `-->`.
+
+A `-->` occurring mid-line inside a metadata value does not terminate the block.
 
 **Inline format tag (with `format:` key):**
 ```regex

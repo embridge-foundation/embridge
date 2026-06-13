@@ -2,10 +2,10 @@
 
 function extractDocumentMetadata(markdown) {
   const source = markdown.replace(/^\uFEFF/, '');
-  const matches = Array.from(source.matchAll(/<!--([\s\S]*?)-->/g));
+  const comments = findHtmlComments(source);
   const skippedLines = new Set();
 
-  if (matches.length === 0) {
+  if (comments.length === 0) {
     return {
       documentMetadata: null,
       skippedLines,
@@ -13,18 +13,16 @@ function extractDocumentMetadata(markdown) {
   }
 
   const metadataCandidates = [];
-  for (const match of matches) {
-    const startLine = lineNumberAt(source, match.index);
-    const endLine = lineNumberAt(source, match.index + match[0].length - 1);
-    for (let line = startLine; line <= endLine; line += 1) {
+  for (const comment of comments) {
+    for (let line = comment.startLine; line <= comment.endLine; line += 1) {
       skippedLines.add(line);
     }
 
-    const documentMetadata = parseDocumentMetadata(match[1]);
+    const documentMetadata = parseDocumentMetadata(comment.content);
     if (documentMetadata) {
       metadataCandidates.push({
         documentMetadata,
-        kind: isInlineFormatTag(match[1]) ? 'inline' : 'block',
+        kind: isInlineFormatTag(comment.content) ? 'inline' : 'block',
       });
     }
   }
@@ -39,6 +37,45 @@ function extractDocumentMetadata(markdown) {
   };
 }
 
+function findHtmlComments(source) {
+  const lines = source.split(/\r?\n/);
+  const comments = [];
+
+  for (let index = 0; index < lines.length; index += 1) {
+    const line = lines[index];
+    const singleLine = line.match(/<!--([\s\S]*?)-->/);
+    if (singleLine) {
+      comments.push({
+        content: singleLine[1],
+        startLine: index + 1,
+        endLine: index + 1,
+      });
+      continue;
+    }
+
+    if (!/^\s*<!--\s*$/.test(line)) continue;
+
+    const startLine = index + 1;
+    const content = [];
+    index += 1;
+
+    while (index < lines.length && lines[index].trim() !== '-->') {
+      content.push(lines[index]);
+      index += 1;
+    }
+
+    if (index < lines.length) {
+      comments.push({
+        content: content.join('\n'),
+        startLine,
+        endLine: index + 1,
+      });
+    }
+  }
+
+  return comments;
+}
+
 function lastCandidateOfKind(candidates, kind) {
   for (let index = candidates.length - 1; index >= 0; index -= 1) {
     if (candidates[index].kind === kind) return candidates[index];
@@ -50,14 +87,6 @@ function isInlineFormatTag(content) {
   const trimmed = content.trim();
   return /^embridge\s+v\d+\.\d+\.\d+$/i.test(trimmed) ||
     /^format\s*:\s*.+$/i.test(trimmed);
-}
-
-function lineNumberAt(source, offset) {
-  let line = 1;
-  for (let i = 0; i < offset; i += 1) {
-    if (source[i] === '\n') line += 1;
-  }
-  return line;
 }
 
 function emptyDocumentMetadata() {
