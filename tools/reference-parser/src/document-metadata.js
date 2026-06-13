@@ -1,5 +1,7 @@
 'use strict';
 
+const SHORT_INLINE_FORMAT_RE = /^embridge\s+v\d+\.\d+\.\d+(?:,\s*.+)?$/i;
+
 function extractDocumentMetadata(markdown) {
   const source = markdown.replace(/^\uFEFF/, '');
   const comments = findBoundaryHtmlComments(source);
@@ -119,7 +121,7 @@ function lastCandidateOfKind(candidates, kind) {
 
 function isInlineFormatTag(content) {
   const trimmed = content.trim();
-  return /^embridge\s+v\d+\.\d+\.\d+$/i.test(trimmed) ||
+  return SHORT_INLINE_FORMAT_RE.test(trimmed) ||
     /^format\s*:\s*.+$/i.test(trimmed);
 }
 
@@ -141,7 +143,7 @@ function parseDocumentMetadata(content) {
   let recognized = false;
 
   if (!trimmed) return null;
-  if (/^embridge\s+v\d+\.\d+\.\d+$/i.test(trimmed)) {
+  if (SHORT_INLINE_FORMAT_RE.test(trimmed)) {
     result.format = trimmed;
     return result;
   }

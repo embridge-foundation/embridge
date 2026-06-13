@@ -3,7 +3,7 @@
 All notable changes to the Embridge format are documented here. This project
 adheres to [Semantic Versioning](https://semver.org/).
 
-## [0.2.0] - 2026-06-12
+## [0.2.0] - 2026-06-13
 
 - Custom metadata keys are now valid without declaring them in `fields:`, and
   parsers preserve unknown fields for forward compatibility.
