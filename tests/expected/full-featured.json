@@ -61,7 +61,8 @@
           "comments": [],
           "subitems": []
         }
-      ]
+      ],
+      "id": "k3m9p2a"
     },
     {
       "title": "To-do",
@@ -85,7 +86,8 @@
           "comments": [],
           "subitems": []
         }
-      ]
+      ],
+      "id": "q7w2e1b"
     },
     {
       "title": "In Progress",
@@ -100,7 +102,8 @@
           "comments": [],
           "subitems": []
         }
-      ]
+      ],
+      "id": "z8x4c3d"
     },
     {
       "title": "Done",
@@ -124,7 +127,8 @@
           "comments": [],
           "subitems": []
         }
-      ]
+      ],
+      "id": "r5t6y7e"
     }
   ],
   "diagnostics": []

@@ -30,7 +30,55 @@ function parseEmbridge(markdown, options) {
   if (mode === 'blank-lines') parseBlankLinesMode(lines, state);
   else parseMarkerMode(lines, state);
 
+  resolveListRegistry(document);
+
   return document;
+}
+
+function resolveListRegistry(document) {
+  const registry = document.documentMetadata && document.documentMetadata.lists;
+  if (!registry || registry.length === 0) return;
+
+  const entriesByTitle = groupByTitle(registry);
+  const listsByTitle = groupByTitle(document.lists);
+
+  for (const [title, lists] of listsByTitle.entries()) {
+    if (title === null) continue;
+    const entries = entriesByTitle.get(title);
+    if (!entries || entries.length === 0) {
+      applyInlineListIds(lists);
+      continue;
+    }
+
+    const pairCount = Math.min(entries.length, lists.length);
+    for (let index = 0; index < pairCount; index += 1) {
+      lists[index].id = entries[index].id;
+    }
+
+    for (let index = pairCount; index < lists.length; index += 1) {
+      applyInlineListId(lists[index]);
+    }
+  }
+}
+
+function groupByTitle(values) {
+  const groups = new Map();
+  for (const value of values) {
+    const title = value.title;
+    if (!groups.has(title)) groups.set(title, []);
+    groups.get(title).push(value);
+  }
+  return groups;
+}
+
+function applyInlineListIds(lists) {
+  for (const list of lists) applyInlineListId(list);
+}
+
+function applyInlineListId(list) {
+  if (list.fields && Object.prototype.hasOwnProperty.call(list.fields, 'id')) {
+    list.id = list.fields.id;
+  }
 }
 
 function createState(document, knownKeys, skippedLines) {

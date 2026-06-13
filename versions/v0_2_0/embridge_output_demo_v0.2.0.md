@@ -1,19 +1,9 @@
-# List with backlog
-- Research caching strategies
-"lorem ipsum", status: ideas, prio: high, tags: "research, tech", assignee: @alice, created: 2025-01-15, updated: 2025-01-18, due: 2025-01-20, id: a1b2c3d
-> Consider Redis vs Memcached tradeoffs
-> @alice [2025-01-17]: Good point, will evaluate both
-  - An example of a subitem/subtask, visibly separated by the two spaces prior to its dash symbol
-  "subtask description text ....", id: 3b2k1op
-  > quick note on this subtask
-  - Another subitem/subtask
-  "another subitem/subtask, but now without checkbox or id, flexibly possible to drop these"
-- Explore new auth library
-"example of item without id or checkbox, which an online parser might have to add"
-> check if it supports OAuth 2.1
+# In progress
+- Refactor user service
+created: 2025-01-15
 
 # To-do
-- Fix pagination bug
+- [ ] Fix pagination bug
 "Users report that page 2 shows
 duplicate items from page 1.
 Check offset calculation.", created: 2025-01-15, id: f8g9h0q
@@ -29,9 +19,19 @@ status: todo, created: 2025-01-15
 > waiting for security audit to complete
 > @charlie: I can help with this next week
 
-# In progress
-- [ ] Refactor user service
-created: 2025-01-15
+# Backlog
+- Research caching strategies
+"lorem ipsum", status: ideas, prio: high, tags: "research, tech", assignee: @alice, created: 2025-01-15, updated: 2025-01-18, due: 2025-01-20, id: a1b2c3d
+> Consider Redis vs Memcached tradeoffs
+> @alice [2025-01-17]: Good point, will evaluate both
+  - An example of a subitem/subtask, visibly separated by the two spaces prior to its dash symbol
+  "subtask description text ....", id: 3b2k1op
+  > quick note on this subtask
+  - Another subitem/subtask
+  "another subitem/subtask, but now without checkbox or id, flexibly possible to drop these"
+- Explore new auth library
+"example of item without id or checkbox, which an online parser might have to add"
+> check if it supports OAuth 2.1
 
 # Done
 - [X] Write API documentation

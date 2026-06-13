@@ -91,7 +91,8 @@
           ],
           "subitems": []
         }
-      ]
+      ],
+      "id": "p3k9x2a"
     },
     {
       "title": "To-do",
@@ -181,7 +182,8 @@
           ],
           "subitems": []
         }
-      ]
+      ],
+      "id": "w7q2e1b"
     },
     {
       "title": "In progress",
@@ -196,7 +198,8 @@
           "comments": [],
           "subitems": []
         }
-      ]
+      ],
+      "id": "z8c4r6d"
     },
     {
       "title": "Done",
@@ -211,7 +214,8 @@
           "comments": [],
           "subitems": []
         }
-      ]
+      ],
+      "id": "t5y6u7e"
     }
   ],
   "diagnostics": []

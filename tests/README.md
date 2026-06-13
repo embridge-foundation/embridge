@@ -23,6 +23,7 @@ Every expected file follows this structure:
   "lists": [
     {
       "title": "string | null (null = implicit/no-heading list)",
+      "id": "string | omitted (canonical list id from document metadata, or inline section id fallback)",
       "preamble": ["string"] | null,
       "fields": {},          // present only when section metadata is supplied inline
       "description": "...",  // present only when a section description is supplied inline
@@ -49,6 +50,7 @@ Every expected file follows this structure:
 |-------|-------------|
 | `documentMetadata` | `null` if no HTML comment metadata block; otherwise an object with document-level fields |
 | `lists[].title` | List heading text, or `null` for the implicit default list |
+| `lists[].id` | Canonical list identity when resolved from document metadata `lists:`; falls back to inline section `id:` only where the registry cannot provide one |
 | `lists[].preamble` | Blank-lines mode only: non-item text after a heading; `null` otherwise |
 | `lists[].fields` / `lists[].description` | Section metadata (tolerated, not recommended): a metadata line or description shorthand directly after a heading, before the first item. Key present only when supplied inline |
 | `items[].title` | Item title text (after marker and optional checkbox) |

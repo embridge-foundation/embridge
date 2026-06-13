@@ -1,0 +1,86 @@
+{
+  "documentMetadata": {
+    "title": "List Registry Resolution",
+    "sync": null,
+    "uuid": null,
+    "lists": [
+      { "title": "Backlog", "id": "backlog-doc" },
+      { "title": "Review", "id": "review-doc-a" },
+      { "title": "Review", "id": "review-doc-b" }
+    ],
+    "fields": null,
+    "syntax": null,
+    "format": "Embridge v0.2.0"
+  },
+  "lists": [
+    {
+      "title": "Backlog",
+      "preamble": null,
+      "items": [
+        {
+          "title": "Unique title uses registry id",
+          "completed": false,
+          "marker": { "type": "bullet" },
+          "fields": { "id": "item-unique" },
+          "description": null,
+          "comments": [],
+          "subitems": []
+        }
+      ],
+      "fields": { "id": "backlog-inline" },
+      "id": "backlog-doc"
+    },
+    {
+      "title": "Review",
+      "preamble": null,
+      "items": [
+        {
+          "title": "First duplicate title",
+          "completed": false,
+          "marker": { "type": "bullet" },
+          "fields": { "id": "item-review-a" },
+          "description": null,
+          "comments": [],
+          "subitems": []
+        }
+      ],
+      "fields": { "id": "review-inline-a" },
+      "id": "review-doc-a"
+    },
+    {
+      "title": "Review",
+      "preamble": null,
+      "items": [
+        {
+          "title": "Second duplicate title",
+          "completed": false,
+          "marker": { "type": "bullet" },
+          "fields": { "id": "item-review-b" },
+          "description": null,
+          "comments": [],
+          "subitems": []
+        }
+      ],
+      "fields": { "id": "review-inline-b" },
+      "id": "review-doc-b"
+    },
+    {
+      "title": "Review",
+      "preamble": null,
+      "items": [
+        {
+          "title": "Third duplicate title falls back inline",
+          "completed": false,
+          "marker": { "type": "bullet" },
+          "fields": { "id": "item-review-c" },
+          "description": null,
+          "comments": [],
+          "subitems": []
+        }
+      ],
+      "fields": { "id": "review-inline-c" },
+      "id": "review-inline-c"
+    }
+  ],
+  "diagnostics": []
+}

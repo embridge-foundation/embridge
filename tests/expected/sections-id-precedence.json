@@ -43,7 +43,8 @@
           "subitems": []
         }
       ],
-      "fields": { "id": "backlog-inline" }
+      "fields": { "id": "backlog-inline" },
+      "id": "backlog-doc"
     }
   ],
   "diagnostics": [
