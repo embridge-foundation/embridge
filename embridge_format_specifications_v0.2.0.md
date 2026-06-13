@@ -247,6 +247,7 @@ The role of a line is determined by its first non-whitespace characters:
 - `# ` → list heading (section)
 - `- ` or `{number}. ` (optionally preceded by indentation spaces) → item/subitem line
 - `>` (optionally preceded by spaces) → comment line (belongs to the item/subitem above; detected before metadata parsing)
+- Otherwise, a non-empty line immediately following a list heading is interpreted as section metadata (if it matches section metadata/description rules and appears before the first item/comment, with no intervening blank line); it belongs to the list/section above (see "List Sections").
 - Otherwise, a non-empty line immediately following an item line is interpreted as that item's metadata (if it matches metadata/description rules); free-form text is non-conformant (see "Item metadata").
 
 **Indentation (marker only):** hierarchy is determined solely by the indentation spaces before the marker — a child has more leading spaces than its parent, and its parent is the nearest earlier item with fewer leading spaces. Metadata indentation does not affect ownership.
@@ -408,8 +409,9 @@ status: todo, prio: high, tags: "backend, api", due: 2025-01-15, id: a1b2c3d
 - Item metadata is OPTIONAL. Items/tasks MAY appear without any metadata block.
 - A metadata line (when present) is a comma-separated list of field pairs: `key: value, key: value`.
 - Keys SHOULD be written in lowercase and MAY contain lowercase letters, digits, and hyphens (`[a-z][a-z0-9-]*`). Capitalization MAY be used (e.g., `Prio: high` and `prio: high` are both valid). Hyphens enable natural multi-word keys like `due-date` or `start-time`.
-- A line is recognized as item metadata when it contains at least one **known key** — a standard field (or alias) from the table below, or a custom key declared via `fields:` in the document metadata block. All `key: value` pairs on that line are parsed and preserved, including any undeclared keys alongside a known key.
-- A line containing only undeclared keys (e.g., `remember: call the client`) is not recognized as metadata and is treated as non-conformant free-form text. This prevents English prose containing colons from being misinterpreted as metadata.
+- A line in item metadata position is recognized as item metadata when it is a valid metadata field line (`key: value`, comma-separated when multiple fields appear). Keys do not need to be standard or declared via `fields:`.
+- Parsers, agents, bots, and apps SHOULD preserve unknown or unsupported item fields and values for forward compatibility. This allows humans and tools to invent useful keys as needs arise.
+- Caution: colon-shaped prose in item metadata position is captured as metadata (for example, `remember: call the client` becomes a `remember` field). To write prose instead, use description shorthand (`"..."`) or a comment line (`>`).
 - Space after colon is optional: `key: value` and `key:value` are both valid.
 - Since commas separate field pairs, any value containing a comma MUST be quoted with `"` so it stays a single value.
 - Inside a quoted value, a literal `"` is written as `""`.
@@ -509,7 +511,7 @@ Third line wrapping up.", status: todo, prio: high, id: x1y2z3e
 
 **Canonical output guidance:** If you want to attach human notes, convert them into either:
 - a description (`"..."` shorthand, including multiline), or
-- a declared custom field (e.g., declare `note` via `fields:` in document metadata, then use `note: "..."`).
+- a metadata field (optionally declared via `fields:` in document metadata for tooling UX).
 
 **Reader tolerance guidance:** Readers MAY choose to treat non-conformant free-form lines as a best-effort description during import (to avoid data loss), but tooling SHOULD NOT emit that form.
 
@@ -518,14 +520,14 @@ Third line wrapping up.", status: todo, prio: high, id: x1y2z3e
 They prefer mornings            ← NOT VALID (free-form text, not key: value)
 
 - [ ] Call the client
-Remember: call the client      ← NOT VALID (remember is not a known key)
+Remember: call the client      ← VALID (custom field)
 
 - [ ] Call the client
 descr: they prefer mornings    ← VALID (descr is a standard field)
 
 - [ ] Call the client
-note: they prefer mornings     ← VALID only if note is declared via fields:
-                                  in document metadata; otherwise non-conformant
+note: they prefer mornings     ← VALID (custom field; declaring via fields:
+                                  is optional but useful for tooling)
 
 - [ ] Call the client
 "they prefer mornings"         ← VALID (description shorthand)
@@ -533,7 +535,7 @@ note: they prefer mornings     ← VALID only if note is declared via fields:
 
 ### Standard Fields (Non-exhaustive)
 
-The fields listed here (and their aliases) are the **known keys** that parsers use to recognize a line as item metadata. Parsers MUST recognize these keys (case-insensitively). Custom keys MAY be declared via `fields:` in the document metadata block to extend the known set. Once a line is recognized as metadata, all `key: value` pairs on it are parsed and preserved — including undeclared keys alongside a known key.
+The fields listed here (and their aliases) are standard keys with defined semantics. Parsers MUST recognize these keys (case-insensitively). Custom keys MAY be declared via `fields:` in the document metadata block to advertise additional item metadata keys for tooling UX, but declaration is not required for preservation. Once a line is recognized as metadata, all `key: value` pairs on it are parsed and preserved, including unknown or undeclared keys.
 
 | Field | Aliases | Description | Example Values |
 |-------|---------|-------------|----------------|
@@ -796,7 +798,8 @@ A section metadata block MAY appear immediately after an H1 list heading, before
 The block attaches to the list/section, not to any item.
 
 - **Validity (Basic Embridge):** A section metadata block is OPTIONAL and, when present, MUST start on the line directly below the heading, with no intervening blank line. It continues through consecutive metadata field lines and/or quoted description shorthand, and ends at the first item, comment, blank line, or non-metadata line. Section metadata field lines follow the normal field separation rules (`key: value`, comma-separated when multiple fields appear on one line).
-- **Reader tolerance (parser/import guidance):** Parsers SHOULD accept it and attach the fields or description to the list/section. Unlike item metadata, section/list metadata field lines do not need to contain a known key. Parsers, agents, bots, and apps SHOULD preserve unknown or unsupported section/list fields and values for forward compatibility. Human editors SHOULD leave unfamiliar section/list field lines intact unless intentionally removing them. If the same inline section field appears more than once, the later value wins.
+- **Reader tolerance (parser/import guidance):** Parsers SHOULD accept it and attach the fields or description to the list/section. Section/list metadata field lines do not need to contain a known key. Parsers, agents, bots, and apps SHOULD preserve unknown or unsupported section/list fields and values for forward compatibility. Human editors SHOULD leave unfamiliar section/list field lines intact unless intentionally removing them. If the same inline section field appears more than once, the later value wins.
+- **Caution:** A `key: value` line immediately below a heading is captured as section metadata even when the key is invented (for example, `# Shopping` followed by `remember: buy milk`). To write prose instead, use a comment line (`>`), description shorthand (`"..."`), or a blank line before prose where the selected syntax mode permits it.
 - **Preservation recommendation:** When preserving imported inline section/list fields, tools SHOULD prefer one metadata field line directly below the heading, with fields placed next to each other as comma-separated pairs (for example, `status: backlog, future-field: alpha`). Consecutive metadata field lines remain valid reader input.
 - **Canonical output (tooling export/rewrite guidance):** When generating or rewriting Embridge, tools MUST NOT place list IDs directly below headings. List IDs belong in document metadata via `lists:`. Inline section metadata is reader-tolerance only and should be preserved only when importing existing files for lossless round-trips. List-level data SHOULD be normalized into the document metadata block at the end of the file where a canonical destination exists (e.g. the `lists:` registry). When the same field is provided both inline and in document metadata, the document metadata block wins. In particular, if inline section metadata contains `id:` and the document metadata `lists:` registry also gives that list an ID, parsers, agents, and machines SHOULD use the `lists:` registry ID as the canonical list identity. Imported unknown or unsupported section/list fields SHOULD be preserved for lossless round-trips rather than dropped.
 
@@ -841,7 +844,7 @@ format: Embridge v0.2.0, github.com/embridge-foundation/embridge
 | `uuid` | Unique document identifier (UUIDv7 recommended) for sync matching across renames/moves |
 | `lists` | Optional list registry: `lists: "{List Title}" {id}, "{Title}" {id} ...`. Apps MAY use this to give list headings stable identifiers. If the same list also has an inline section `id:`, this registry ID is canonical and wins on conflict. Registry entries are matched to headings by list title, so the registry is unambiguous only when titles are unique; if multiple lists share a title, parsers SHOULD pair registry entries with same-titled headings in document order, and where that remains ambiguous SHOULD fall back to each list's inline section `id:` rather than forcing a registry ID. |
 | `syntax` | Optional syntax hints for parsing/export behavior. The key `mode` selects parsing behavior (e.g., `syntax: mode: marker` or `syntax: mode: blank-lines`) |
-| `fields` | Optional comma-separated list of custom metadata key names. Declares additional keys that parsers recognize as valid item metadata (e.g., `fields: note, sprint, client` or `fields: due-date, start-time`). See "Standard Fields" for the built-in known keys. |
+| `fields` | Optional comma-separated list of custom metadata key names. Advertises additional item metadata keys for tooling, validation, and UI hints (e.g., `fields: note, sprint, client` or `fields: due-date, start-time`). Unknown item fields are still valid metadata and SHOULD be preserved even when not listed here. See "Standard Fields" for built-in standard keys. |
 | `format` | Format descriptor (required for round-trip-safe output), e.g. `Embridge v0.2.0, github.com/embridge-foundation/embridge`. The version number MUST follow the `v{major}.{minor}.{patch}` format (e.g., `v0.2.0`). See [Versioning](#versioning) for parser behavior when version differences are encountered. |
 
 **Reader tolerance (parser/import guidance):**
@@ -908,7 +911,7 @@ Before running the main body parser:
 1. Parse leading and trailing HTML comment(s) (lightweight pre-pass) to read document metadata keys.
    - Recognize multi-line metadata blocks, inline format tags (`<!-- format: ... -->` or shorter `<!-- embridge v... -->`), or both.
    - Parse keys and the format identifier case-insensitively. If both forms are present, the full block's `format:` takes precedence.
-2. Read `fields:` (if present) and add declared keys to the set of known item metadata keys.
+2. Read `fields:` (if present) as declared custom metadata keys for tooling, validation, and UI hints.
 3. Read `syntax:` (if present) and parse `mode`.
 4. If `mode: blank-lines` is recognized and supported by the parser, use the blank-lines reader.
 5. Otherwise, use marker mode (`mode: marker` default).
@@ -1229,7 +1232,7 @@ When the application writes to the `.md` file:
 When the application reads the `.md` file:
 
 **Parser/import guidance:**
-1. Parse known document metadata fields by key name (case-insensitively) (`title`, `sync`, `uuid`, `lists`, `syntax`, `fields`, `format`) and do not depend on field order. If `fields:` is present, add its entries to the set of known item metadata keys.
+1. Parse known document metadata fields by key name (case-insensitively) (`title`, `sync`, `uuid`, `lists`, `syntax`, `fields`, `format`) and do not depend on field order. If `fields:` is present, treat its entries as declared custom metadata keys for tooling, validation, and UI hints.
 2. Determine syntax mode from `syntax.mode`; if missing/invalid/unknown, default to `mode: marker`.
 3. Use bootstrap behavior: parse metadata first, then parse body using the selected mode (`marker` or `blank-lines`).
 4. If present, use the `title:` field as the document title; otherwise derive a fallback title (e.g., filename) without requiring a write.
