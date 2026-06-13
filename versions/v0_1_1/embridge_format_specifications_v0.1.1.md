@@ -38,7 +38,7 @@
   - [Reader (import / parse-only) — marker mode](#reader-import--parse-only--marker-mode)
   - [Blank-Lines Mode (optional syntax extension)](#blank-lines-mode-optional-syntax-extension)
     - [Reader (import / parse-only) — blank-lines mode](#reader-import--parse-only--blank-lines-mode)
-  - [Tooling export/rewrite normalization (optional, recommended for round-trip-safe output)](#tooling-exportrewrite-normalization-optional-recommended-for-round-trip-safe-output)
+  - [Tooling export/rewrite normalization (optional, recommended for sync-ready output)](#tooling-exportrewrite-normalization-optional-recommended-for-sync-ready-output)
   - [Regex Patterns](#regex-patterns)
 - [Synchronisation](#synchronisation)
   - [App → Markdown (export logic from apps)](#app--markdown-export-logic-from-apps)
@@ -57,7 +57,7 @@
   - [Numbered List with Metadata](#numbered-list-with-metadata)
   - [Nested Numbered Items](#nested-numbered-items)
   - [Numbered Items with Comments](#numbered-items-with-comments)
-  - [Minimal Round-Trip-Safe File](#minimal-round-trip-safe-file)
+  - [Minimal Sync-Ready File](#minimal-sync-ready-file)
   - [Full-Featured File](#full-featured-file)
 - [Rendering Compatibility (Appendix)](#rendering-compatibility-appendix)
 - [References](#references)
@@ -126,9 +126,7 @@ Embridge intentionally separates:
 When this spec says something is "required", it is either:
 
 - required for **Basic Embridge validity**, or
-- required for **round-trip-safe output** — output that tooling emits so files round-trip losslessly between tools (and therefore synchronize reliably), even though a human-authored file without it is still valid Basic Embridge.
-
-Within round-trip-safe output, this spec still uses MUST / SHOULD / MAY (and RECOMMENDED / OPTIONAL) to distinguish what is strictly required from formatting that is merely recommended for more demanding consumers (e.g. parsers or agents with stricter needs).
+- required for **sync-ready output** (round-trip syncing between tools), even if a human-authored file without it is still valid Basic Embridge.
 
 **Parser conformance testing:** The `tests/` directory contains a conformance test suite of input files and expected parse trees. Each `.md` fixture in `tests/fixtures/` has a corresponding `.json` file in `tests/expected/` with the expected parsed output. The suite covers basic items, ordered markers, nesting, metadata, descriptions, comments, attachments, list sections, document metadata, blank-lines mode, and edge cases. See `tests/README.md` for the expected JSON schema and instructions.
 
@@ -203,7 +201,7 @@ The subsections below define the full validity, canonical output guidance, and r
   - a single metadata line of comma-separated `key: value` pairs, or
   - a quoted description shorthand (`"..."`), which MAY span multiple lines until the closing `"`.
 - **Comments (optional):** Lines starting with `>` attach to the item/subitem above and MAY be threaded via `>>`, `>>>`, etc.
-- **Document metadata (optional):** An HTML comment at the end of the file stores document-level fields for round-trip-safe output.
+- **Document metadata (optional):** An HTML comment at the end of the file stores document-level fields for sync-ready output.
   - A single-line **inline format tag** (`<!-- format: Embridge v0.1.1 -->` or shorter `<!-- embridge v0.1.1 -->`) may be used instead for minimal format identification.
   - Document metadata keys and the format identifier are parsed case-insensitively.
 
@@ -405,14 +403,14 @@ status: todo, prio: high, tags: "backend, api", due: 2025-01-15, id: a1b2c3d
 - Trailing comma is allowed but not required: `prio: high, due: 2025-01-15,` (valid).
 - Metadata indentation is optional — parsers accept both indented and non-indented.
 - Each item/task gets at most **one** metadata block. If a second metadata-like line appears after an item's metadata block, parsers MUST ignore it and SHOULD emit a diagnostic warning (e.g., "line 5: additional metadata line ignored").
-- The `id` field, when present, identifies one item/task. Duplicate `id` values do not make Basic Embridge unparseable, but parsers SHOULD diagnose them and tooling producing round-trip-safe output MUST resolve them before using IDs for matching.
+- The `id` field, when present, identifies one item/task. Duplicate `id` values do not make Basic Embridge unparseable, but parsers SHOULD diagnose them and sync-ready tooling MUST resolve them before using IDs for matching.
 
 **Canonical output (tooling export/rewrite guidance):**
 - Tooling SHOULD emit keys in lowercase (e.g., `prio: high`, not `Prio: high`).
 - Tooling SHOULD use `key: value` (with a single space after `:`) for readability.
 - Tooling SHOULD NOT output a space before the colon (`key : value`).
 - Tooling SHOULD quote values that contain commas, leading/trailing spaces, or `"` characters.
-- Tooling MUST NOT emit duplicate item `id` values in round-trip-safe output. If multiple imported items share an `id`, tooling SHOULD keep the first occurrence and assign fresh IDs to later duplicates, with a warning or import log entry.
+- Tooling MUST NOT emit duplicate item `id` values in sync-ready output. If multiple imported items share an `id`, tooling SHOULD keep the first occurrence and assign fresh IDs to later duplicates, with a warning or import log entry.
 - Tooling SHOULD NOT use shared `id` values to express groups, batches, projects, or AI-generated bundles. Use a parent item/subitems, list sections, or a separate metadata field such as `group`, `batch`, or `project` instead.
 
 **Reader tolerance (parser/import guidance):**
@@ -569,8 +567,8 @@ The space after the comma inside quotes is recommended for readability but optio
 - Field order does not matter when importing/reading — accept any order.
 - Parsers SHOULD accept both the canonical field name and its aliases.
 
-**`id` conformance (recommended for round-trip-safe output):**
-- For round-trip-safe output, if an `id` field is present, it MUST be unique within the file (across all items and subitems).
+**`id` conformance (recommended for sync-ready output):**
+- For sync-ready output, if an `id` field is present, it MUST be unique within the file (across all items and subitems).
 - The Embridge format does not impose requirements on the shape, casing, or character set of `id` values — the format of IDs is chosen by the user, app, or AI agent generating them.
 - When generating IDs, tooling SHOULD use at least 7 characters for collision resistance. Lowercase alphanumeric IDs (e.g. `[a-z0-9]`) are a sensible default, but other schemes (UUIDs, hashes, sequential IDs, etc.) are equally valid.
 - Parsers MUST accept any non-empty `id` value and MUST NOT reject items based on ID length, casing, or character set.
@@ -781,9 +779,9 @@ An HTML comment at the end of the file can contain document-level metadata.
 **Validity (Basic Embridge):**
 - The document metadata block is OPTIONAL.
 
-**Canonical output (tooling export/rewrite guidance, round-trip-safe output):**
-- Tooling SHOULD include this block for lossless round-trips between tools.
-- For round-trip-safe output, tooling MUST include `title:` (document title) and `format:` (format descriptor).
+**Canonical output (tooling export/rewrite guidance, sync-ready output):**
+- Tooling SHOULD include this block for round-trip syncing between tools.
+- For sync-ready output, tooling MUST include `title:` (document title) and `format:` (format descriptor).
 - Tooling MAY include `lists:` to give list headings stable identifiers.
 - Tooling SHOULD include `sync:` (last sync timestamp).
 - Tooling SHOULD include `uuid:` (UUIDv7 recommended) to match documents across renames/moves.
@@ -809,13 +807,13 @@ format: Embridge v0.1.1, github.com/embridge-foundation/embridge
 
 | Field | Description |
 |-------|-------------|
-| `title` | Document title (required for round-trip-safe output). Tooling MUST generate and maintain this field; if missing, generate a default (e.g., derived from filename/repo) and write it back. Humans are not expected to manually edit document metadata; apps/parsers/AI agents SHOULD keep it up to date. |
+| `title` | Document title (required for sync-ready output). Tooling MUST generate and maintain this field; if missing, generate a default (e.g., derived from filename/repo) and write it back. Humans are not expected to manually edit document metadata; apps/parsers/AI agents SHOULD keep it up to date. |
 | `sync` | ISO 8601 timestamp of last sync |
 | `uuid` | Unique document identifier (UUIDv7 recommended) for sync matching across renames/moves |
 | `lists` | Optional list registry: `lists: "{List Title}" {id}, "{Title}" {id} ...`. Apps MAY use this to give list headings stable identifiers. |
 | `syntax` | Optional syntax hints for parsing/export behavior. The key `mode` selects parsing behavior (e.g., `syntax: mode: marker` or `syntax: mode: blank-lines`) |
 | `fields` | Optional comma-separated list of custom metadata key names. Declares additional keys that parsers recognize as valid item metadata (e.g., `fields: note, sprint, client` or `fields: due-date, start-time`). See "Standard Fields" for the built-in known keys. |
-| `format` | Format descriptor (required for round-trip-safe output), e.g. `Embridge v0.1.1, github.com/embridge-foundation/embridge`. The version number MUST follow the `v{major}.{minor}.{patch}` format (e.g., `v0.1.1`). See [Versioning](#versioning) for parser behavior when version differences are encountered. |
+| `format` | Format descriptor (required for sync-ready output), e.g. `Embridge v0.1.1, github.com/embridge-foundation/embridge`. The version number MUST follow the `v{major}.{minor}.{patch}` format (e.g., `v0.1.1`). See [Versioning](#versioning) for parser behavior when version differences are encountered. |
 
 **Reader tolerance (parser/import guidance):**
 - Parsers MUST parse known document metadata fields by key name (case-insensitively) and MUST NOT rely on field order.
@@ -865,7 +863,7 @@ The shorter form (`<!-- Embridge v0.1.1 -->`) is only valid as a standalone sing
 
 **When to use:**
 - The inline format tag is intended for human-authored files that need minimal format identification without sync metadata.
-- Tooling producing round-trip-safe output SHOULD use the full multi-line metadata block instead.
+- Tooling producing sync-ready output SHOULD use the full multi-line metadata block instead.
 
 ---
 
@@ -995,11 +993,11 @@ Notes:
 - The `syntax: mode: blank-lines` metadata is critical for parsers to correctly interpret files that use blank-line boundaries.
 - Cooperative apps/tools MAY emit blank-lines mode output when explicitly configured, and SHOULD write `syntax: mode: blank-lines`.
 
-### Tooling export/rewrite normalization (optional, recommended for round-trip-safe output)
+### Tooling export/rewrite normalization (optional, recommended for sync-ready output)
 
 When exporting/rewriting, tooling MAY normalize files to improve interoperability and round-tripping:
 
-1. If the document metadata block is present or the tooling is producing round-trip-safe output:
+1. If the document metadata block is present or the tooling is producing sync-ready output:
    - If `title:` is missing → generate a default and write it back
    - If `format:` is missing → write canonical format descriptor
    - If `syntax:` is present → parse supported syntax keys as output hints; ignore unknown keys
@@ -1012,7 +1010,7 @@ When exporting/rewriting, tooling MAY normalize files to improve interoperabilit
    - Preserve the original marker style (bullet or ordered) and the ordered number when round-tripping
 
 **Inline format tag handling:**
-- Tooling producing round-trip-safe output SHOULD use the full multi-line metadata block (not the inline format tag alone).
+- Tooling producing sync-ready output SHOULD use the full multi-line metadata block (not the inline format tag alone).
 - The inline format tag is suitable for human-authored files or minimal Embridge format identification.
 - If tooling encounters only an inline format tag and needs to add more metadata fields (e.g. `title:`, `sync:`), it SHOULD add a full multi-line metadata block and MAY keep or remove the existing inline tag.
 
@@ -1164,8 +1162,8 @@ When the application writes to the `.md` file:
 **Tooling export/rewrite guidance:**
 1. Tooling SHOULD preserve existing structure and formatting where possible, including marker style (bullet vs ordered).
 2. Tooling SHOULD write metadata fields in canonical order: `description` → `status` → `prio` → `tags` → `assignee` → `created` → `updated` → `on` → `due` → `id` (see "Standard Fields (Non-exhaustive)"); tooling SHOULD prefer description shorthand (`"..."`) over explicit `description:` when rewriting.
-3. For round-trip-safe output, tooling MUST ensure `title:` exists in document metadata (generate if missing).
-4. For round-trip-safe output, tooling MUST ensure `format:` exists in document metadata (generate if missing). Note: an inline format tag (`<!-- format: ... -->`) satisfies the `format:` requirement for output that is not round-trip-safe, but round-trip-safe output SHOULD use the full multi-line metadata block.
+3. For sync-ready output, tooling MUST ensure `title:` exists in document metadata (generate if missing).
+4. For sync-ready output, tooling MUST ensure `format:` exists in document metadata (generate if missing). Note: an inline format tag (`<!-- format: ... -->`) satisfies the `format:` requirement for non-sync-ready output, but sync-ready output SHOULD use the full multi-line metadata block.
 5. If `syntax:` is present, tooling MAY apply supported syntax hints during rewrite/export. Tooling SHOULD treat `mode` as parse-critical.
 6. Tooling MAY emit blank-lines mode output when explicitly configured (`syntax: mode: blank-lines`), but SHOULD default to marker mode for maximum interoperability.
 7. In default marker mode, tooling SHOULD omit `syntax:` from metadata unless non-default syntax behavior must be signaled.
@@ -1173,7 +1171,7 @@ When the application writes to the `.md` file:
 9. Tooling SHOULD write document metadata fields in this recommended order for stable diffs: `title` → `sync` → `uuid` → `lists` → `fields` → `syntax` → `format`.
 10. Tooling MUST NOT write app-only data (colors, UI state) to markdown.
 11. Tooling SHOULD add an `id` field to any item/task missing one when stable syncing is a goal (attachment subitems MAY be excluded; see "Attachments (Convention)").
-12. For round-trip-safe output, tooling MUST ensure item `id` values are unique within the document before export. Duplicate imported IDs SHOULD be repaired by assigning new IDs to later duplicates rather than dropping items.
+12. For sync-ready output, tooling MUST ensure item `id` values are unique within the document before export. Duplicate imported IDs SHOULD be repaired by assigning new IDs to later duplicates rather than dropping items.
 13. Tooling MAY add checkboxes (`[ ]` or `[x]`) to items/subitems that don't have one as a normalization step (recommended for consistent rendering), but SHOULD NOT add checkboxes to attachment items (see "Attachments (Convention)").
 14. When rewriting items, tooling SHOULD preserve the original marker style. If an item was authored with `1.`, export as `1.` (not `-`). Tooling MUST NOT emit leading zeros (e.g., write `1.` not `01.`).
 
@@ -1438,7 +1436,7 @@ id: db01abc
 > check the slow query log
 ```
 
-### Minimal Round-Trip-Safe File
+### Minimal Sync-Ready File
 
 ```markdown
 # To-do
