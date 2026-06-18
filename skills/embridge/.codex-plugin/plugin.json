@@ -1,0 +1,38 @@
+{
+  "name": "embridge",
+  "version": "0.2.1",
+  "description": "Create, read, edit, validate, diagnose, and convert Embridge Markdown item lists and task lists.",
+  "author": {
+    "name": "xpiu",
+    "url": "https://github.com/embridge-foundation"
+  },
+  "homepage": "https://embridge.net",
+  "repository": "https://github.com/embridge-foundation/embridge",
+  "license": "MIT",
+  "keywords": [
+    "embridge",
+    "markdown",
+    "tasks",
+    "task-list",
+    "items",
+    "lists"
+  ],
+  "interface": {
+    "displayName": "Embridge",
+    "shortDescription": "Work with Embridge item lists",
+    "longDescription": "Create, read, edit, validate, diagnose, and convert Embridge Markdown item lists and task lists while preserving IDs, metadata, comments, attachments, and round-trip-safe structure.",
+    "developerName": "xpiu",
+    "category": "Productivity",
+    "capabilities": [
+      "Read",
+      "Write"
+    ],
+    "websiteURL": "https://embridge.net",
+    "defaultPrompt": [
+      "Use Embridge to create a task list.",
+      "Validate this Embridge Markdown file.",
+      "Convert this list to Embridge format."
+    ],
+    "brandColor": "#10A37F"
+  }
+}

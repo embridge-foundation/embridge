@@ -1,0 +1,20 @@
+{
+  "name": "embridge",
+  "version": "0.2.1",
+  "description": "Create, read, edit, validate, diagnose, and convert Embridge Markdown item lists and task lists.",
+  "author": {
+    "name": "xpiu",
+    "url": "https://github.com/embridge-foundation"
+  },
+  "homepage": "https://embridge.net",
+  "repository": "https://github.com/embridge-foundation/embridge",
+  "license": "MIT",
+  "keywords": [
+    "embridge",
+    "markdown",
+    "tasks",
+    "task-list",
+    "items",
+    "lists"
+  ]
+}

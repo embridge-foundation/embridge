@@ -1,0 +1,4 @@
+interface:
+  display_name: "Embridge"
+  short_description: "Work with Embridge item lists"
+  default_prompt: "Use $embridge to create, edit, validate, or convert an Embridge item/task list."
