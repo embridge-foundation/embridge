@@ -1,8 +1,8 @@
 # Specifications for Embridge: an open source item/task list format
 
-- **Version:** 0.2.1  
-- **Last Updated:** 2026-06-13  
-- **Example output:** `embridge_output_demo_v0.2.1.md`   
+- **Version:** 0.2.2  
+- **Last Updated:** 2026-06-23  
+- **Example output:** `embridge_output_demo_v0.2.2.md`   
 - **Github:** https://github.com/embridge-foundation/embridge  
 - **Project website:** https://embridge.net  
 - **Author:** xpiu 
@@ -27,7 +27,7 @@
     - [Line Roles](#line-roles)
   - [Item Lines](#item-lines)
   - [Nesting (Subitems/Subtasks)](#nesting-subitemssubtasks)
-  - [Item Metadata (Optional Line)](#item-metadata-optional-line)
+  - [Item Metadata (Optional Block)](#item-metadata-optional-block)
   - [Standard Fields (Non-exhaustive)](#standard-fields-non-exhaustive)
   - [Comments (Optional)](#comments-optional)
   - [Attachments (Convention)](#attachments-convention)
@@ -151,9 +151,9 @@ Within round-trip-safe output, this spec still uses MUST / SHOULD / MAY (and REC
 
 Embridge files MAY declare a format version using the `format:` field in document metadata or an inline format tag. Files without a declared version are still valid Basic Embridge.
 
-When present, the version number MUST use semantic versioning in the form `v{major}.{minor}.{patch}` (for example, `v0.2.1`):
+When present, the version number MUST use semantic versioning in the form `v{major}.{minor}.{patch}` (for example, `v0.2.2`):
 
-- Patch versions, such as `v0.2.1`, contain editorial clarifications, typo fixes, examples, and non-breaking corrections.
+- Patch versions, such as `v0.2.2`, contain editorial clarifications, typo fixes, examples, and narrow backwards-compatible reader-tolerance corrections that do not make previously valid files invalid.
 - Minor versions, such as `v0.3.0`, may add backward-compatible features.
 - Major versions, such as `v1.0.0`, may introduce breaking changes.
 
@@ -183,7 +183,7 @@ This example shows the typical layout of an Embridge document:
 title: {Title of document content}
 sync: {ISO 8601 timestamp}
 uuid: {document identifier, UUIDv7 recommended}
-format: Embridge v0.2.1, github.com/embridge-foundation/embridge
+format: Embridge v0.2.2, github.com/embridge-foundation/embridge
 -->
 ```
 
@@ -192,13 +192,13 @@ For minimal format identification, a single-line **inline format tag** may be us
 ```markdown
 - {Item/Task}
 
-<!-- format: Embridge v0.2.1 -->
+<!-- format: Embridge v0.2.2 -->
 ```
 
 A shorter form without the `format:` key is also valid (case-insensitive):
 
 ```markdown
-<!-- embridge v0.2.1 -->
+<!-- embridge v0.2.2 -->
 ```
 
 Notes:
@@ -212,13 +212,14 @@ The subsections below define the full validity, canonical output guidance, and r
 - **Lists:** H1 headings (`# `) define list sections (optional).
 - **Items:** Markdown list items using either `- ` or `{number}. ` markers (a space after the marker is required).
 - **Completion:** An optional checkbox follows the marker: `[ ]` (incomplete) or `[x]` / `[X]` (complete). Items without checkboxes are valid and have an "unknown" completion state (`completed: null`).
-- **Item metadata (optional):** One metadata block may appear immediately after an item. It is either:
-  - a single metadata line of comma-separated `key: value` pairs, or
-  - a quoted description shorthand (`"..."`), which MAY span multiple lines until the closing `"`.
+- **Item metadata (optional):** One logical metadata block may appear immediately after an item/subitem. It contains one or more consecutive metadata-like lines merged as one block:
+  - metadata field lines of comma-separated `key: value` pairs, and/or
+  - quoted description shorthand (`"..."`), which MAY span multiple lines until the closing `"`.
+  One comma-separated metadata line is the canonical writer form; preserved multiline metadata is valid but non-canonical.
 - **Comments (optional):** Lines starting with `>` attach to the item/subitem above and MAY be threaded via `>>`, `>>>`, etc.
 - **Section metadata (optional, discouraged):** A section metadata block of field lines and/or quoted description shorthand MAY follow a list heading, before the first item; tooling SHOULD instead store canonical list-level data in document metadata.
 - **Document metadata (optional):** An HTML comment stores document-level fields for round-trip-safe output. Tooling SHOULD write it at the end of the file; parsers SHOULD also accept it at the top for reader tolerance.
-  - A single-line **inline format tag** (`<!-- format: Embridge v0.2.1 -->` or shorter `<!-- embridge v0.2.1 -->`) may be used instead for minimal format identification.
+  - A single-line **inline format tag** (`<!-- format: Embridge v0.2.2 -->` or shorter `<!-- embridge v0.2.2 -->`) may be used instead for minimal format identification.
   - Document metadata keys and the format identifier are parsed case-insensitively.
 
 ### Document Model (Informative)
@@ -373,7 +374,7 @@ prio: high, id: a1b2c3d
 - Subitems/Subtasks follow the same syntax as items/tasks (optional checkbox, optional metadata).
 - Nesting depth is unlimited, but 2 levels is typical.
 
-### Item Metadata (Optional Line)
+### Item Metadata (Optional Block)
 
 An item/task MAY be followed by an **item metadata block**. If present, it belongs to the item/task directly above it. **Metadata does not require indentation** — indentation is purely for visual preference.
 
@@ -385,14 +386,26 @@ Metadata for a subitem does NOT need to match the subitem's indentation:
 status: todo, id: def456a      ← no indentation needed, still belongs to subitem above
 ```
 
-An item metadata block is either:
+An item metadata block is one logical block made from consecutive metadata-like lines immediately after an item/subitem. A metadata-like line is:
 
-- a single metadata line of comma-separated `key: value` pairs, optionally beginning with description shorthand (`"..."`), OR
-- a quoted description shorthand that spans multiple lines until a closing `"`, optionally followed by additional `key: value` pairs after the closing quote.
+- a metadata field line of comma-separated `key: value` pairs, optionally beginning with description shorthand (`"..."`), OR
+- a quoted description shorthand that spans multiple lines until a closing `"`, optionally followed by additional `key: value` pairs after the closing quote, OR
+- a continuation line inside an open multiline quoted description.
+
+Line breaks between accepted metadata-like lines act as field separators. A trailing comma at the end of each line is not required.
 
 ```markdown
 - [ ] Example item/task
 status: todo, prio: high, tags: "backend, api", due: 2025-01-15, id: a1b2c3d
+```
+
+The same metadata may also be read from consecutive metadata lines:
+
+```markdown
+- [ ] Example item/task
+status: todo
+prio: high, tags: "backend, api"
+due: 2025-01-15, id: a1b2c3d
 ```
 
 Indented metadata is also valid (for visual preference):
@@ -421,7 +434,10 @@ status: todo, prio: high, tags: "backend, api", due: 2025-01-15, id: a1b2c3d
 - Inside a quoted value, a literal `"` is written as `""`.
 - Trailing comma is allowed but not required: `prio: high, due: 2025-01-15,` (valid).
 - Metadata indentation is optional — parsers accept both indented and non-indented.
-- Each item/task gets at most **one** metadata block. If a second metadata-like line appears after an item's metadata block, parsers MUST ignore it and SHOULD emit a diagnostic warning (e.g., "line 5: additional metadata line ignored").
+- Each item/task gets at most **one logical** metadata block. Parsers SHOULD accept consecutive metadata-like lines after an item/subitem and merge them into that one logical block until a boundary line is reached.
+- Outside an open multiline description, boundary lines include list headings, item markers, comment markers, blank lines, document metadata boundary comments, and non-metadata free-form lines. Once `inside_quote = true`, lines remain description content until the closing delimiter; boundary priority resumes after the description closes. Item markers and list headings MUST be recognized before metadata continuation. Comment markers close item/subitem metadata eligibility.
+- A line whose first non-whitespace character is `"` and has no closing `"` opens a multiline description; continuation lines remain part of that description until the close. A bare `"` is therefore an open quote, not a field.
+- Repeated scalar fields are valid input. Parsers SHOULD use last-wins behavior and SHOULD emit a diagnostic when possible. This applies to repeated fields on one metadata line and repeated fields across accepted metadata lines.
 - The `id` field, when present, identifies one item/task. Duplicate `id` values do not make Basic Embridge unparseable, but parsers SHOULD diagnose them and tooling producing round-trip-safe output MUST resolve them before using IDs for matching.
 
 **Canonical output (tooling export/rewrite guidance):**
@@ -429,12 +445,19 @@ status: todo, prio: high, tags: "backend, api", due: 2025-01-15, id: a1b2c3d
 - Tooling SHOULD use `key: value` (with a single space after `:`) for readability.
 - Tooling SHOULD NOT output a space before the colon (`key : value`).
 - Tooling SHOULD quote values that contain commas, leading/trailing spaces, or `"` characters.
+- Tooling SHOULD emit metadata fields on one canonical line directly below the owning item/subitem, with fields separated by commas.
+- Tooling MAY preserve multiline metadata layout during lossless round-trips.
+- Tooling SHOULD NOT newly emit multiline metadata unless preserving source layout or improving readability for a user-facing reason.
+- A normalize operation SHOULD collapse multiline metadata to the canonical one-line form and SHOULD be idempotent: normalizing already-canonical output produces identical bytes.
 - Tooling MUST NOT emit duplicate item `id` values in round-trip-safe output. If multiple imported items share an `id`, tooling SHOULD keep the first occurrence and assign fresh IDs to later duplicates, with a warning or import log entry.
 - Tooling SHOULD NOT use shared `id` values to express groups, batches, projects, or AI-generated bundles. Use a parent item/subitems, list sections, or a separate metadata field such as `group`, `batch`, or `project` instead.
 
 **Reader tolerance (parser/import guidance):**
 - Parsers SHOULD be tolerant about whitespace and MAY accept `key : value` (treat as non-canonical and warn if possible).
 - Parsers SHOULD trim surrounding whitespace from unquoted values.
+- Parsers SHOULD accept `key: value`, `key:value`, and non-canonical `key : value` on every metadata line. Canonical output writes field names in lowercase and uses `key: value` with no space before the colon and exactly one space after it.
+- A metadata key begins with an ASCII letter and continues with ASCII letters, digits, or hyphens. An empty key such as `: value` is not metadata-like and closes the block.
+- Parsers SHOULD NOT emit a warning for accepted multiline metadata in permissive parse mode. Linters or normalize commands MAY warn with a message such as `non-canonical multiline metadata`.
 
 **Quoting note — values with commas:**
 
@@ -479,7 +502,7 @@ Both forms are equivalent. The shorthand can also stand alone:
 - Applies only when `"` is the first non-whitespace character on the metadata line.
 - The quoted value is parsed as `description:` (same escaping rules: `""` → `"`).
 - Can be followed by other fields after a comma: `"My description", prio: high, id: abc123d`.
-- If both shorthand and explicit `description:` appear, parsers SHOULD treat this as an error (or use last-wins).
+- If both shorthand and explicit `description:` / `desc:` / `descr:` appear for one item/subitem, the file remains valid input. Parsers SHOULD use last-wins behavior and SHOULD emit a diagnostic when possible. Strict-validation tooling MAY treat this as an error.
 - When exporting, tooling SHOULD prefer the shorthand form for brevity (explicit `description:` / `desc:` / `descr:` are also valid).
 
 **Multiline descriptions:** The shorthand syntax supports descriptions spanning multiple lines. The description starts with `"` on the first metadata line and continues until the closing `"` is found:
@@ -498,6 +521,21 @@ It can include detailed notes.", prio: high, id: a1b2c3d
 - Escaped quotes (`""`) work the same: `""` → `"`. Parsers MUST consume `""` pairs left-to-right before matching a closing `"`, so a trailing `"""` is unambiguously an escaped quote followed by the closing delimiter.
 - Other metadata fields follow after the closing `"` and a comma (on the same line as the closing quote).
 - Parsers track "inside open quote" state across lines until the closing `"` is found.
+
+Consecutive metadata lines may continue after a multiline description closes:
+
+```markdown
+- [ ] Complex item/task
+"First line.
+Second line.", ref: A
+prio: high
+```
+
+Expected parse:
+
+- `description`: `First line.\nSecond line.`
+- `ref`: `A`
+- `prio`: `high`
 
 ```markdown
 - [ ] Item with multiline description and metadata
@@ -518,6 +556,21 @@ Third line wrapping up.", status: todo, prio: high, id: x1y2z3e
 - a metadata field (optionally declared via `fields:` in document metadata for tooling UX).
 
 **Reader tolerance guidance:** Readers MAY choose to treat non-conformant free-form lines as a best-effort description during import (to avoid data loss), but tooling SHOULD NOT emit that form.
+
+Because v0.2.2 accepts consecutive metadata-like lines, colon-shaped prose in metadata position is captured for as long as each line remains metadata-like:
+
+```markdown
+- [ ] Call the client
+remember: call in the morning
+also: bring the report
+```
+
+Expected parse:
+
+- `remember`: `call in the morning`
+- `also`: `bring the report`
+
+A single non-metadata line closes the metadata block. Free-form prose remains non-conformant in marker mode and SHOULD NOT be treated as valid metadata continuation:
 
 ```markdown
 - [ ] Call the client
@@ -595,6 +648,7 @@ The space after the comma inside quotes is recommended for readability but optio
 - A shared grouping concept SHOULD NOT be represented by reusing the same `id` on multiple items. Prefer a parent item/subitems, list section, or a separate field such as `group`, `batch`, or `project` (declared via `fields:` if needed).
 
 **Parsing notes — duplicate item `id` values:**
+- Repeated `id` fields on the same item/subitem are repeated scalar metadata fields; parsers SHOULD use last-wins behavior and SHOULD emit a repeated-field diagnostic when possible.
 - Parsers SHOULD NOT assume humans or AI agents always keep item IDs unique; duplicate `id` values are an expected input-quality error.
 - Parsers SHOULD detect duplicate item IDs during import and SHOULD surface a warning/event for observability.
 - Duplicate-ID resolution is implementation-defined. Parsers MAY:
@@ -685,6 +739,7 @@ prio: high, id: a1b2c3d
 
 **Notes (parsing):**
 - **Precedence:** Comment lines (`>`) MUST be detected before checking for metadata patterns. Lines like `> @alice: text` contain substrings matching `key: value` syntax, but the leading `>` takes precedence.
+- A comment line closes metadata eligibility for the current item/subitem block. Later metadata-like lines MUST NOT be attached to that item as normal metadata; parsers SHOULD diagnose or preserve those lines as non-conformant import data according to their existing free-form preservation behavior.
 - **Author prefix:** The `@` prefix is REQUIRED for author detection. `> @alice: comment` → author="alice", but `> alice: comment` → content="alice: comment" (no author parsed, entire text is content). This avoids ambiguity with natural-language colons.
 - **Colon requirement:** The colon (`:`) before content is required when author or timestamp is present. Without it, the entire text is treated as content: `> @alice: comment` → author="alice", but `> @alice comment` → content="@alice comment" (no author parsed).
 
@@ -761,6 +816,20 @@ This is valid Embridge, but it is simply an item title (not an attachment signal
 **Reader tolerance (parser/import guidance):**
 - Parsers MAY detect attachments using the "link-only / image-only title" rule above.
 - If an app wants to show previews, it MAY infer media type from the link destination (e.g., `.png`, `.jpg`, `.gif`, `.mp4`) when an extension is present; if not, treat as a generic file/link.
+- Attachment subitems are still items for parse ownership. Metadata after an attachment item belongs to the attachment subitem, not to the parent:
+
+```markdown
+- Parent
+ref: A
+  - [Spec](spec.pdf)
+caption: "API review notes"
+```
+
+Expected ownership:
+
+- `ref: A` belongs to `Parent`
+- `[Spec](spec.pdf)` is an attachment subitem
+- `caption` belongs to the attachment subitem
 
 ### List Sections (H1 Headings)
 
@@ -804,8 +873,8 @@ The block attaches to the list/section, not to any item.
 - **Validity (Basic Embridge):** A section metadata block is OPTIONAL and, when present, MUST start on the line directly below the heading, with no intervening blank line. It continues through consecutive metadata field lines and/or quoted description shorthand, and ends at the first item, comment, blank line, or non-metadata line. Section metadata field lines follow the normal field separation rules (`key: value`, comma-separated when multiple fields appear on one line).
 - **Reader tolerance (parser/import guidance):** Parsers SHOULD accept it and attach the fields or description to the list/section. Section/list metadata field lines do not need to contain a known key. Parsers, agents, bots, and apps SHOULD preserve unknown or unsupported section/list fields and values for forward compatibility. Human editors SHOULD leave unfamiliar section/list field lines intact unless intentionally removing them. If the same inline section field appears more than once, the later value wins.
 - **Caution:** A `key: value` line immediately below a heading is captured as section metadata even when the key is invented (for example, `# Shopping` followed by `remember: buy milk`). To write prose instead, use a comment line (`>`), description shorthand (`"..."`), or a blank line before prose where the selected syntax mode permits it.
-- **Preservation recommendation:** When preserving imported inline section/list fields, tools SHOULD prefer one metadata field line directly below the heading, with fields placed next to each other as comma-separated pairs (for example, `status: backlog, future-field: alpha`). Consecutive metadata field lines remain valid reader input.
-- **Canonical output (tooling export/rewrite guidance):** When generating or rewriting Embridge, tools MUST NOT place list IDs directly below headings. List IDs belong in document metadata via `lists:`. Inline section metadata is reader-tolerance only and should be preserved only when importing existing files for lossless round-trips. List-level data SHOULD be normalized into the document metadata block at the end of the file where a canonical destination exists (e.g. the `lists:` registry). When the same field is provided both inline and in document metadata, the document metadata block wins. In particular, if inline section metadata contains `id:` and the document metadata `lists:` registry also gives that list an ID, parsers, agents, and machines SHOULD use the `lists:` registry ID as the canonical list identity. Imported unknown or unsupported section/list fields SHOULD be preserved for lossless round-trips rather than dropped.
+- **Preservation recommendation:** When preserving imported inline section/list fields, tools SHOULD prefer one canonical metadata field line directly below the heading, with fields placed next to each other as comma-separated pairs (for example, `status: backlog, future-field: alpha`). Consecutive metadata field lines remain valid but non-canonical reader input, and tooling MAY preserve them during lossless round-trips.
+- **Canonical output (tooling export/rewrite guidance):** Inline section metadata is valid but non-canonical. Tools SHOULD NOT newly emit it except to preserve imported fields for lossless round-trips. List IDs directly below headings are reader-tolerance only; canonical list IDs belong in document metadata via `lists:`. List-level data SHOULD be normalized into the document metadata block at the end of the file where a canonical destination exists (e.g. the `lists:` registry). When the same field is provided both inline and in document metadata, the document metadata block wins. In particular, if inline section metadata contains `id:` and the document metadata `lists:` registry also gives that list an ID, parsers, agents, and machines SHOULD use the `lists:` registry ID as the canonical list identity. Imported unknown or unsupported section/list fields SHOULD be preserved for lossless round-trips rather than dropped.
 
 ### Document Metadata (HTML Comment)
 
@@ -837,7 +906,7 @@ sync: 2025-01-15T09:00:00-05:00
 uuid: 0188b200-0000-7000-8000-000000000000
 lists: "Backlog" a1b2c3d, "In Progress" d4e5f6a, "Done" g7h8i9b
 fields: note, sprint, client
-format: Embridge v0.2.1, github.com/embridge-foundation/embridge
+format: Embridge v0.2.2, github.com/embridge-foundation/embridge
 -->
 ```
 
@@ -849,7 +918,7 @@ format: Embridge v0.2.1, github.com/embridge-foundation/embridge
 | `lists` | Optional list registry: `lists: "{List Title}" {id}, "{Title}" {id} ...`. Apps MAY use this to give list headings stable identifiers. If the same list also has an inline section `id:`, this registry ID is canonical and wins on conflict. Registry entries are matched to headings by list title, so the registry is unambiguous only when titles are unique; if multiple lists share a title, parsers SHOULD pair registry entries with same-titled headings in document order, and where that remains ambiguous SHOULD fall back to each list's inline section `id:` rather than forcing a registry ID. |
 | `syntax` | Optional syntax hints for parsing/export behavior. The key `mode` selects parsing behavior (e.g., `syntax: mode: marker` or `syntax: mode: blank-lines`) |
 | `fields` | Optional comma-separated list of custom metadata key names. Advertises additional item metadata keys for tooling, validation, and UI hints (e.g., `fields: note, sprint, client` or `fields: due-date, start-time`). Unknown item fields are still valid metadata and SHOULD be preserved even when not listed here. See "Standard Fields" for built-in standard keys. |
-| `format` | Format descriptor (required for round-trip-safe output), e.g. `Embridge v0.2.1, github.com/embridge-foundation/embridge`. The version number MUST follow the `v{major}.{minor}.{patch}` format (e.g., `v0.2.1`). See [Versioning](#versioning) for parser behavior when version differences are encountered. |
+| `format` | Format descriptor (required for round-trip-safe output), e.g. `Embridge v0.2.2, github.com/embridge-foundation/embridge`. The version number MUST follow the `v{major}.{minor}.{patch}` format (e.g., `v0.2.2`). See [Versioning](#versioning) for parser behavior when version differences are encountered. |
 
 **Reader tolerance (parser/import guidance):**
 - Parsers MUST parse known document metadata fields by key name (case-insensitively) and MUST NOT rely on field order.
@@ -874,16 +943,16 @@ format: Embridge v0.2.1, github.com/embridge-foundation/embridge
 A single-line HTML comment containing only `format:` may be used as a lightweight format identifier:
 
 ```markdown
-<!-- format: Embridge v0.2.1 -->
+<!-- format: Embridge v0.2.2 -->
 ```
 
 Parsers MUST also tolerate a shorter form that omits the `format:` key, using just the format value:
 
 ```markdown
-<!-- Embridge v0.2.1 -->
+<!-- Embridge v0.2.2 -->
 ```
 
-The shorter form (`<!-- Embridge v0.2.1 -->`) is only valid as a standalone single-line inline tag. It MUST NOT be used inside a multi-line metadata block.
+The shorter form (`<!-- Embridge v0.2.2 -->`) is only valid as a standalone single-line inline tag. It MUST NOT be used inside a multi-line metadata block.
 
 **Validity (Basic Embridge):**
 - The inline format tag is OPTIONAL.
@@ -891,7 +960,7 @@ The shorter form (`<!-- Embridge v0.2.1 -->`) is only valid as a standalone sing
 
 **Format value:**
 - The `format:` value follows the same rules as in the full metadata block (see the `format` field in the table above).
-- The repository URL portion is optional: both `Embridge v0.2.1` and `Embridge v0.2.1, github.com/embridge-foundation/embridge` are valid.
+- The repository URL portion is optional: both `Embridge v0.2.2` and `Embridge v0.2.2, github.com/embridge-foundation/embridge` are valid.
 
 **Coexistence with the full metadata block:**
 - A file MAY contain both an inline format tag and a full multi-line metadata block.
@@ -945,8 +1014,11 @@ This bootstrap behavior is critical because syntax mode can change boundary dete
            - Detect marker type: `-` = bullet, `{number}.` = ordered
            - If ordered: extract `{number}` for round-trip preservation (decorative only — not used for ordering)
            - Parse checkbox state and title
-      iv.  Line after a `- ` or `{number}. ` line, does NOT start with `- `, `{number}. `, or `>` → Metadata for item above
-           - Only the **first** metadata-like line after an item is parsed as metadata. If the item already has a metadata block, ignore the line and emit a warning.
+      iv.  Line after a `- ` or `{number}. ` line, while item metadata eligibility is open, and does NOT start with `- `, `{number}. `, `# `, or `>` → Potential metadata for item/subitem above
+           - Parse consecutive metadata-like lines as one logical metadata block until a boundary line is reached.
+           - Boundary lines include list headings, item markers, comment markers, blank lines, document metadata boundary comments, and non-metadata free-form lines.
+           - Item markers and list headings MUST be recognized before metadata continuation. A later item marker MUST NOT be consumed as metadata continuation.
+           - Comment markers close metadata eligibility for the commented item/subitem block.
            - If line starts with `"` and contains closing `"` → Single-line description shorthand
            - If line starts with `"` but no closing `"` → Begin multiline description, set inside_quote = true
            - Otherwise → Parse comma-separated `key: value` pairs
@@ -964,7 +1036,9 @@ This bootstrap behavior is critical because syntax mode can change boundary dete
 3. Use the document metadata already consumed by the bootstrap pre-pass; leading/trailing metadata comments are not parsed again as body content
 ```
 
-Note: A metadata field line or quoted description shorthand appearing immediately after a list heading (before the first item/comment, and clearly not itself a list item) is **section metadata** and attaches to the list/section, not an item (see "List Sections (H1 Headings)"). Consecutive section metadata field lines are preserved, including unknown fields. It is tolerated reader input; tooling SHOULD NOT emit new inline section metadata.
+Note: A metadata field line or quoted description shorthand appearing immediately after a list heading (before the first item/comment, and clearly not itself a list item) is **section metadata** and attaches to the list/section, not an item (see "List Sections (H1 Headings)"). Consecutive section metadata field lines are preserved, including unknown fields. It is tolerated reader input; tooling SHOULD NOT newly emit multiline inline section metadata.
+
+Boundary priority is normative outside an open multiline description: document metadata boundary comments, list headings, item markers, and comment markers MUST be classified before metadata continuation. Once `inside_quote = true`, lines remain description content until the closing delimiter; boundary priority resumes after the description closes. Metadata indentation is visual only and does not create hierarchy.
 
 ### Blank-Lines Mode (optional syntax extension)
 
@@ -987,7 +1061,7 @@ Hard rules for `syntax: mode: blank-lines`:
    - If a description starts with `"` and has no closing quote on that line, parser enters `inside_quote = true`.
    - While `inside_quote = true`, blank lines are part of the description and MUST NOT terminate the block.
    - Block termination by blank line is only allowed when `inside_quote = false`.
-10. Only the **first** metadata-like line after a title is parsed as metadata. Additional metadata-like lines MUST be ignored and parsers SHOULD emit a warning.
+10. Consecutive metadata-like lines after a title are parsed as one logical metadata block until a boundary line is reached. Blank lines close the current block and metadata eligibility. Comment lines attach to the current block and close metadata eligibility for later metadata-like lines in that block.
 11. **Non-conformant lines:** Free-form lines after a title that do not match metadata, comment, or marker patterns are non-conformant (ignore or warn, implementation-defined).
 
 #### Reader (import / parse-only) — blank-lines mode
@@ -1021,12 +1095,14 @@ Hard rules for `syntax: mode: blank-lines`:
       iv.  current_block is not null AND line starts with optional spaces + `>`
            → Comment for current block
            - Parse as comment (same rules as marker mode step vi)
+           - Close metadata eligibility for the current block
       v.   current_block is null AND line starts with optional spaces + `>`
            → Orphaned comment (non-conformant: ignore and emit a warning)
-      vi.  current_block is not null AND line does not start with `>` AND line
+      vi.  current_block is not null AND metadata eligibility is open AND line does not start with `>` AND line
            is non-empty → Potential metadata for current block
-           - Only the first metadata-like line after a title is parsed
-           - If current block already has metadata, ignore and emit a warning
+           - Consecutive metadata-like lines after a title are parsed as one logical metadata block
+           - A blank line closes the block and metadata eligibility
+           - A comment line closes metadata eligibility for later metadata-like lines in the block
            - Same parsing rules as marker mode (key: value pairs, description
              shorthand, multiline description detection)
       vii. current_block is null AND line is non-empty → New blank-line-delimited item
@@ -1058,13 +1134,18 @@ When exporting/rewriting, tooling MAY normalize files to improve interoperabilit
    - If `id` is missing → generate an ID and write it back (recommended for syncing)
    - If checkbox is missing → add `[ ]` (or `[x]` if completed), if the tooling chooses to normalize checkboxes
    - Preserve the original marker style (bullet or ordered) and the ordered number when round-tripping
+   - Collapse multiline item/subitem metadata to one canonical comma-separated metadata line unless preserving source layout for a lossless round-trip.
+   - Repeated scalar metadata fields SHOULD normalize to the last value, with diagnostics or import logs when possible.
+3. For inline section/list metadata:
+   - Collapse multiline inline metadata to one canonical comma-separated metadata line if the metadata is preserved inline.
+   - Prefer canonical document metadata destinations where they exist, such as the `lists:` registry for stable list IDs.
 
 **Inline format tag handling:**
 - Tooling producing round-trip-safe output SHOULD use the full multi-line metadata block (not the inline format tag alone).
 - The inline format tag is suitable for human-authored files or minimal Embridge format identification.
 - If tooling encounters only an inline format tag and needs to add more metadata fields (e.g. `title:`, `sync:`), it SHOULD add a full multi-line metadata block and MAY keep or remove the existing inline tag.
 
-**Key insight:** The marker indentation determines hierarchy. Metadata lines belong to the most recent item above. Multiline descriptions require stateful parsing to track open quotes.
+**Key insight:** The marker indentation determines hierarchy. Metadata lines belong to the most recent item above while metadata eligibility is open. Multiline descriptions require stateful parsing to track open quotes.
 
 ### Regex Patterns
 
@@ -1178,13 +1259,13 @@ This line-scanning rule applies only to standalone leading/trailing HTML comment
 ```regex
 ^<!--\s*format:\s*(.+?)\s*-->$
 ```
-- Capture group 1: format value (e.g. `Embridge v0.2.1`)
+- Capture group 1: format value (e.g. `Embridge v0.2.2`)
 
 **Inline format tag (shorter form, no key):**
 ```regex
 ^<!--\s*(embridge\s+v\d+\.\d+\.\d+(?:,\s*.+?)?)\s*-->$
 ```
-- Capture group 1: format value (e.g. `embridge v0.2.1`)
+- Capture group 1: format value (e.g. `embridge v0.2.2`)
 
 Use these regexes for fast-matching inline format tags specifically. Full document metadata blocks use the boundary line-scanning rule above.
 
@@ -1226,10 +1307,11 @@ When the application writes to the `.md` file:
 10. Tooling MUST NOT write app-only data (colors, UI state) to markdown.
 11. Tooling SHOULD add an `id` field to any item/task missing one when stable syncing is a goal (attachment subitems MAY be excluded; see "Attachments (Convention)").
 12. For round-trip-safe output, tooling MUST ensure item `id` values are unique within the document before export. Duplicate imported IDs SHOULD be repaired by assigning new IDs to later duplicates rather than dropping items.
-13. Tooling MAY add checkboxes (`[ ]` or `[x]`) to items/subitems that don't have one as a normalization step (recommended for consistent rendering), but SHOULD NOT add checkboxes to attachment items (see "Attachments (Convention)").
-14. When rewriting items, tooling SHOULD preserve the original marker style. If an item was authored with `1.`, export as `1.` (not `-`). Tooling MUST NOT emit leading zeros (e.g., write `1.` not `01.`).
-15. When generating or rewriting Embridge, tools MUST NOT place list IDs directly below headings. List IDs belong in document metadata via `lists:`. Inline section metadata is reader-tolerance only and should be preserved only when importing existing files for lossless round-trips. Normalize other list-level data into the document metadata block where a canonical destination exists (e.g. the `lists:` registry). Imported unknown or unsupported section/list fields SHOULD be preserved for lossless round-trips rather than dropped.
-16. Tooling SHOULD use the document metadata `lists:` registry as the canonical source for list IDs. If an imported inline section `id:` conflicts with the registry ID for the same list, the registry ID wins and the inline value SHOULD be dropped or rewritten on export.
+13. Tooling SHOULD collapse multiline metadata to the canonical one-line comma-separated form when normalizing, unless preserving source layout for a lossless round-trip.
+14. Tooling MAY add checkboxes (`[ ]` or `[x]`) to items/subitems that don't have one as a normalization step (recommended for consistent rendering), but SHOULD NOT add checkboxes to attachment items (see "Attachments (Convention)").
+15. When rewriting items, tooling SHOULD preserve the original marker style. If an item was authored with `1.`, export as `1.` (not `-`). Tooling MUST NOT emit leading zeros (e.g., write `1.` not `01.`).
+16. When generating or rewriting Embridge, tools MUST NOT place list IDs directly below headings. List IDs belong in document metadata via `lists:`. Inline section metadata is valid but non-canonical and should be preserved only when importing existing files for lossless round-trips. Normalize other list-level data into the document metadata block where a canonical destination exists (e.g. the `lists:` registry). Imported unknown or unsupported section/list fields SHOULD be preserved for lossless round-trips rather than dropped.
+17. Tooling SHOULD use the document metadata `lists:` registry as the canonical source for list IDs. If an imported inline section `id:` conflicts with the registry ID for the same list, the registry ID wins and the inline value SHOULD be dropped or rewritten on export.
 
 **Renumbering (optional):**
 - Ordered marker numbers are purely decorative (see "Ordered marker constraints"). Item order is always determined by position in the file.
@@ -1291,7 +1373,7 @@ List headings are recommended but not required:
 - Buy apples
 - Charge battery
 
-<!-- format: Embridge v0.2.1 -->
+<!-- format: Embridge v0.2.2 -->
 ```
 
 The shorter form (without the `format:` key) is also valid:
@@ -1300,7 +1382,7 @@ The shorter form (without the `format:` key) is also valid:
 - Buy apples
 - Charge battery
 
-<!-- embridge v0.2.1 -->
+<!-- embridge v0.2.2 -->
 ```
 
 ### Minimal Blank-Lines Mode File (Syntax Extension)
@@ -1434,8 +1516,7 @@ syntax: mode: blank-lines
 Parser output:
 - `Buy apples` — item
 - `> orphaned comment` — **warning:** comment after blank-line boundary with no parent item in current block (non-conformant, ignored)
-- `Buy oranges` — item, metadata: `prio: high`
-- `status: open` — **warning:** second metadata line (ignored)
+- `Buy oranges` — item, metadata: `prio: high`, `status: open`
 
 ### Minimal Numbered List
 
@@ -1504,7 +1585,7 @@ title: Items/Tasks
 sync: 2025-01-15T09:00:00-05:00
 uuid: 0188b200-0000-7000-8000-000000000000
 lists: "To-do" a1b2c3d
-format: Embridge v0.2.1, github.com/embridge-foundation/embridge
+format: Embridge v0.2.2, github.com/embridge-foundation/embridge
 -->
 ```
 
@@ -1547,7 +1628,7 @@ title: Project Demo
 sync: 2025-01-15T09:00:00-05:00
 uuid: 0188b200-0000-7000-8000-000000000000
 lists: "Backlog" k3m9p2a, "To-do" q7w2e1b, "In Progress" z8x4c3d, "Done" r5t6y7e
-format: Embridge v0.2.1, github.com/embridge-foundation/embridge
+format: Embridge v0.2.2, github.com/embridge-foundation/embridge
 -->
 ```
 

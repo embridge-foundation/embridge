@@ -8,7 +8,7 @@ const {
   parseMetadataLine,
   hasAnyKeyValue,
   descriptionFromFields,
-  itemHasMetadata,
+  isDescriptionKey,
 } = require('./metadata');
 
 function parseEmbridge(markdown, options) {
@@ -82,7 +82,9 @@ function createState(document, skippedLines) {
     currentList: null,
     itemStack: [],
     seenItemIds: new Map(),
+    itemIds: new WeakMap(),
     sectionMetaEligible: false,
+    itemMetaEligible: false,
   };
 }
 
@@ -94,6 +96,7 @@ function parseMarkerMode(lines, state) {
     const line = lines[index];
     if (/^\s*$/.test(line)) {
       if (sectionMetadataTarget(state)) state.sectionMetaEligible = false;
+      state.itemMetaEligible = false;
       continue;
     }
 
@@ -103,6 +106,7 @@ function parseMarkerMode(lines, state) {
       state.document.lists.push(state.currentList);
       state.itemStack = [];
       state.sectionMetaEligible = true;
+      state.itemMetaEligible = false;
       continue;
     }
 
@@ -111,6 +115,7 @@ function parseMarkerMode(lines, state) {
     const invalid = invalidMarkerDiagnostic(line, lineNo);
     if (invalid) {
       state.sectionMetaEligible = false;
+      state.itemMetaEligible = false;
       state.document.diagnostics.push(invalid);
       continue;
     }
@@ -119,18 +124,24 @@ function parseMarkerMode(lines, state) {
     if (itemToken) {
       state.sectionMetaEligible = false;
       addItem(state, itemToken, lineNo);
+      state.itemMetaEligible = true;
       continue;
     }
 
     const parsedComment = parseCommentLine(line);
     if (parsedComment) {
       state.sectionMetaEligible = false;
+      state.itemMetaEligible = false;
       const target = findItemForIndent(state, parsedComment.indent) || mostRecentItem(state);
       if (target) appendOrAddComment(target, parsedComment);
       continue;
     }
 
     if (/^\s*"/.test(line)) {
+      if (!sectionTarget && !state.itemMetaEligible) {
+        warnNonConformantMetadataLikeLine(state, lineNo);
+        continue;
+      }
       const result = readDescription(lines, index, state.skippedLines);
       index = result.endIndex;
       if (sectionTarget) applyDescription(state, sectionTarget, result, lineNo, {
@@ -146,7 +157,8 @@ function parseMarkerMode(lines, state) {
         mergeFields: true,
         trackItemIds: false,
       });
-      else attachMetadata(state, line.trim(), lineNo);
+      else if (state.itemMetaEligible) attachMetadata(state, line.trim(), lineNo);
+      else warnNonConformantMetadataLikeLine(state, lineNo);
       continue;
     }
 
@@ -157,6 +169,7 @@ function parseMarkerMode(lines, state) {
     }
 
     if (mostRecentItem(state)) {
+      state.itemMetaEligible = false;
       state.document.diagnostics.push(warning(lineNo, 'non-conformant free-form text (not key: value metadata)'));
     }
   }
@@ -174,6 +187,7 @@ function parseBlankLinesMode(lines, state) {
     if (/^\s*$/.test(line)) {
       blockOpen = false;
       state.sectionMetaEligible = false;
+      state.itemMetaEligible = false;
       if (inPreamble) {
         if (state.currentList && state.currentList.preamble && state.currentList.preamble.length === 0) {
           state.currentList.preamble = null;
@@ -191,6 +205,7 @@ function parseBlankLinesMode(lines, state) {
       state.itemStack = [];
       inPreamble = true;
       state.sectionMetaEligible = true;
+      state.itemMetaEligible = false;
       blockOpen = false;
       continue;
     }
@@ -198,6 +213,7 @@ function parseBlankLinesMode(lines, state) {
     const invalid = invalidMarkerDiagnostic(line, lineNo);
     if (invalid) {
       state.sectionMetaEligible = false;
+      state.itemMetaEligible = false;
       state.document.diagnostics.push(invalid);
       continue;
     }
@@ -212,6 +228,7 @@ function parseBlankLinesMode(lines, state) {
         inPreamble = false;
       }
       addItem(state, itemToken, lineNo);
+      state.itemMetaEligible = true;
       blockOpen = true;
       continue;
     }
@@ -236,6 +253,7 @@ function parseBlankLinesMode(lines, state) {
       }
 
       state.sectionMetaEligible = false;
+      state.itemMetaEligible = false;
       state.currentList.preamble.push(line.trim());
       continue;
     }
@@ -246,6 +264,7 @@ function parseBlankLinesMode(lines, state) {
         state.document.diagnostics.push(warning(lineNo, 'orphaned comment after blank-line boundary with no parent item in current block'));
         continue;
       }
+      state.itemMetaEligible = false;
       const target = findItemForIndent(state, parsedComment.indent) || mostRecentItem(state);
       if (target) appendOrAddComment(target, parsedComment);
       continue;
@@ -253,6 +272,10 @@ function parseBlankLinesMode(lines, state) {
 
     if (/^\s*"/.test(line)) {
       if (!blockOpen) continue;
+      if (!state.itemMetaEligible) {
+        warnNonConformantMetadataLikeLine(state, lineNo);
+        continue;
+      }
       const result = readDescription(lines, index, state.skippedLines);
       index = result.endIndex;
       attachDescription(state, result, lineNo);
@@ -260,12 +283,14 @@ function parseBlankLinesMode(lines, state) {
     }
 
     if (hasAnyKeyValue(line) && blockOpen) {
-      attachMetadata(state, line.trim(), lineNo);
+      if (state.itemMetaEligible) attachMetadata(state, line.trim(), lineNo);
+      else warnNonConformantMetadataLikeLine(state, lineNo);
       continue;
     }
 
     const blankItem = parseBlankLineItem(line);
     addItem(state, blankItem, lineNo);
+    state.itemMetaEligible = true;
     blockOpen = true;
   }
 
@@ -371,24 +396,14 @@ function attachMetadata(state, raw, lineNo) {
   const item = mostRecentItem(state);
   if (!item) return;
 
-  if (itemHasMetadata(item)) {
-    state.document.diagnostics.push(warning(lineNo, 'additional metadata line ignored'));
-    return;
-  }
-
-  applyMetadata(state, item, raw, lineNo, { trackItemIds: true });
+  applyMetadata(state, item, raw, lineNo, { mergeFields: true, trackItemIds: true });
 }
 
 function attachDescription(state, result, lineNo) {
   const item = mostRecentItem(state);
   if (!item) return;
 
-  if (itemHasMetadata(item)) {
-    state.document.diagnostics.push(warning(lineNo, 'additional metadata line ignored'));
-    return;
-  }
-
-  applyDescription(state, item, result, lineNo, { trackItemIds: true });
+  applyDescription(state, item, result, lineNo, { mergeFields: true, trackItemIds: true });
 }
 
 // Shared by item and section (list) targets. Unknown fields are preserved for
@@ -402,22 +417,49 @@ function applyMetadata(state, target, raw, lineNo, options) {
     return;
   }
 
+  recordRepeatedMetadataFields(state, target, fields, result.repeatedKeys, lineNo);
   assignFields(target, fields, options);
   const description = descriptionFromFields(fields);
   if (description !== null) target.description = description;
-  if (options && options.trackItemIds) recordDuplicateItemId(state, fields, lineNo);
+  if (options && options.trackItemIds) recordDuplicateItemId(state, target, fields, lineNo);
   recordUnparsedMetadataTail(state, result, lineNo);
 }
 
 function applyDescription(state, target, result, lineNo, options) {
+  if (target.description != null) {
+    state.document.diagnostics.push(warning(lineNo, "repeated metadata field 'description'"));
+  }
   target.description = result.value;
   if (result.trailingMeta) {
     const metadata = parseMetadataLine(result.trailingMeta);
     const fields = metadata.fields;
+    recordRepeatedMetadataFields(state, target, fields, metadata.repeatedKeys, lineNo);
     if (Object.keys(fields).length > 0) assignFields(target, fields, options);
-    if (options && options.trackItemIds) recordDuplicateItemId(state, fields, lineNo);
+    if (options && options.trackItemIds) recordDuplicateItemId(state, target, fields, lineNo);
     recordUnparsedMetadataTail(state, metadata, lineNo);
   }
+}
+
+function recordRepeatedMetadataFields(state, target, fields, repeatedKeys, lineNo) {
+  const warned = new Set();
+  for (const key of repeatedKeys || []) warnRepeatedMetadataField(state, warned, key, lineNo);
+
+  for (const key of Object.keys(fields)) {
+    if (Object.prototype.hasOwnProperty.call(target.fields || {}, key)) {
+      warnRepeatedMetadataField(state, warned, key, lineNo);
+      continue;
+    }
+
+    if (isDescriptionKey(key) && target.description != null) {
+      warnRepeatedMetadataField(state, warned, 'description', lineNo);
+    }
+  }
+}
+
+function warnRepeatedMetadataField(state, warned, key, lineNo) {
+  if (warned.has(key)) return;
+  warned.add(key);
+  state.document.diagnostics.push(warning(lineNo, `repeated metadata field '${key}'`));
 }
 
 function assignFields(target, fields, options) {
@@ -470,16 +512,24 @@ function readDescription(lines, startIndex, skippedLines) {
   };
 }
 
-function recordDuplicateItemId(state, fields, lineNo) {
+function recordDuplicateItemId(state, item, fields, lineNo) {
   for (const key of Object.keys(fields)) {
     if (key.toLowerCase() !== 'id') continue;
     const id = fields[key];
     if (!id) continue;
-    if (state.seenItemIds.has(id)) {
+
+    const previousId = state.itemIds.get(item);
+    if (previousId && state.seenItemIds.get(previousId) === item) {
+      state.seenItemIds.delete(previousId);
+    }
+
+    const existingItem = state.seenItemIds.get(id);
+    if (existingItem && existingItem !== item) {
       state.document.diagnostics.push(warning(lineNo, `duplicate item id '${id}'`));
     } else {
-      state.seenItemIds.set(id, lineNo);
+      state.seenItemIds.set(id, item);
     }
+    state.itemIds.set(item, id);
   }
 }
 
@@ -506,6 +556,13 @@ function sectionMetadataTarget(state) {
   return (state.sectionMetaEligible && state.currentList && !mostRecentItem(state))
     ? state.currentList
     : null;
+}
+
+function warnNonConformantMetadataLikeLine(state, lineNo) {
+  state.document.diagnostics.push(warning(
+    lineNo,
+    'metadata-like line appears after metadata eligibility closed',
+  ));
 }
 
 function findItemForIndent(state, indent) {

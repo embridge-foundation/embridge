@@ -8,6 +8,7 @@ function parseMetadataFields(raw) {
 
 function parseMetadataLine(raw) {
   const fields = {};
+  const repeatedKeys = [];
   let i = 0;
   let unparsedTail = null;
 
@@ -46,11 +47,12 @@ function parseMetadataLine(raw) {
       value = raw.slice(start, i).trim();
     }
 
+    if (Object.prototype.hasOwnProperty.call(fields, key)) repeatedKeys.push(key);
     fields[key] = value;
     if (raw[i] === ',') i += 1;
   }
 
-  return { fields, unparsedTail };
+  return { fields, repeatedKeys, unparsedTail };
 }
 
 function hasAnyKeyValue(raw) {
@@ -59,13 +61,13 @@ function hasAnyKeyValue(raw) {
 
 function descriptionFromFields(fields) {
   for (const key of Object.keys(fields)) {
-    if (DESCRIPTION_KEYS.has(key.toLowerCase())) return fields[key];
+    if (isDescriptionKey(key)) return fields[key];
   }
   return null;
 }
 
-function itemHasMetadata(item) {
-  return item.description !== null || Object.keys(item.fields).length > 0;
+function isDescriptionKey(key) {
+  return DESCRIPTION_KEYS.has(String(key || '').toLowerCase());
 }
 
 module.exports = {
@@ -73,5 +75,5 @@ module.exports = {
   parseMetadataFields,
   hasAnyKeyValue,
   descriptionFromFields,
-  itemHasMetadata,
+  isDescriptionKey,
 };

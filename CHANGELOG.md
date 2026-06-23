@@ -3,6 +3,18 @@
 All notable changes to the Embridge format are documented here. This project
 adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.2.2] - 2026-06-23
+
+- Added reader tolerance for consecutive item/subitem metadata lines, including
+  marker mode and blank-lines mode.
+- Clarified that one-line comma-separated metadata remains canonical output,
+  while preserved multiline metadata is valid but non-canonical.
+- Defined repeated scalar field handling as last-wins with diagnostics when
+  possible.
+- Clarified that comments, blank lines, item markers, list headings, and
+  free-form lines close item metadata eligibility.
+- Documented attachment subitem metadata ownership.
+
 ## [0.2.1] - 2026-06-13
 
 - Clarified parser bootstrap ordering for document metadata and syntax-mode

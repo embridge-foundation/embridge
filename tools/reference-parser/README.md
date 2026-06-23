@@ -1,6 +1,6 @@
 # Embridge Reference Parser
 
-Repo-local JavaScript reference parser for Embridge v0.2.1.
+Repo-local JavaScript reference parser for Embridge v0.2.2.
 
 This parser is intentionally kept under `tools/reference-parser/` while the
 format is young. The canonical conformance assets remain at the repo root:

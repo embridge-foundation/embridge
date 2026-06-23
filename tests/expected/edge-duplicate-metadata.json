@@ -8,8 +8,14 @@
         {
           "title": "Item with two metadata lines",
           "completed": false,
-          "marker": { "type": "bullet" },
-          "fields": { "prio": "high", "id": "abc123d" },
+          "marker": {
+            "type": "bullet"
+          },
+          "fields": {
+            "prio": "high",
+            "id": "abc123d",
+            "status": "doing"
+          },
           "description": null,
           "comments": [],
           "subitems": []
@@ -17,11 +23,5 @@
       ]
     }
   ],
-  "diagnostics": [
-    {
-      "line": 3,
-      "severity": "warning",
-      "message": "additional metadata line ignored"
-    }
-  ]
+  "diagnostics": []
 }

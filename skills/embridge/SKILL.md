@@ -113,7 +113,7 @@ When converting informal Markdown lists, avoid over-normalizing. A normal Markdo
 - Item metadata belongs to the item directly above. Metadata indentation is visual only and does not establish hierarchy.
 - Marker indentation, not metadata indentation, determines nesting. Compare leading-space columns; do not divide spaces by 2, especially under ordered markers.
 - For writer output, indent child markers to the parent content column: `- ` plus 2, `1. ` plus 3, `10. ` plus 4.
-- Each item gets at most one metadata block. A second metadata-like line is non-conformant; diagnose or repair rather than silently merging if fidelity matters.
+- Each item gets at most one logical metadata block. Consecutive metadata-like lines belong to that one block until a boundary line is reached; canonical writer output still uses one comma-separated metadata line.
 - Values containing commas must be quoted: `tags: "backend, api"`. Without quotes, text after the comma may be ignored or misread as another field.
 - Custom item fields are valid even when not declared in `fields:`. Preserve them.
 - Unknown document metadata fields should be preserved on edits. Do not discard future-version data.
@@ -206,7 +206,7 @@ Options, in order of how reliably they are available to you:
   - Every item marker is followed by a space: `- `, `- [ ] `, `1. `, `1. [ ] ` — never `-Item` or `1.Item`.
   - Each item's metadata line sits directly below its item, with no blank line between (except in blank-lines mode).
   - Values containing commas, leading/trailing spaces, or quotes are quoted, with literal quotes escaped as `""`.
-  - Each item has at most one metadata block; a second metadata-like line is non-conformant.
+  - Each item has at most one logical metadata block; consecutive metadata-like lines are one block until a boundary line is reached.
   - Nesting is set by marker indentation to the parent content column (`- ` +2, `1. ` +3, `10. ` +4), not by metadata indentation.
   - Existing item IDs and unknown metadata fields are preserved unchanged.
   - Document metadata is a single trailing HTML comment block, with `title:` and `format:` present for round-trip-safe output.

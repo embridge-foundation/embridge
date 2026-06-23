@@ -1,0 +1,67 @@
+{
+  "documentMetadata": null,
+  "lists": [
+    {
+      "title": null,
+      "preamble": null,
+      "items": [
+        {
+          "title": "Shorthand then explicit",
+          "completed": false,
+          "marker": {
+            "type": "bullet"
+          },
+          "fields": {
+            "description": "Longer explanation"
+          },
+          "description": "Longer explanation",
+          "comments": [],
+          "subitems": []
+        },
+        {
+          "title": "Explicit then shorthand",
+          "completed": false,
+          "marker": {
+            "type": "bullet"
+          },
+          "fields": {
+            "description": "Explicit value"
+          },
+          "description": "Shorthand value",
+          "comments": [],
+          "subitems": []
+        },
+        {
+          "title": "Desc alias then shorthand",
+          "completed": false,
+          "marker": {
+            "type": "bullet"
+          },
+          "fields": {
+            "desc": "Alias value"
+          },
+          "description": "Shorthand wins",
+          "comments": [],
+          "subitems": []
+        }
+      ]
+    }
+  ],
+  "diagnostics": [
+    {
+      "line": 3,
+      "severity": "warning",
+      "message": "repeated metadata field 'description'"
+    },
+    {
+      "line": 7,
+      "severity": "warning",
+      "message": "repeated metadata field 'description'"
+    },
+    {
+      "line": 11,
+      "severity": "warning",
+      "message": "repeated metadata field 'description'"
+    }
+  ]
+}

@@ -1,0 +1,194 @@
+{
+  "documentMetadata": null,
+  "lists": [
+    {
+      "title": null,
+      "preamble": null,
+      "items": [
+        {
+          "title": "Build reference parser",
+          "completed": false,
+          "marker": {
+            "type": "bullet"
+          },
+          "fields": {
+            "ref": ".tmp/spec-review.md, issue 2",
+            "prio": "high"
+          },
+          "description": "A reference parser would serve as the canonical interpretation of the spec.",
+          "comments": [],
+          "subitems": []
+        },
+        {
+          "title": "Repeated scalar fields",
+          "completed": false,
+          "marker": {
+            "type": "bullet"
+          },
+          "fields": {
+            "prio": "high",
+            "id": "new456a"
+          },
+          "description": null,
+          "comments": [],
+          "subitems": []
+        },
+        {
+          "title": "Parent",
+          "completed": null,
+          "marker": {
+            "type": "bullet"
+          },
+          "fields": {
+            "ref": "A",
+            "note": "B"
+          },
+          "description": null,
+          "comments": [],
+          "subitems": [
+            {
+              "title": "Child",
+              "completed": null,
+              "marker": {
+                "type": "bullet"
+              },
+              "fields": {
+                "ref": "C"
+              },
+              "description": null,
+              "comments": [],
+              "subitems": [
+                {
+                  "title": "Grandchild",
+                  "completed": null,
+                  "marker": {
+                    "type": "bullet"
+                  },
+                  "fields": {
+                    "ref": "D"
+                  },
+                  "description": null,
+                  "comments": [],
+                  "subitems": []
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "title": "Parent attachment",
+          "completed": null,
+          "marker": {
+            "type": "bullet"
+          },
+          "fields": {
+            "ref": "A"
+          },
+          "description": null,
+          "comments": [],
+          "subitems": [
+            {
+              "title": "[Spec](spec.pdf)",
+              "completed": null,
+              "marker": {
+                "type": "bullet"
+              },
+              "fields": {
+                "caption": "API review notes"
+              },
+              "description": null,
+              "comments": [],
+              "subitems": []
+            }
+          ]
+        },
+        {
+          "title": "Comment closes metadata",
+          "completed": null,
+          "marker": {
+            "type": "bullet"
+          },
+          "fields": {
+            "prio": "before"
+          },
+          "description": null,
+          "comments": [
+            {
+              "replyDepth": 1,
+              "author": null,
+              "timestamp": null,
+              "text": "comment"
+            }
+          ],
+          "subitems": []
+        },
+        {
+          "title": "Free-form closes metadata",
+          "completed": null,
+          "marker": {
+            "type": "bullet"
+          },
+          "fields": {
+            "prio": "before"
+          },
+          "description": null,
+          "comments": [],
+          "subitems": []
+        },
+        {
+          "title": "Marker boundary",
+          "completed": null,
+          "marker": {
+            "type": "bullet"
+          },
+          "fields": {
+            "prio": "before"
+          },
+          "description": null,
+          "comments": [],
+          "subitems": []
+        },
+        {
+          "title": "Next item",
+          "completed": false,
+          "marker": {
+            "type": "bullet"
+          },
+          "fields": {
+            "status": "next"
+          },
+          "description": null,
+          "comments": [],
+          "subitems": []
+        }
+      ]
+    }
+  ],
+  "diagnostics": [
+    {
+      "line": 8,
+      "severity": "warning",
+      "message": "repeated metadata field 'prio'"
+    },
+    {
+      "line": 10,
+      "severity": "warning",
+      "message": "repeated metadata field 'id'"
+    },
+    {
+      "line": 28,
+      "severity": "warning",
+      "message": "metadata-like line appears after metadata eligibility closed"
+    },
+    {
+      "line": 32,
+      "severity": "warning",
+      "message": "non-conformant free-form text (not key: value metadata)"
+    },
+    {
+      "line": 33,
+      "severity": "warning",
+      "message": "metadata-like line appears after metadata eligibility closed"
+    }
+  ]
+}

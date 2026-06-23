@@ -8,10 +8,10 @@ const { parseEmbridge } = require('../src');
 const root = path.resolve(__dirname, '../../..');
 
 const RELEASE_FILES = {
-  rootSpec: path.join(root, 'embridge_format_specifications_v0.2.1.md'),
-  archivedSpec: path.join(root, 'versions/v0_2_1/embridge_format_specifications_v0.2.1.md'),
-  rootDemo: path.join(root, 'embridge_output_demo_v0.2.1.md'),
-  archivedDemo: path.join(root, 'versions/v0_2_1/embridge_output_demo_v0.2.1.md'),
+  rootSpec: path.join(root, 'embridge_format_specifications_v0.2.2.md'),
+  archivedSpec: path.join(root, 'versions/v0_2_2/embridge_format_specifications_v0.2.2.md'),
+  rootDemo: path.join(root, 'embridge_output_demo_v0.2.2.md'),
+  archivedDemo: path.join(root, 'versions/v0_2_2/embridge_output_demo_v0.2.2.md'),
   fixtureDemo: path.join(root, 'tests/fixtures/full-output-demo.md'),
 };
 
@@ -46,13 +46,13 @@ function runReleaseConsistencyChecks() {
   assert.strictEqual(
     normalizeSpec(read(RELEASE_FILES.rootSpec)),
     normalizeSpec(read(RELEASE_FILES.archivedSpec)),
-    'root v0.2.1 spec and archived v0.2.1 spec drift outside the documented boundary-comment clarification',
+    'root v0.2.2 spec and archived v0.2.2 spec must match',
   );
 
   assert.strictEqual(
     read(RELEASE_FILES.rootDemo),
     read(RELEASE_FILES.archivedDemo),
-    'root v0.2.1 demo and archived v0.2.1 demo must match',
+    'root v0.2.2 demo and archived v0.2.2 demo must match',
   );
 
   for (const demoPath of [

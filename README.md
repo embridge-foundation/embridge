@@ -1,6 +1,6 @@
 # Embridge
 
-**Version:** 0.2.1  
+**Version:** 0.2.2  
 **Git repo:** https://github.com/embridge-foundation/embridge  
 **Project website:** https://embridge.net  
 **Summary:** A markdown-based format for item/task lists for humans and AI agents.  
@@ -83,7 +83,7 @@ title: Example Project
 sync: 2025-01-15T09:00:00-05:00
 uuid: 0188b200-0000-7000-8000-000000000000
 lists: "To-do" l1st01a, "Done" l1st02b
-format: Embridge v0.2.1, github.com/embridge-foundation/embridge
+format: Embridge v0.2.2, github.com/embridge-foundation/embridge
 -->
 ```
 
@@ -145,12 +145,12 @@ syntax: mode: blank-lines
 
 1. **Lists** are optional H1 headings (`# To-do`, `# In Progress`, `# Done`)
 2. **Items/tasks** are markdown list items using either bullet (`- [ ]`, `- [x]`, or just `-`) or ordered (`1. [ ]`, `2. [x]`, or just `1.`) markers
-3. **Item metadata** sits on the line below an item as comma-separated `key: value` pairs; keys may be standard, declared, or custom: `prio: high, due: 2025-01-20, id: abc123d`
+3. **Item metadata** sits directly below an item as comma-separated `key: value` pairs; one line is canonical, and consecutive metadata-like lines are valid reader input
 4. **Subitems/subtasks** use deeper-indented markers; writers indent children to the parent marker width
 5. **Attachments** are represented as subitems whose title is a Markdown link/image (`  - [Spec](docs/spec.pdf)`, `  - ![Screenshot](assets/login.png)`)
 6. **Document metadata** lives in an HTML comment at the end; parsers tolerate it at the top, but tooling SHOULD NOT emit it there
    - Apps/agents maintain fields like `title:`, `lists:`, and `format:` there (humans usually don't)
-   - When generating or rewriting Embridge, tools MUST NOT place list IDs directly below headings. List IDs belong in document metadata via `lists:`. Inline section metadata is reader-tolerance only and should be preserved only when importing existing files for lossless round-trips.
+   - When generating or rewriting Embridge, tools MUST NOT place list IDs directly below headings. List IDs belong in document metadata via `lists:`. Inline section metadata is valid but non-canonical and should be preserved only when importing existing files for lossless round-trips.
 
 **Note for parsers:** Values containing commas must be quoted. For example, `tags: "apples, oranges"` is valid, but `tags: apples, oranges` would be parsed incorrectly (the parser would see `oranges` as a new key).
 
@@ -179,8 +179,8 @@ You can play around with an interactive [Embridge editor and validator](https://
 
 ## Documentation
 
-- [Full Specification](https://github.com/embridge-foundation/embridge/blob/main/embridge_format_specifications_v0.2.1.md) - Complete format reference
-- [Example File](https://github.com/embridge-foundation/embridge/blob/main/embridge_output_demo_v0.2.1.md) 
+- [Full Specification](https://github.com/embridge-foundation/embridge/blob/main/embridge_format_specifications_v0.2.2.md) - Complete format reference
+- [Example File](https://github.com/embridge-foundation/embridge/blob/main/embridge_output_demo_v0.2.2.md)
 
 ## References
 

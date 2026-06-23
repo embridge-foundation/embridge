@@ -1,6 +1,6 @@
 # Embridge Conformance Test Suite
 
-Test fixtures and expected parse trees for the Embridge format specification v0.2.1.
+Test fixtures and expected parse trees for the Embridge format specification v0.2.2.
 
 ## Structure
 
