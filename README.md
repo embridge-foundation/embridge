@@ -27,6 +27,7 @@
 - [Try it out](#try-it-out)
 - [About the core contributor](#about-the-core-contributor)
 - [How to contribute](#how-to-contribute)
+  - [Contributor workflow](#contributor-workflow)
 - [Documentation](#documentation)
 - [References](#references)
 - [License](#license)
@@ -176,6 +177,46 @@ You can play around with an interactive [Embridge editor and validator](https://
 
 - Open an [issue](https://github.com/embridge-foundation/embridge/issues) for bugs or ideas.
 - Submit a PR for spec or doc changes; keep edits aligned with the format requirements.
+
+### Contributor workflow
+
+Use short-lived branches for normal work. Branch names should describe the change, for example:
+
+```bash
+git checkout -b docs/metadata-clarity
+```
+
+Merge to `main` when each change is coherent, reviewed enough to be public, and still aligned with the format goals.
+
+Keep upcoming release notes in `CHANGELOG.md` under `## [Unreleased]` on `main`, following the [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) pattern:
+
+```markdown
+# Changelog
+
+## [Unreleased]
+
+### Changed
+- Clarified metadata block parsing.
+
+## [0.2.2] - 2026-06-23
+...
+```
+
+During normal work, a feature branch adds its note under `## [Unreleased]`. After the branch is merged, `main` shows what has changed since the last tagged release.
+
+For release prep:
+
+1. Convert the current `## [Unreleased]` notes into the new version section, dated with the release date.
+2. Add a fresh empty `## [Unreleased]` section above the new version section.
+3. Update the README, specification, parser, and other current version markers only when the release version is final.
+4. Tag the release commit:
+
+```bash
+git tag v0.2.3
+git push origin v0.2.3
+```
+
+Use a `release/v0.2.3` branch only when a short freeze or stabilization period is needed. In that case, do the changelog conversion on the release branch, merge it back to `main`, and tag the merged release commit.
 
 ## Documentation
 
