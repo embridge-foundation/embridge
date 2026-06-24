@@ -3,6 +3,8 @@
 All notable changes to the Embridge format are documented here. This project
 adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
 ## [0.2.2] - 2026-06-23
 
 - Added reader tolerance for consecutive item/subitem metadata lines, including
