@@ -3,9 +3,11 @@
 
 const assert = require('assert');
 const fs = require('fs');
+const os = require('os');
 const path = require('path');
 const { spawnSync } = require('child_process');
 const { run } = require('../src/cli');
+const { parseEmbridge } = require('../src');
 
 const root = path.resolve(__dirname, '../../..');
 const packageJson = require('../package.json');
@@ -47,12 +49,48 @@ test('to-json exits 0 and prints parseable JSON', () => {
   assert.deepStrictEqual(parsed.diagnostics, []);
 });
 
+test('from-json exits 0 and prints parseable Embridge Markdown', () => {
+  const jsonResult = runCli(['to-json', fullFeatured]);
+  assert.strictEqual(jsonResult.code, 0);
+
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'embridge-cli-'));
+  const jsonPath = path.join(tempDir, 'full-featured.json');
+  fs.writeFileSync(jsonPath, jsonResult.stdout);
+
+  const result = runCli(['from-json', jsonPath]);
+  assert.strictEqual(result.code, 0);
+  assert.strictEqual(result.stderr, '');
+  assert.match(result.stdout, /^# Backlog/m);
+  assert.match(result.stdout, /<!--\ntitle: Project Demo/);
+
+  const parsed = parseEmbridge(result.stdout, { sourceName: 'from-json.md' });
+  assert.deepStrictEqual(parsed.diagnostics, []);
+  assert.strictEqual(parsed.lists.length, 4);
+  assert.strictEqual(parsed.lists[0].items[0].fields.tags, 'research, backend');
+  assert.strictEqual(
+    parsed.lists[1].items[0].description,
+    'Users report that page 2 shows\nduplicate items from page 1.\nCheck offset calculation.',
+  );
+});
+
+test('from-json exits 2 for invalid JSON', () => {
+  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'embridge-cli-'));
+  const jsonPath = path.join(tempDir, 'invalid.json');
+  fs.writeFileSync(jsonPath, '{');
+
+  const result = runCli(['from-json', jsonPath]);
+  assert.strictEqual(result.code, 2);
+  assert.strictEqual(result.stdout, '');
+  assert.match(result.stderr, /invalid\.json:/);
+});
+
 test('--help exits 0 and prints usage', () => {
   const result = runCli(['--help']);
   assert.strictEqual(result.code, 0);
   assert.strictEqual(result.stderr, '');
   assert.match(result.stdout, /Usage: embridge <command> \[options\]/);
   assert.match(result.stdout, /validate <file\.\.\.>/);
+  assert.match(result.stdout, /from-json <file\.json>/);
 });
 
 test('help exits 0 and prints usage', () => {

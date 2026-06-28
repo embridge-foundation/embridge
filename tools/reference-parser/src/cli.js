@@ -2,7 +2,7 @@
 
 const fs = require('fs');
 const path = require('path');
-const { parseEmbridge } = require('./index');
+const { parseEmbridge, stringifyEmbridge } = require('./index');
 
 function main(args, options = {}) {
   const code = run(args, options);
@@ -30,6 +30,10 @@ function run(args, options = {}) {
 
   if (args[0] === 'to-json') {
     return toJson(args.slice(1), stdout, stderr);
+  }
+
+  if (args[0] === 'from-json') {
+    return fromJson(args.slice(1), stdout, stderr);
   }
 
   write(stderr, `Unknown command: ${args[0]}\n\n${usageText()}\n`);
@@ -97,6 +101,39 @@ function toJson(files, stdout, stderr) {
   return 0;
 }
 
+function fromJson(files, stdout, stderr) {
+  if (files.length !== 1) {
+    write(stderr, `Expected exactly one file path.\n\n${usageText()}\n`);
+    return 2;
+  }
+
+  const file = files[0];
+  let input;
+  try {
+    input = fs.readFileSync(file, 'utf8');
+  } catch (error) {
+    write(stderr, `${file}: ${error.message}\n`);
+    return 2;
+  }
+
+  let result;
+  try {
+    result = JSON.parse(input);
+  } catch (error) {
+    write(stderr, `${file}: ${error.message}\n`);
+    return 2;
+  }
+
+  try {
+    write(stdout, stringifyEmbridge(result));
+  } catch (error) {
+    write(stderr, `${file}: ${error.message}\n`);
+    return 2;
+  }
+
+  return 0;
+}
+
 function formatDiagnostic(file, diagnostic) {
   const location = diagnostic.line ? `${file}:${diagnostic.line}` : file;
   const severity = diagnostic.severity || 'warning';
@@ -114,8 +151,9 @@ function helpText() {
     usageText(),
     '',
     'Commands:',
-    '  validate <file...>  Validate Embridge Markdown files',
-    '  to-json <file.md>   Parse an Embridge Markdown file as JSON',
+    '  validate <file...>     Validate Embridge Markdown files',
+    '  to-json <file.md>      Parse an Embridge Markdown file as JSON',
+    '  from-json <file.json>  Convert parser JSON back to Embridge Markdown',
     '',
     'Options:',
     '  -h, --help          Show this help',
@@ -135,6 +173,7 @@ function write(stream, text) {
 module.exports = {
   main,
   run,
+  fromJson,
   toJson,
   validate,
 };

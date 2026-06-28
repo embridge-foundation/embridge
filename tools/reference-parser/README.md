@@ -2,8 +2,9 @@
 
 CLI and parser for validating Embridge Markdown files.
 
-The package validates Embridge Markdown. It does not rewrite files or change the
-Embridge format version declared in a document.
+The package validates Embridge Markdown and can convert between Markdown and the
+parser JSON shape. It does not change the Embridge format version declared in a
+document.
 
 ## Quick Start
 
@@ -19,6 +20,12 @@ Convert one file to the parser JSON result:
 npx embridge to-json file.md
 ```
 
+Convert parser JSON back to Embridge Markdown:
+
+```sh
+npx embridge from-json file.json
+```
+
 Install it as a development dependency:
 
 ```sh
@@ -31,6 +38,7 @@ npx embridge validate file.md
 ```sh
 embridge validate <file...>
 embridge to-json <file.md>
+embridge from-json <file.json>
 embridge help
 embridge --help
 embridge --version
@@ -55,12 +63,22 @@ file.md:12: warning: Duplicate item id "abc123"
 `to-json` prints the full parser result as pretty JSON. Parser diagnostics do
 not make `to-json` fail because the JSON output is useful for diagnosis.
 
+`from-json` reads the parser JSON shape and prints canonical Embridge Markdown.
+This makes round-tripping demonstrable:
+
+```sh
+npx embridge to-json file.md > file.json
+npx embridge from-json file.json > file.roundtrip.md
+npx embridge validate file.roundtrip.md
+```
+
 ## Library Usage
 
 ```js
-const { parseEmbridge } = require("embridge");
+const { parseEmbridge, stringifyEmbridge } = require("embridge");
 
 const tree = parseEmbridge(markdown, { sourceName: "file.md" });
+const roundtripMarkdown = stringifyEmbridge(tree);
 ```
 
 The parser result includes `documentMetadata`, parsed `lists`, and

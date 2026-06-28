@@ -174,6 +174,7 @@ You can also validate files from the command line with the reference parser CLI:
 ```sh
 npx embridge validate file.md
 npx embridge to-json file.md
+npx embridge from-json file.json
 npm install --save-dev embridge
 ```
 

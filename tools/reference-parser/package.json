@@ -15,7 +15,7 @@
     "LICENSE"
   ],
   "scripts": {
-    "test": "node test/conformance.test.js && node test/release-consistency.test.js && node test/cli.test.js",
+    "test": "node test/conformance.test.js && node test/release-consistency.test.js && node test/cli.test.js && node test/markdown-writer.test.js",
     "check": "node bin/embridge-parse.js --check ../../tests/fixtures ../../tests/expected"
   },
   "repository": {
