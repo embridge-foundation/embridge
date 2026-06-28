@@ -1,16 +1,44 @@
 {
-  "name": "embridge-reference-parser",
+  "name": "embridge",
   "version": "0.2.2",
   "private": true,
-  "description": "Repo-local JavaScript reference parser for the Embridge format",
+  "description": "CLI and parser for validating Embridge Markdown files",
   "type": "commonjs",
   "main": "src/index.js",
   "bin": {
+    "embridge": "bin/embridge.js",
     "embridge-parse": "bin/embridge-parse.js"
   },
+  "files": [
+    "bin/",
+    "src/",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
-    "test": "node test/conformance.test.js",
+    "test": "node test/conformance.test.js && node test/release-consistency.test.js && node test/cli.test.js",
     "check": "node bin/embridge-parse.js --check ../../tests/fixtures ../../tests/expected"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/embridge-foundation/embridge.git",
+    "directory": "tools/reference-parser"
+  },
+  "bugs": {
+    "url": "https://github.com/embridge-foundation/embridge/issues"
+  },
+  "homepage": "https://github.com/embridge-foundation/embridge#readme",
+  "keywords": [
+    "embridge",
+    "markdown",
+    "tasks",
+    "todo",
+    "parser",
+    "validator",
+    "cli"
+  ],
+  "engines": {
+    "node": ">=18"
   },
   "license": "MIT"
 }

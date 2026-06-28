@@ -168,6 +168,14 @@ Embridge has its own quirks—the `- [ ]` checkbox syntax comes from GitHub-flav
 
 You can play around with an interactive [Embridge editor and validator](https://embridge.net/#try-it) at embridge.net. It has +10 demos/examples.
 
+You can also validate files from the command line with the reference parser CLI:
+
+```sh
+npx embridge validate file.md
+npx embridge to-json file.md
+npm install --save-dev embridge
+```
+
 ## About the core contributor
 
 - Flo (xpiu) works on Embridge in his spare time. He is also working on a to-do app called `Todoi`. You can support him by having a look at [todoi.com](https://todoi.com).
