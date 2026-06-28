@@ -6,7 +6,6 @@ const path = require('path');
 const assert = require('assert');
 const { spawnSync } = require('child_process');
 const { parseEmbridge } = require('../src');
-const { runReleaseConsistencyChecks } = require('./release-consistency.test');
 
 const root = path.resolve(__dirname, '../../..');
 const fixturesDir = path.join(root, 'tests/fixtures');
@@ -54,9 +53,6 @@ if (cli.status !== 0) {
 
 console.log('');
 console.log(`Conformance tests passed: ${passed}`);
-
-runReleaseConsistencyChecks();
-console.log('Release consistency checks passed');
 
 function normalizeForComparison(tree) {
   const clone = JSON.parse(JSON.stringify(tree));

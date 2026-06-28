@@ -1,31 +1,77 @@
-# Embridge Reference Parser
+# Embridge
 
-Repo-local JavaScript reference parser for Embridge v0.2.2.
+CLI and parser for validating Embridge Markdown files.
 
-This parser is intentionally kept under `tools/reference-parser/` while the
-format is young. The canonical conformance assets remain at the repo root:
-`tests/fixtures/*.md` and `tests/expected/*.json`.
+The package validates Embridge Markdown. It does not rewrite files or change the
+Embridge format version declared in a document.
 
-## Usage
+## Quick Start
 
-Parse one file:
-
-```sh
-node bin/embridge-parse.js ../../tests/fixtures/full-featured.md
-```
-
-Run the conformance suite:
+Validate one or more files without installing the package first:
 
 ```sh
-npm test
-node bin/embridge-parse.js --check ../../tests/fixtures ../../tests/expected
+npx embridge validate file.md
 ```
 
-Use as a library:
+Convert one file to the parser JSON result:
+
+```sh
+npx embridge to-json file.md
+```
+
+Install it as a development dependency:
+
+```sh
+npm install --save-dev embridge
+npx embridge validate file.md
+```
+
+## Commands
+
+```sh
+embridge validate <file...>
+embridge to-json <file.md>
+embridge help
+embridge --help
+embridge --version
+```
+
+`validate` parses each file and prints diagnostics to stderr. It prints nothing
+when parsing completes without diagnostics.
+
+Exit codes:
+
+- `0`: parsing completed without diagnostics
+- `1`: parsing completed and one or more diagnostics were found
+- `2`: command usage error, unreadable file, or unexpected runtime failure
+
+Diagnostics include the file name, line number when available, severity, and
+message:
+
+```text
+file.md:12: warning: Duplicate item id "abc123"
+```
+
+`to-json` prints the full parser result as pretty JSON. Parser diagnostics do
+not make `to-json` fail because the JSON output is useful for diagnosis.
+
+## Library Usage
 
 ```js
-const { parseEmbridge } = require("./src");
+const { parseEmbridge } = require("embridge");
 
-const tree = parseEmbridge(markdown, { sourceName: "example.md" });
+const tree = parseEmbridge(markdown, { sourceName: "file.md" });
 ```
 
+The parser result includes `documentMetadata`, parsed `lists`, and
+`diagnostics`.
+
+## Format Documentation
+
+The Embridge format specification lives in the main repository:
+
+- https://github.com/embridge-foundation/embridge
+- https://embridge.net
+
+This package currently ships the JavaScript reference parser and CLI from the
+repository's `tools/reference-parser/` directory.
