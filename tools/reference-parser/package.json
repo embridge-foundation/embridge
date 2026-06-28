@@ -1,7 +1,6 @@
 {
   "name": "embridge",
   "version": "0.2.2",
-  "private": true,
   "description": "CLI and parser for validating Embridge Markdown files",
   "type": "commonjs",
   "main": "src/index.js",
