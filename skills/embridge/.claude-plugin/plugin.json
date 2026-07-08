@@ -1,6 +1,6 @@
 {
   "name": "embridge",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Create, read, edit, validate, diagnose, and convert Embridge Markdown item lists and task lists.",
   "author": {
     "name": "xpiu",
