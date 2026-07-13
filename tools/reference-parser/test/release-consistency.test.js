@@ -100,6 +100,11 @@ function relative(filePath) {
   return path.relative(root, filePath);
 }
 
+if (require.main === module) {
+  runReleaseConsistencyChecks();
+  console.log('Release consistency checks passed');
+}
+
 module.exports = {
   runReleaseConsistencyChecks,
 };
