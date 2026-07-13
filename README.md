@@ -1,11 +1,12 @@
 # Embridge
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 **Version:** 0.2.2  
 **Git repo:** https://github.com/embridge-foundation/embridge  
 **Project website:** https://embridge.net  
 **Summary:** A markdown-based format for item/task lists for humans and AI agents.  
 **Author:** xpiu  
-**Licence:** MIT  
 
 ## Contents
 
