@@ -23,7 +23,10 @@
   - [Opportunities](#opportunities)
   - [Threats](#threats)
 - [How It Works](#how-it-works)
-- [Embridge compared to todo.txt format](#embridge-compared-to-todotxt-format)
+- [Embridge compared to other formats](#embridge-compared-to-other-formats)
+  - [Embridge compared to GitHub Flavored Markdown with YAML frontmatter](#embridge-compared-to-github-flavored-markdown-with-yaml-frontmatter)
+  - [Embridge compared to todo.txt](#embridge-compared-to-todotxt)
+  - [Embridge compared to the Open Knowledge Format (OKF)](#embridge-compared-to-the-open-knowledge-format-okf)
 - [Try it out](#try-it-out)
 - [About the core contributor](#about-the-core-contributor)
 - [How to contribute](#how-to-contribute)
@@ -155,15 +158,47 @@ syntax: mode: blank-lines
 
 **Note for parsers:** Values containing commas must be quoted. For example, `tags: "apples, oranges"` is valid, but `tags: apples, oranges` would be parsed incorrectly (the parser would see `oranges` as a new key).
 
-## Embridge compared to todo.txt format
+## Embridge compared to other formats
 
-Embridge has some similarities to [todo.txt](https://github.com/todotxt/todo.txt): both are plain-text, human-editable, and git-friendly. The difference is focus:
+Embridge has a unique focus : **support natural, human-written lists - be reliably machine-parseable - be git-friendly**. If you already have a workflow that works, keep it. The comparisons below clarify Embridge's unique advantages.
 
-- **List-oriented** - Embridge organizes items into named sections (`# To-do`, `# Done`) and supports subitems via indentation. todo.txt is a flat file.
-- **Self-describing metadata** - Embridge uses `key: value` pairs (`prio: high`, `due: 2025-01-20`). todo.txt relies on positional rules and symbols: `(A)` for priority, `+project` for projects, `@context` for contexts. You need to memorize what each symbol means.
-- **Markdown-native** - Embridge files render reasonably in any Markdown viewer. todo.txt is its own format.
+### Embridge compared to GitHub Flavored Markdown with YAML frontmatter
 
-Embridge has its own quirks—the `- [ ]` checkbox syntax comes from GitHub-flavored Markdown, and metadata on a separate line takes getting used to. But if you already write Markdown, the learning curve is minimal.
+GFM checkboxes (`- [ ]`, `- [x]`) are familiar and render well on GitHub, and YAML front matter covers document-level fields like `title` or `tags`. For simple lists that live in one app or pipeline, that stack is enough.
+
+Embridge uses the same Markdown surface, but treats **task lists as a portable interchange format**:
+
+1. **List first, metadata last** - YAML front matter expects general info at the top of the file. But humans start a list by just listing stuff; the meta and general info come later, as an afterthought. Embridge matches that flow: the file opens with items, and document fields (`title:`, `lists:`, `format:`) live in an HTML comment at the end.
+2. **Per-item metadata and IDs** - `key: value` fields directly under each item (`prio: high`, `due: 2025-01-20`, `id: abc123d`). GFM has no standard place for these, so teams invent editor-specific conventions.
+3. **Standard fields** - `status`, `prio`, `tags`, `assignee`, `due`, `id`, etc. have defined semantics; unknown custom fields are preserved.
+4. **Per-item comments** - `>` lines with optional `@author [timestamp]` and `>>` replies. GFM/YAML have no item-level equivalent.
+5. **Named lists** - `# To-do`, `# In Progress`, `# Done` sections are first-class; no YAML arrays or file-per-column.
+6. **Nesting and attachments** - Subitems via ordinary indentation; attachments as link/image subitems, with shared round-trip rules.
+7. **A spec and reference tooling** - One defined format with writer rules, lossless round-trips, and validation - not a stack of conventions.
+
+GFM + YAML is lighter for notes with a few tasks. Choose Embridge when the `.md` file is the **source of truth for tasks across humans, agents, and apps**.
+
+### Embridge compared to todo.txt
+
+Both [todo.txt](https://github.com/todotxt/todo.txt) and Embridge are plain-text, human-editable, and git-friendly. The difference is focus:
+
+1. **List-oriented** - Named sections (`# To-do`, `# Done`) and nested subitems. todo.txt is a flat file, one task per line.
+2. **Self-describing metadata** - `key: value` pairs (`prio: high`, `due: 2025-01-20`) instead of memorized symbols (`(A)`, `+project`, `@context`).
+3. **Stable IDs** - `id` fields let tools track an item across edits and merges. todo.txt identifies tasks only by text and line position.
+4. **Done tasks stay in the file** - Checked off or moved to `# Done`. todo.txt archives completed tasks to a separate `done.txt`.
+5. **Comments and attachments** - Per-item comments (`> @alice [2025-01-20]: ...`) and link/image subitems. todo.txt has no equivalent.
+6. **Markdown-native** - Renders in any Markdown viewer or git forge. todo.txt is its own format.
+
+### Embridge compared to the Open Knowledge Format (OKF)
+
+The [Open Knowledge Format](https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/main/okf/SPEC.md) (Google Cloud, 2026) organizes a **directory of Markdown files** into a knowledge base for AI agents: one concept per file, YAML frontmatter with a required `type` field, and cross-links that form a graph. Both formats are plain Markdown, git-friendly, and preserve unknown fields - but they solve different problems:
+
+1. **Metadata placement** - OKF follows the frontmatter-at-top convention; Embridge opens with items or a list. Documenting metadata is lower priority.
+2. **Task semantics** - Checkboxes, `status`, `prio`, `due`, stable IDs, and per-item comments are core to Embridge. OKF has no task or item constructs.
+3. **Items vs. concepts** - Embridge structures the *inside* of one file into lists of items/tasks. OKF structures a *directory* of files, one concept per file.
+4. **Per-item vs. per-document metadata** - Embridge attaches `key: value` fields to every item; OKF metadata lives only in each file's frontmatter.
+
+The two are complementary rather than competing: an Embridge task file can live inside an OKF bundle as a concept, giving agents both curated context (OKF) and actionable task lists (Embridge).
 
 ## Try it out
 
@@ -227,6 +262,7 @@ Use a `release/v0.2.3` branch only when a short freeze or stabilization period i
 
 - [CommonMark Spec](https://spec.commonmark.org/)
 - [GitHub Flavored Markdown Spec](https://github.github.com/gfm/)
+- [Open Knowledge Format Spec](https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/main/okf/SPEC.md)
 - [Minimal to-do](https://github.com/xpiu/minimal-to-do)
 
 ## License
